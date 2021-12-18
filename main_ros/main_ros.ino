@@ -190,15 +190,14 @@ void feedback(int mot){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// motors update to spd and dir values
 void update_motor(int mot){
     curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay ;
+    feedback(mot);
     switch (dir[mot]){
-      case 1:
-      feedback(mot);
+      case 1:     
       analogWrite(ena[mot], ena_d[mot]);
       digitalWrite(fwd[mot], HIGH);
       digitalWrite(bck[mot], LOW);
       break;
       case -1:
-      feedback(mot);
       analogWrite(ena[mot], ena_d[mot]);
       digitalWrite(fwd[mot], LOW);
       digitalWrite(bck[mot], HIGH);
