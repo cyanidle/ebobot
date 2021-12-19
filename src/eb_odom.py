@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('beginner_tutorials')
+import roslib; roslib.load_manifest('ebobot')
 import rospy
 from std_msgs.msg import String
 def callback(data):

@@ -1,0 +1,23 @@
+<launch>
+    <arg name="stm_device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0012-if00-port0"/>
+    <arg name="stm_baud" default="460800"/>
+
+    <arg name="arduino_device" default="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0010-if00-port0"/>
+    <arg name="arduino_baud" default="115200"/>
+
+    <node pkg="rosserial_python" type="serial_node.py" name="stm_serial_node" output="log" respawn="true" respawn_delay="10">
+        <param name="port" value="$(arg stm_device)"/>
+        <param name="baud" value="$(arg stm_baud)"/>
+        <param name="wheel_param" value="$(optenv ROVER_WHEEL_PARAM 22500)"/>
+        <param name="wheel_distance" type="double" value="0.185"/>
+        <param name="odom_orientation_mode" value="imu_link"/>
+        <param name="odom_child_frame_id" value="base_footprint"/>
+        <param name="tf_prefix" value=""/>
+
+    </node>
+
+    <node pkg="rosserial_python" type="serial_node.py" name="arduino_serial_node" output="log" respawn="true" respawn_delay="10">
+        <param name="port" value="$(arg arduino_device)"/>
+        <param name="baud" value="$(arg arduino_baud)"/>
+    </node>
+</launch>

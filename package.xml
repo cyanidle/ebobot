@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>ebobot</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The ebobot package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="alexej@todo.todo">alexej</maintainer>
+  <maintainer email="lyosha.doronin@gmail.com">alexej</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
