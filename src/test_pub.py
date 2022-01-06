@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-import roslib; roslib.load_manifest('ebobot')
+#!/usr/bin/env python3
+import roslib; 
 import rospy
 from std_msgs.msg import String
 def talker():
