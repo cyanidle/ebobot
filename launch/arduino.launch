@@ -7,8 +7,7 @@
         <param name="port" value="$(arg arduino_device)"/>
         <param name="baud" value="$(arg arduino_baud)"/>
     </node>
-<launch>
-    <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback_node" output="log" respawn="true" respawn_delay="10">
-        
+
+    <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback_node" output="log" respawn="true" respawn_delay="10"> 
     </node>
 </launch>
