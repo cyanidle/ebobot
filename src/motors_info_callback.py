@@ -66,12 +66,11 @@ rate = rospy.Rate(int(1000/Motors.d_time))
 
 
 def callback(info):
-    for i in range(Motors.num):
-        current_motor = Motors.list[i]
-        setattr(current_motor , curr , info.data[i*4])
-        setattr(current_motor , targ , info.data[i*4 + 1])
-        setattr(current_motor , dist , info.data[i*4 + 2])
-        setattr(current_motor , ddist , info.data[i*4 + 3])
+    for mot in Motors.list:
+        setattr(mot , curr , info.data[i*4])
+        setattr(mot , targ , info.data[i*4 + 1])
+        setattr(mot , dist , info.data[i*4 + 2])
+        setattr(mot , ddist , info.data[i*4 + 3])
 
 def listener():
 
