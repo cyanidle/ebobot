@@ -61,19 +61,20 @@ motor2 = Motors(210)
 motor3 = Motors(330)
 
 
-rate = rospy.Rate(1000/Motors.d_time)
+rate = rospy.Rate(int(1000/Motors.d_time))
 
 
 
 def callback(info):
     for i in range(Motors.num):
-        Motors.list[i].curr = info.data[i*4]
-        Motors.list[i].targ = info.data[i*4 + 1]
-        Motors.list[i].dist = info.data[i*4 + 2]
-        Motors.list[i].ddist = info.data[i*4 + 3]
+        current_motor = Motors.list[i]
+        setattr(current_motor , curr , info.data[i*4])
+        setattr(current_motor , targ , info.data[i*4 + 1])
+        setattr(current_motor , dist , info.data[i*4 + 2])
+        setattr(current_motor , ddist , info.data[i*4 + 3])
 
 def listener():
-    
+
     rospy.Subscriber("motors_info", Float32MultiArray, callback)
 
 
