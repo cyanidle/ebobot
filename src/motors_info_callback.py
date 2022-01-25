@@ -90,6 +90,7 @@ odom_broadcaster = tf.TransformBroadcaster()
 
 while not rospy.is_shutdown():
     current_time = rospy.Time.now()
+    rospy.loginfo(f"Current time = {current_time}")
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
         (Motors.x, Motors.y, 0.),
