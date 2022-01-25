@@ -13,19 +13,23 @@ std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 char imu[] = "/imu";
 
- 
-#define ENCODER_PINB0 28
-#define ENCODER_PINB1 29
-#define ENCODER_PINB2 30
-#define EN0 4
-#define FWD0 22
-#define BCK0 23
-#define EN1 5
-#define FWD1 24
-#define BCK1 25
-#define EN2 6
-#define FWD2 26
-#define BCK2 27
+#define ENCODER_PINA0 18
+#define ENCODER_PINB0 31
+#define EN0 12
+#define FWD0 34
+#define BCK0 35
+
+#define ENCODER_PINA1 19
+#define ENCODER_PINB1 38
+#define EN1 8
+#define FWD1 37
+#define BCK1 36
+
+#define ENCODER_PINA2 3
+#define ENCODER_PINB2 49
+#define EN2 9
+#define FWD2 43
+#define BCK2 42
 ///////////////////////Loop settings
 int loop_delay = 50;
 TimerMs main_loop(loop_delay,1,0);
@@ -54,8 +58,9 @@ int bck[] = {BCK0,BCK1,BCK2};
 int ena[] = {EN0,EN1,EN2};
 int ena_d[3];
 ////////////////////////////motors radians
-float to_radians(float ang){
 
+
+float to_radians(float ang){
   return (ang * 6.283 / 360.0);
   }
 
@@ -120,9 +125,9 @@ void setup() {
   motors_msg.data_length = 12;
   motors_msg.data = (float *)malloc(sizeof(float)*12);
    ///////////////////////////////
-  attachInterrupt(digitalPinToInterrupt(2),encoder0,RISING);
-  attachInterrupt(digitalPinToInterrupt(3),encoder1,RISING);  //Не забудь объявить (войну неграм)
-  attachInterrupt(digitalPinToInterrupt(18),encoder2,RISING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PINA0),encoder0,RISING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PINA1),encoder1,RISING);  //Не забудь объявить (войну неграм)
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PINA2),encoder2,RISING);
   pinMode(ENCODER_PINB0,INPUT);
   pinMode(ENCODER_PINB1,INPUT);
   pinMode(ENCODER_PINB2,INPUT);
