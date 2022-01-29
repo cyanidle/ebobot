@@ -29,7 +29,8 @@ class Motors:
     vy = 0
     d_time = 50
 
-    def __init__(self, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
+    def __init__(self, num, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
+        self.num = num
         self.curr = curr
         self.targ = targ
         self.dist = dist
@@ -56,11 +57,11 @@ class Motors:
 
 
 #init motors with their angles
-motor1 = Motors(90) 
+motor1 = Motors(1,90) 
 rospy.loginfo(f"Motor 1 initialised with angle - {motor1.angle}, radians - {motor1.radians}, dist - {motor1.dist}"
-motor2 = Motors(210)
+motor2 = Motors(2,210)
 rospy.loginfo(f"Motor 2 initialised with angle - {motor2.angle}, radians - {motor2.radians}, dist - {motor2.dist}"
-motor3 = Motors(330)
+motor3 = Motors(3,330)
 rospy.loginfo(f"Motor 3 initialised with angle - {motor3.angle}, radians - {motor3.radians}, dist - {motor3.dist}"
 rospy.loginfo(f"Motors list {Motors.list[0]}, {Motors.list[1]}, {Motors.list[2]}"
 
@@ -70,10 +71,10 @@ rate = rospy.Rate(int(1000/Motors.d_time))
 
 def callback(info):
     for mot in Motors.list:
-        setattr(mot , curr , info.data[i*4])
-        setattr(mot , targ , info.data[i*4 + 1])
-        setattr(mot , dist , info.data[i*4 + 2])
-        setattr(mot , ddist , info.data[i*4 + 3])
+        setattr(mot , "curr" , info.data[getattr(mot,"num")*4])
+        setattr(mot , "targ" , info.data[getattr(mot,"num")*4 + 1])
+        setattr(mot , "dist" , info.data[getattr(mot,"num")*4 + 2])
+        setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
 
 def listener():
 
