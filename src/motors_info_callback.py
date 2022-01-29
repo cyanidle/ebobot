@@ -58,12 +58,12 @@ class Motors:
 
 #init motors with their angles
 motor1 = Motors(1,90) 
-rospy.loginfo(f"Motor 1 initialised with angle - {motor1.angle}, radians - {motor1.radians}, dist - {motor1.dist}"
+rospy.loginfo(f"Motor 1 initialised with angle - {motor1.angle}, radians - {motor1.radians}, dist - {motor1.dist}")
 motor2 = Motors(2,210)
-rospy.loginfo(f"Motor 2 initialised with angle - {motor2.angle}, radians - {motor2.radians}, dist - {motor2.dist}"
+rospy.loginfo(f"Motor 2 initialised with angle - {motor2.angle}, radians - {motor2.radians}, dist - {motor2.dist}")
 motor3 = Motors(3,330)
-rospy.loginfo(f"Motor 3 initialised with angle - {motor3.angle}, radians - {motor3.radians}, dist - {motor3.dist}"
-rospy.loginfo(f"Motors list {Motors.list[0]}, {Motors.list[1]}, {Motors.list[2]}"
+rospy.loginfo(f"Motor 3 initialised with angle - {motor3.angle}, radians - {motor3.radians}, dist - {motor3.dist}")
+rospy.loginfo(f"Motors list {Motors.list[0]}, {Motors.list[1]}, {Motors.list[2]}")
 
 rate = rospy.Rate(int(1000/Motors.d_time))
 
