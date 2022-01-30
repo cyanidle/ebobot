@@ -75,6 +75,7 @@ def callback(info):
         setattr(mot , "targ" , info.data[getattr(mot,"num")*4 + 1])
         setattr(mot , "dist" , info.data[getattr(mot,"num")*4 + 2])
         setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
+    Motors.updateOdom()
 
 def listener():
 
@@ -90,7 +91,7 @@ odom_broadcaster = tf.TransformBroadcaster()
 
 
 while not rospy.is_shutdown():
-    Motors.updateOdom()
+    
     current_time = rospy.Time.now()
     rospy.loginfo(f"Current time = {current_time}")
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
