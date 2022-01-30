@@ -175,9 +175,15 @@ void encoder2(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Feedback
 
 float dtime = (loop_delay/1000.0);
+
+
+/////////Adjustable !!!!!!!!!!
 float prop_coeff[] = {1,5,5};
 float inter_coeff[] = {0.5,0.2,0.2};
 float diff_coeff[] = {-0.1,0,0};
+
+
+///////Non-Adjustable
 float inter_term[] = {0,0,0};
 float last_error[] = {0,0,0};
 
