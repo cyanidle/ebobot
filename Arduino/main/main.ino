@@ -81,6 +81,11 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
       float x = cmd_vel.linear.x;
       float y = cmd_vel.linear.y;
       float turn = cmd_vel.angular.z;
+      if (x > 0.001 and x  < 0.001 and y > 0.001 and y < 0.001){
+        for (int mot=0;i<num_motors; i++){
+          dir[mot] = 0;
+        }
+      }
       for (int i=0;i<num_motors; i++){
         set_speed(i, x, y,turn);}}
         
@@ -100,9 +105,13 @@ void set_speed(int mot, float x, float y, float turn){
   if (spd < -mots_max_speed[mot]) spd = -mots_max_speed[mot];
   //////IF speed is less than 1 cm/second then its not considered
   if (spd > 0.01 or spd <- 0.01) { 
-  dir[mot] = spd/abs(spd);
-  targ_spd[mot] = spd;
+    dir[mot] = spd/abs(spd);
+    targ_spd[mot] = spd;
+  } 
+  else{
+    targ_spd[mot] = 0;
   }
+  
 }
 
 
