@@ -37,18 +37,18 @@ TimerMs main_loop(loop_delay,1,0);
 
 volatile long X[3];
 float coeff = 1;
-float rad = 17.27; //mm
+float rad = 0.1727; //m
 float ticks_per_rotation = 330;
 long dX[3];
 long lastX[3];
 
 
 ///////////////////////// MOTORS
-float turn_max_speed = 30;
-float max_speed = 50;
+float turn_max_speed = 0.30;
+float max_speed = 0.50;
 int dir[3];
 float dist[3];
-float mots_max_speed[] = {700,700,700};
+float mots_max_speed[] = {0.700,0.700,0.700};
 float ddist[3];
 float targ_spd[3];
 float curr_spd[3];
@@ -99,14 +99,10 @@ void set_speed(int mot, float x, float y, float turn){
   if (spd > mots_max_speed[mot]) spd = mots_max_speed[mot];
   if (spd < -mots_max_speed[mot]) spd = -mots_max_speed[mot];
   //////IF speed is less than 1 cm/second then its not considered
-  if (spd > 1 or spd <- 1) { 
+  if (spd > 0.01 or spd <- 0.01) { 
   dir[mot] = spd/abs(spd);
   targ_spd[mot] = spd;
   }
-  else {
-    dir[mot] = 0;
-    targ_spd[mot] = 0;
-  } 
 }
 
 
