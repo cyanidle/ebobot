@@ -82,7 +82,7 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
       float y = cmd_vel.linear.y;
       float turn = cmd_vel.angular.z;
       if (x > 0.001 and x  < 0.001 and y > 0.001 and y < 0.001){
-        for (int mot=0;i<num_motors; i++){
+        for (int mot=0;mot<num_motors; mot++){
           dir[mot] = 0;
         }
       }
