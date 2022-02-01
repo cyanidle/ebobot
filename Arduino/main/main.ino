@@ -110,7 +110,6 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
 setPidCallback(const std_msgs::Float32& set_pid){
- 
   static int count;
   count++
   int coeff = count/3;
