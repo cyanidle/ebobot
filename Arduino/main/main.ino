@@ -2,6 +2,7 @@
 
 #include <ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 
 
@@ -109,9 +110,14 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
 }
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
-setPidCallback(const std_msgs::Float32& set_pid){
+/////////Adjustable !!!!!!!!!!                                                                                              
+float prop_coeff[] = {140,140,140};                                                                                          
+float inter_coeff[] = {400,400,400};                                                                                        
+float diff_coeff[] = {10,10,10};    
+/////////////////////////////////////////
+void setPidCallback(const std_msgs::Float32& set_pid){
   static int count;
-  count++
+  count++;
   int coeff = count/3;
   int mot = count%3;
   switch (coeff){
@@ -214,10 +220,7 @@ void encoder2(){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
 float dtime = (loop_delay/1000.0);                                                                                          
-/////////Adjustable !!!!!!!!!!                                                                                              
-float prop_coeff[] = {140,140,140};                                                                                          
-float inter_coeff[] = {400,400,400};                                                                                        
-float diff_coeff[] = {10,10,10};                                                                                                                  
+                                                                                                              
 
 
 void PID(int mot){
