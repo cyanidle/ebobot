@@ -1,10 +1,10 @@
 <launch>
 
-<arg name="arduino_device" default="/dev/ttyACM0"/>
-<arg name="arduino_baud" default="56400"/>
+<arg name="port" default="/dev/ttyACM0"/>
+<arg name="arduino_baud" default="57600"/>
 
 <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" output="log" respawn="true" respawn_delay="10">
-        <param name="port" value="$(arg arduino_device)"/>
+        <param name="port" value="$(arg port)"/>
         <param name="baud" value="$(arg arduino_baud)"/>
     </node>
 
