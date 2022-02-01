@@ -133,7 +133,7 @@ void setPidCallback(const std_msgs::Float32& set_pid){
 }
 ros::Subscriber<std_msgs::Float32> set_pid("set_pid" , setPidCallback);
 
-\
+
 ///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
 //////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
 void update_mot(int mot){
