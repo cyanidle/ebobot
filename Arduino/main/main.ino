@@ -119,7 +119,6 @@ void setup() {
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
-  nh.subscribe(set_pid);
   /*
   motors_msg.layout.dim_length = ;
   motors_msg.layout.dim[0].label = "";
@@ -184,10 +183,6 @@ float prop_coeff[] = {2,2,2};
 float inter_coeff[] = {1,1,1};
 float diff_coeff[] = {0,0,0};
 /////////////////////////////////Setting PID through (set_pid) topic
-void pidCallback(const std_msgs::String& set_pid){
-  
-}
-ros::Subscriber<std_msgs::String> set_pid("set_pid" , pidCallback);
 
 ///////Non-Adjustable
 float inter_term[] = {0,0,0};
