@@ -10,4 +10,6 @@
 
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback_node" output="log" respawn="true" respawn_delay="10"> 
     </node>
+    <node pkg="ebobot" type="pid_setter.py" name="pid_setter_node" output="log" respawn="true" respawn_delay="10"> 
+    </node>
 </launch>

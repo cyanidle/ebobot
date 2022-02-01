@@ -8,7 +8,7 @@ coeffs = [400,400,400],    #prop_coeff
 
 
 #############
-rospy.init_node('pid_setter')
+rospy.init_node('pid_setter_node')
 pub = rospy.Publisher('set_pid', Float32)
 for coeff in coeffs:
     for val in coeff:
