@@ -149,60 +149,13 @@ void setup() {
 
 
 ///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
-void update_dist(mot){
-  
+void update_mot(mot){
     dX[mot] = X[mot] - lastX[mot];
     ddist[mot] = dX[mot] * (1.0/ticks_per_rotation) * rad * coeff;
     lastX[mot] = X[mot];
     dist[mot] = dist[mot] + ddist[mot];
-    update_motor(mot);
-  
-}
-
-///////////////////////////////////////////////////////////////////////
-void encoder0(){
-  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
-  X[0] += (temp*1) + (!temp * -1);
-}
-void encoder1(){
-  bool temp = (digitalRead(ENCODER_PINB1) == HIGH);
-  X[1] += (temp*1) + (!temp * -1);
-}
-void encoder2(){
-  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
-  X[2] += (temp*1) + (!temp * -1);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Feedback
-float dtime = (loop_delay/1000.0);
-
-
-/////////Adjustable !!!!!!!!!!
-float prop_coeff[] = {2,2,2};
-float inter_coeff[] = {1,1,1};
-float diff_coeff[] = {0,0,0};
-/////////////////////////////////Setting PID through (set_pid) topic
-
-///////Non-Adjustable
-float inter_term[] = {0,0,0};
-float last_error[] = {0,0,0};
-
-void feedback(int mot){
-  float error = abs(targ_spd[mot]) - abs(curr_spd[mot]);
-    inter_term[mot] += dtime * error;
-    
-    ena_d[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
-    (error - last_error[mot])/ dtime * diff_coeff[mot];  
-
-    last_error[mot] = error;
-    
-    if (ena_d[mot] > 255) ena_d[mot] = 255;
-    if (ena_d[mot] < 0) ena_d[mot] = 0;
-}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// motors update to spd and dir values
-void update_motor(int mot){
     curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay;
+    PID(mot);
     switch (dir[mot]){
       case 1:     
       analogWrite(ena[mot], ena_d[mot]);
@@ -223,19 +176,56 @@ void update_motor(int mot){
       default:
       break;
     }
+  
 }
+
+///////////////////////////////////////////////////////////////////////
+void encoder0(){
+  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
+  X[0] += (temp*1) + (!temp * -1);
+}
+void encoder1(){
+  bool temp = (digitalRead(ENCODER_PINB1) == HIGH);
+  X[1] += (temp*1) + (!temp * -1);
+}
+void encoder2(){
+  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
+  X[2] += (temp*1) + (!temp * -1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
+float dtime = (loop_delay/1000.0);                                                                                          
+/////////Adjustable !!!!!!!!!!                                                                                              
+float prop_coeff[] = {2,2,2};                                                                                          
+float inter_coeff[] = {1,1,1};                                                                                        
+float diff_coeff[] = {0,0,0};                                                                                                                  
+///////Non-Adjustable                                                                                      
+float inter_term[] = {0,0,0};                                                                                   
+float last_error[] = {0,0,0};
+
+void PID(int mot){
+  float error = abs(targ_spd[mot]) - abs(curr_spd[mot]);
+    inter_term[mot] += dtime * error;
+    ena_d[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
+    (error - last_error[mot])/ dtime * diff_coeff[mot]; 
+    last_error[mot] = error;
+    if (ena_d[mot] > 255) ena_d[mot] = 255;
+    if (ena_d[mot] < 0) ena_d[mot] = 0;
+}
+
 ////////////////////////////////////////////////////////////// 
 
 
 void loop(){
   if (main_loop.tick()){
+  for (int mot = 0; mot< num_motors; mot++) update_mot(mot);
   for (int mot = 0; mot< num_motors; mot++){
-    update_dist(mot);
-    feedback(mot);
     motors_msg.data[mot*4] = targ_spd[mot];
     motors_msg.data[mot*4 + 1] = curr_spd[mot];   
     motors_msg.data[mot*4 + 2] = dist[mot]; 
-    motors_msg.data[mot*4 + 3] = ddist[mot];}
+    motors_msg.data[mot*4 + 3] = ddist[mot];}  
+  }
   motors_info.publish(&motors_msg);
   nh.spinOnce();
   }  
