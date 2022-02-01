@@ -115,8 +115,19 @@ setPidCallback(const std_msgs::Float32& set_pid){
   count++
   int coeff = count/3;
   int mot = count%3;
-  
+  switch (coeff){
+  case 0 :
+    prop_coeff[mot] = set_pid.data;
+    break;
+  case 1:
+    inter_coeff[mot] = set_pid.data;
+    break;
+  case 2
+    diff_coeff[mot] = set_pid.data;
+    break;
   }
+  if (count == 9) count =9;
+}
 ros::Subscriber<std_msgs::Float32> set_pid("set_pid" , setPidCallback);
 
 
