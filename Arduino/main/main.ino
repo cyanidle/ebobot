@@ -56,7 +56,7 @@ int num_motors = 3;
 int fwd[] = {FWD0,FWD1,FWD2};
 int bck[] = {BCK0,BCK1,BCK2};
 int ena[] = {EN0,EN1,EN2};
-int ena_d[3];
+int pwm[3];
 ////////////////////////////motors radians
 
 
@@ -89,9 +89,11 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
       for (int mot=0;mot<num_motors; mot++){
         
         if (x == 0 and y == 0){
+          last_error[mot] = 0;
           inter_term[mot] = 0;
           dir[mot] = 0;
         }
+        
         float spd = mots_x_coeffs[mot]*x*max_speed + mots_y_coeffs[mot]*y*max_speed;
         spd += turn * turn_max_speed;
         if (spd > mots_max_speed[mot]) spd = mots_max_speed[mot];
@@ -99,7 +101,7 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
         //////IF speed is less than 1 cm/second then its not considered
         if (spd < 0.01 and spd > -0.01) targ_spd[mot] = 0;
         else{
-          dir[mot] = spd/abs(spd);
+          //dir[mot] = spd/abs(spd);
           targ_spd[mot] = spd;
         }
       }
@@ -155,7 +157,7 @@ void update_mot(int mot){
     
     switch (dir[mot]){
       case 0:
-      ena_d[mot] = 0;
+      pwm[mot] = 0;
       digitalWrite(ena[mot], HIGH);
       digitalWrite(fwd[mot], HIGH);
       digitalWrite(bck[mot], HIGH);
@@ -163,13 +165,13 @@ void update_mot(int mot){
       
       default:
       PID(mot);
-      if (ena_d[mot]/abs(ena_d[mot]) > 0){
-      analogWrite(ena[mot], abs(ena_d[mot]));
+      if (pwm[mot]/abs(pwm[mot]) > 0){
+      analogWrite(ena[mot], abs(pwm[mot]));
       digitalWrite(fwd[mot], HIGH);
       digitalWrite(bck[mot], LOW); 
       }
       else {
-      analogWrite(ena[mot], abs(ena_d[mot])); //////////ena_d varies now from -255 to 255, so we use abs
+      analogWrite(ena[mot], abs(pwm[mot])); //////////pwm varies now from -255 to 255, so we use abs
       digitalWrite(fwd[mot], LOW);
       digitalWrite(bck[mot], HIGH);  
       }
@@ -196,18 +198,18 @@ void encoder2(){
 float dtime = (loop_delay/1000.0);                                                                                          
 /////////Adjustable !!!!!!!!!!                                                                                              
 float prop_coeff[] = {140,140,140};                                                                                          
-float inter_coeff[] = {80,80,80};                                                                                        
+float inter_coeff[] = {400,400,400};                                                                                        
 float diff_coeff[] = {10,10,10};                                                                                                                  
 
 
 void PID(int mot){
   float error = targ_spd[mot] - curr_spd[mot];
     inter_term[mot] += dtime * error;
-    ena_d[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
+    pwm[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
     (error - last_error[mot])/ dtime * diff_coeff[mot]; 
     constrain(inter_term[mot],-30000,30000);
     last_error[mot] = error;
-    constrain(ena_d[mot], -255, 255);
+    constrain(pwm[mot], -255, 255);
 }
 
 ////////////////////////////////////////////////////////////// 
@@ -219,7 +221,7 @@ void loop(){
   for (int mot = 0; mot< num_motors; mot++){
     motors_msg.data[mot*4] = targ_spd[mot];
     motors_msg.data[mot*4 + 1] = curr_spd[mot];   
-    motors_msg.data[mot*4 + 2] = (float)ena_d[mot]; 
+    motors_msg.data[mot*4 + 2] = (float)pwm[mot]; 
     motors_msg.data[mot*4 + 3] = ddist[mot];}  
   }
   motors_info.publish(&motors_msg);
