@@ -100,7 +100,7 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
           targ_spd[mot] = 0;
         }
         else{
-          //stop_mot[mot] = spd/abs(spd);
+          stop_mot[mot] = false;
           targ_spd[mot] = spd;
         }
       }
