@@ -47,9 +47,9 @@ long lastX[3];
 ///////////////////////// MOTORS
 float turn_max_speed = 0.30;
 float max_speed = 0.50;
-int dir[3];
+bool stop_mot[3];
 float dist[3];
-float mots_max_speed[] = {0.700,0.700,0.700};
+float max_fwd_speed[] = {0.700,0.700,0.700};
 float ddist[3];
 float targ_spd[3];
 float curr_spd[3];
@@ -72,7 +72,7 @@ float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])),sin(to_radians(mots_ang
 
 
 
-////DIR IS USED ONLY FOR SETTING PINS ON SHIELD TO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
+////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD TO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 
 
 
@@ -80,7 +80,7 @@ float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])),sin(to_radians(mots_ang
 float inter_term[] = {0,0,0};                                                                                   
 float last_error[] = {0,0,0};
 
-////DIR IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
+////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 void speedCallback(const geometry_msgs::Twist& cmd_vel){
       float x = cmd_vel.linear.x;
       float y = cmd_vel.linear.y;
@@ -88,21 +88,19 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
       constrain(x,-1,1);
       constrain(y,-1,1);
       for (int mot=0;mot<num_motors; mot++){
-        
         if (x == 0 and y == 0){
-          last_error[mot] = 0;
-          inter_term[mot] = 0;
-          dir[mot] = 0;
-        }
-        
+          stop_mot[mot] = true;
+        }      
         float spd = mots_x_coeffs[mot]*x*max_speed + mots_y_coeffs[mot]*y*max_speed;
         spd += turn * turn_max_speed;
-        if (spd > mots_max_speed[mot]) spd = mots_max_speed[mot];
-        if (spd < -mots_max_speed[mot]) spd = -mots_max_speed[mot];
-        //////IF speed is less than 1 cm/second then its not considered
-        if (spd < 0.01 and spd > -0.01) targ_spd[mot] = 0;
+        constrain (spd, -max_fwd_speed[mot], max_fwd_speed[mot]);
+        //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
+        if (spd < 0.01 and spd > -0.01){
+          termsReset(mot);
+          targ_spd[mot] = 0;
+        }
         else{
-          //dir[mot] = spd/abs(spd);
+          //stop_mot[mot] = spd/abs(spd);
           targ_spd[mot] = spd;
         }
       }
@@ -116,7 +114,7 @@ float inter_coeff[] = {500,500,500};
 float diff_coeff[] = {30,30,30};    
 /////////////////////////////////////////
 void setPidCallback(const std_msgs::Float32& set_pid){
-  static int count;
+  static int count = 0;
   count++;
   int coeff = count/3;
   int mot = count%3;
@@ -131,12 +129,74 @@ void setPidCallback(const std_msgs::Float32& set_pid){
     diff_coeff[mot] = set_pid.data;
     break;
   }
-  if (count == 9) count =9;
+  if (count == 9) count = 0;
 }
 ros::Subscriber<std_msgs::Float32> set_pid("set_pid" , setPidCallback);
 
+\
+///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
+//////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
+void update_mot(int mot){
+    dX[mot] = X[mot] - lastX[mot];
+    ddist[mot] = dX[mot] * (1.0/ticks_per_rotation) * rad * coeff;
+    lastX[mot] = X[mot];
+    dist[mot] = dist[mot] + ddist[mot];
+    curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay;
+    if (stop_mot[mot]){
+      termsReset(mot);
+      digitalWrite(ena[mot], HIGH);
+      digitalWrite(fwd[mot], HIGH);
+      digitalWrite(bck[mot], HIGH);
+      }
+      
+    else{
+      PID(mot);
+      if (pwm[mot]/abs(pwm[mot]) > 0){
+      analogWrite(ena[mot], abs(pwm[mot]));
+      digitalWrite(fwd[mot], HIGH);
+      digitalWrite(bck[mot], LOW); 
+      }
+      else {
+      analogWrite(ena[mot], abs(pwm[mot])); //////////pwm varies now from -255 to 255, so we use abs
+      digitalWrite(fwd[mot], LOW);
+      digitalWrite(bck[mot], HIGH);  
+      }
+    }
+      
+}
 
-//////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
+float dtime = (loop_delay/1000.0);                                                                                          
+///////////////////////////////////////////////////////////////////////                                                                                                              
+void PID(int mot){
+  float error = targ_spd[mot] - curr_spd[mot];
+    inter_term[mot] += dtime * error;
+    pwm[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] - 
+    (error - last_error[mot])/ dtime * diff_coeff[mot]; 
+    constrain(inter_term[mot],-30000,30000);
+    last_error[mot] = error;
+    constrain(pwm[mot], -255, 255);
+}
+//////////////////////////////////////////////////////
+void termsReset(int mot){
+  last_error[mot] = 0;
+  inter_term[mot] = 0;
+}
+////////////////////////////////////////////////////////////// 
+
+void encoder0(){
+  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
+  X[0] += (temp*1) + (!temp * -1);
+}
+void encoder1(){
+  bool temp = (digitalRead(ENCODER_PINB1) == HIGH);
+  X[1] += (temp*1) + (!temp * -1);
+}
+void encoder2(){
+  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
+  X[2] += (temp*1) + (!temp * -1);
+}
+/////////////////////////////////////////////////
 void setup() {
   nh.initNode();
   nh.advertise(motors_info);
@@ -167,75 +227,7 @@ void setup() {
   pinMode(FWD2,OUTPUT);
   pinMode(BCK2,OUTPUT);
 }
-
-
-
-
-///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
-void update_mot(int mot){
-    dX[mot] = X[mot] - lastX[mot];
-    ddist[mot] = dX[mot] * (1.0/ticks_per_rotation) * rad * coeff;
-    lastX[mot] = X[mot];
-    dist[mot] = dist[mot] + ddist[mot];
-    curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay;
-    
-    switch (dir[mot]){
-      case 0:
-      pwm[mot] = 0;
-      digitalWrite(ena[mot], HIGH);
-      digitalWrite(fwd[mot], HIGH);
-      digitalWrite(bck[mot], HIGH);
-      break;
-      
-      default:
-      PID(mot);
-      if (pwm[mot]/abs(pwm[mot]) > 0){
-      analogWrite(ena[mot], abs(pwm[mot]));
-      digitalWrite(fwd[mot], HIGH);
-      digitalWrite(bck[mot], LOW); 
-      }
-      else {
-      analogWrite(ena[mot], abs(pwm[mot])); //////////pwm varies now from -255 to 255, so we use abs
-      digitalWrite(fwd[mot], LOW);
-      digitalWrite(bck[mot], HIGH);  
-      }
-      break;
-    }   
-}
-
-///////////////////////////////////////////////////////////////////////
-void encoder0(){
-  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
-  X[0] += (temp*1) + (!temp * -1);
-}
-void encoder1(){
-  bool temp = (digitalRead(ENCODER_PINB1) == HIGH);
-  X[1] += (temp*1) + (!temp * -1);
-}
-void encoder2(){
-  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
-  X[2] += (temp*1) + (!temp * -1);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
-float dtime = (loop_delay/1000.0);                                                                                          
-                                                                                                              
-
-
-void PID(int mot){
-  float error = targ_spd[mot] - curr_spd[mot];
-    inter_term[mot] += dtime * error;
-    pwm[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
-    (error - last_error[mot])/ dtime * diff_coeff[mot]; 
-    constrain(inter_term[mot],-30000,30000);
-    last_error[mot] = error;
-    constrain(pwm[mot], -255, 255);
-}
-
-////////////////////////////////////////////////////////////// 
-
-
+////////////////////////////////
 void loop(){
   if (main_loop.tick()){
   for (int mot = 0; mot< num_motors; mot++) update_mot(mot);
