@@ -152,7 +152,7 @@ void update_mot(int mot){
     lastX[mot] = X[mot];
     dist[mot] = dist[mot] + ddist[mot];
     curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay;
-    PID(mot);
+    
     switch (dir[mot]){
       case 0:
       ena_d[mot] = 0;
@@ -162,6 +162,7 @@ void update_mot(int mot){
       break;
       
       default:
+      PID(mot);
       if (ena_d[mot]/abs(ena_d[mot]) > 0){
       analogWrite(ena[mot], abs(ena_d[mot]));
       digitalWrite(fwd[mot], HIGH);
