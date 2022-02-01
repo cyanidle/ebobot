@@ -109,8 +109,15 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
 }
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
-
-
+setPidCallback(const std_msgs::Float32& set_pid){
+ 
+  static int count;
+  count++
+  int coeff = count/3;
+  int mot = count%3;
+  
+  }
+ros::Subscriber<std_msgs::Float32> set_pid("set_pid" , setPidCallback);
 
 
 //////////////////////////////////
@@ -118,6 +125,7 @@ void setup() {
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
+  nh.subscribe(set_pid);
   /*
   motors_msg.layout.dim_length = ;
   motors_msg.layout.dim[0].label = "";
