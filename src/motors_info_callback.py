@@ -15,7 +15,7 @@ last_time = rospy.Time.now()
 
 
 class Motors:
-    footprint_radius = 50
+    footprint_radius = 0.1 #in meters
     num = 3
     theta = 0
     x = 0
@@ -27,7 +27,7 @@ class Motors:
     last_y = 0
     vx = 0
     vy = 0
-    d_time = 50
+    d_time = 50 #in milliseconds
 
     def __init__(self, num, angle,curr = 0, targ = 0,pwm = 0,ddist = 0):
         self.num = num
