@@ -12,6 +12,7 @@ rospy.init_node('pid_setter_node')
 pub = rospy.Publisher('set_pid', Float32)
 for coeff in coeffs:
     for val in coeff:
+        rospy.loginfo(f"Published {val}")
         pub.publish(Float32(val))
         rospy.sleep(0.1)
 
