@@ -49,7 +49,7 @@ float turn_max_speed = 0.30;
 float max_speed = 0.50;
 bool stop_mot[3];
 float dist[3];
-float max_fwd_speed[] = {0.700,0.700,0.700};
+float max_fwd_speed = 0.70;
 float ddist[3];
 float targ_spd[3];
 float curr_spd[3];
@@ -91,9 +91,9 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
         if (x == 0 and y == 0 and turn == 0){
           stop_mot[mot] = true;
         }      
-        float spd = mots_x_coeffs[mot]*x*max_speed + mots_y_coeffs[mot]*y*max_speed;
+        float spd = mots_x_coeffs[mot]*x*max_fwd_speed + mots_y_coeffs[mot]*y*max_fwd_speed;
         spd += turn * turn_max_speed;
-        constrain (spd, -max_fwd_speed[mot], max_fwd_speed[mot]);
+        
         //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
         if (spd < 0.01 and spd > -0.01){
           termsReset(mot);
