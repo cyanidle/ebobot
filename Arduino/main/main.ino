@@ -88,7 +88,7 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
       constrain(x,-1,1);
       constrain(y,-1,1);
       for (int mot=0;mot<num_motors; mot++){
-        if (x == 0 and y == 0){
+        if (x == 0 and y == 0 and turn == 0){
           stop_mot[mot] = true;
         }      
         float spd = mots_x_coeffs[mot]*x*max_speed + mots_y_coeffs[mot]*y*max_speed;
