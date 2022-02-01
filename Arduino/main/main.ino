@@ -75,38 +75,35 @@ float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])),sin(to_radians(mots_ang
 
 
 
-
+///////Non-Adjustable                                                                                      
+float inter_term[] = {0,0,0};                                                                                   
+float last_error[] = {0,0,0};
 
 ////DIR IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 void speedCallback(const geometry_msgs::Twist& cmd_vel){
       float x = cmd_vel.linear.x;
       float y = cmd_vel.linear.y;
       float turn = cmd_vel.angular.z;
-      if (x > 0.001 and x  < 0.001 and y > 0.001 and y < 0.001){
-        for (int mot=0;mot<num_motors; mot++){
+      constrain(x,-1,1);
+      constrain(y,-1,1);
+      for (int mot=0;mot<num_motors; mot++){
+        
+        if (x == 0 and y == 0){
+          inter_term[mot] = 0;
           dir[mot] = 0;
         }
-      }
-      for (int mot=0;mot<num_motors; mot++){
-        if (x>1) x = 1;
-        if (x<-1) x = -1;
-        if (y>1) y = 1;   
-        if (y<-1) y = -1;
-        if (turn>1) turn = 1;
-        if (turn<-1) turn = -1;
         float spd = mots_x_coeffs[mot]*x*max_speed + mots_y_coeffs[mot]*y*max_speed;
         spd += turn * turn_max_speed;
         if (spd > mots_max_speed[mot]) spd = mots_max_speed[mot];
         if (spd < -mots_max_speed[mot]) spd = -mots_max_speed[mot];
         //////IF speed is less than 1 cm/second then its not considered
-        if (spd > 0.01 or spd <- 0.01) { 
+        if (spd < 0.01 and spd > -0.01) targ_spd[mot] = 0;
+        else{
           dir[mot] = spd/abs(spd);
           targ_spd[mot] = spd;
-        } 
-        else{
-        targ_spd[mot] = 0;
         }
       }
+      
 }
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
@@ -149,7 +146,7 @@ void setup() {
 
 
 ///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
-void update_mot(mot){
+void update_mot(int mot){
     dX[mot] = X[mot] - lastX[mot];
     ddist[mot] = dX[mot] * (1.0/ticks_per_rotation) * rad * coeff;
     lastX[mot] = X[mot];
@@ -157,26 +154,26 @@ void update_mot(mot){
     curr_spd[mot] = ddist[mot] *  1000.0/ loop_delay;
     PID(mot);
     switch (dir[mot]){
-      case 1:     
-      analogWrite(ena[mot], ena_d[mot]);
-      digitalWrite(fwd[mot], HIGH);
-      digitalWrite(bck[mot], LOW);
-      break;
-      case -1:
-      analogWrite(ena[mot], ena_d[mot]);
-      digitalWrite(fwd[mot], LOW);
-      digitalWrite(bck[mot], HIGH);
-      break;
       case 0:
       ena_d[mot] = 0;
       digitalWrite(ena[mot], HIGH);
       digitalWrite(fwd[mot], HIGH);
       digitalWrite(bck[mot], HIGH);
       break;
+      
       default:
+      if (ena_d[mot]/abs(ena_d[mot]) > 0){
+      analogWrite(ena[mot], abs(ena_d[mot]));
+      digitalWrite(fwd[mot], HIGH);
+      digitalWrite(bck[mot], LOW); 
+      }
+      else {
+      analogWrite(ena[mot], abs(ena_d[mot])); //////////ena_d varies now from -255 to 255, so we use abs
+      digitalWrite(fwd[mot], LOW);
+      digitalWrite(bck[mot], HIGH);  
+      }
       break;
-    }
-  
+    }   
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -197,21 +194,19 @@ void encoder2(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
 float dtime = (loop_delay/1000.0);                                                                                          
 /////////Adjustable !!!!!!!!!!                                                                                              
-float prop_coeff[] = {2,2,2};                                                                                          
-float inter_coeff[] = {1,1,1};                                                                                        
-float diff_coeff[] = {0,0,0};                                                                                                                  
-///////Non-Adjustable                                                                                      
-float inter_term[] = {0,0,0};                                                                                   
-float last_error[] = {0,0,0};
+float prop_coeff[] = {140,140,140};                                                                                          
+float inter_coeff[] = {80,80,80};                                                                                        
+float diff_coeff[] = {10,10,10};                                                                                                                  
+
 
 void PID(int mot){
-  float error = abs(targ_spd[mot]) - abs(curr_spd[mot]);
+  float error = targ_spd[mot] - curr_spd[mot];
     inter_term[mot] += dtime * error;
     ena_d[mot] =  error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] + 
     (error - last_error[mot])/ dtime * diff_coeff[mot]; 
+    constrain(inter_term[mot],-30000,30000);
     last_error[mot] = error;
-    if (ena_d[mot] > 255) ena_d[mot] = 255;
-    if (ena_d[mot] < 0) ena_d[mot] = 0;
+    constrain(ena_d[mot], -255, 255);
 }
 
 ////////////////////////////////////////////////////////////// 
@@ -223,13 +218,13 @@ void loop(){
   for (int mot = 0; mot< num_motors; mot++){
     motors_msg.data[mot*4] = targ_spd[mot];
     motors_msg.data[mot*4 + 1] = curr_spd[mot];   
-    motors_msg.data[mot*4 + 2] = dist[mot]; 
+    motors_msg.data[mot*4 + 2] = (float)ena_d[mot]; 
     motors_msg.data[mot*4 + 3] = ddist[mot];}  
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();
   }  
-}
+
   
   
    

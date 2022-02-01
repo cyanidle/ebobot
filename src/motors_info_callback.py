@@ -29,11 +29,11 @@ class Motors:
     vy = 0
     d_time = 50
 
-    def __init__(self, num, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
+    def __init__(self, num, angle,curr = 0, targ = 0,pwm = 0,ddist = 0):
         self.num = num
         self.curr = curr
         self.targ = targ
-        self.dist = dist
+        self.pwm = pwm
         self.ddist = ddist
         self.angle = angle
         self.radians = math.radians(angle)
@@ -71,9 +71,9 @@ rate = rospy.Rate(int(1000/Motors.d_time))
 
 def callback(info):
     for mot in Motors.list:
-        setattr(mot , "curr" , info.data[getattr(mot,"num")*4])
-        setattr(mot , "targ" , info.data[getattr(mot,"num")*4 + 1])
-        setattr(mot , "dist" , info.data[getattr(mot,"num")*4 + 2])
+        setattr(mot , "targ" , info.data[getattr(mot,"num")*4])
+        setattr(mot , "curr" , info.data[getattr(mot,"num")*4 + 1])
+        setattr(mot , "pwm" , info.data[getattr(mot,"num")*4 + 2])
         setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
     Motors.updateOdom()
 
@@ -93,7 +93,7 @@ odom_broadcaster = tf.TransformBroadcaster()
 while not rospy.is_shutdown():
     
     current_time = rospy.Time.now()
-    rospy.loginfo(f"Current time = {current_time}")
+    
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
         (Motors.x, Motors.y, 0.),
