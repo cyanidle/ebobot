@@ -63,7 +63,7 @@ motor1 = Motors(1,210)
 rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}, pwm - {motor1.pwm}")
 motor2 = Motors(2,330)
 rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}, pwm - {motor2.pwm}")
-rospy.loginfo(f"Motors list {Motors.list[0]}, {Motors.list[1]}, {Motors.list[2]}")
+rospy.loginfo(f"Motors list {Motors.list[0].num}, {Motors.list[1].num}, {Motors.list[2].num}")
 
 rate = rospy.Rate(int(1000/Motors.d_time))
 
