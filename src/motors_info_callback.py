@@ -15,7 +15,7 @@ last_time = rospy.Time.now()
 
 
 class Motors:
-    footprint_radius = 0.1 #in meters
+    footprint_len = 0.55 #in meters
     num = 3
     theta = 0
     x = 0
@@ -42,7 +42,7 @@ class Motors:
         ddist_sum = 0
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum/(Motors.num * Motors.footprint_radius)
+        Motors.theta += ddist_sum/(Motors.num * Motors.footprint_len)
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians)
             Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians)
