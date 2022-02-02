@@ -27,7 +27,11 @@ class Motors:
     last_y = 0
     vx = 0
     vy = 0
-    d_time = 50 #in milliseconds
+    vturn = 0
+    d_secs = 0
+    duration = 50 #in milliseconds (default)
+    last_time = rospy.Time.now()
+    last_theta = 0
 
     def __init__(self, num, angle,curr = 0, targ = 0,pwm = 0,ddist = 0):
         self.num = num
@@ -39,6 +43,8 @@ class Motors:
         self.radians = math.radians(angle)
         Motors.list.append(self)
     def updateOdom():
+        Motors.duration = rospy.Time.now() - Motors.last_time
+        Motors.d_secs = Motors.duration.to_sec()
         ddist_sum = 0
         for mot in Motors.list:
             ddist_sum += mot.ddist
@@ -50,8 +56,11 @@ class Motors:
         Motors.x += Motors.delta_x
         Motors.last_y = Motors.y
         Motors.y += Motors.delta_y
-        Motors.vx, Motors.vy =  Motors.delta_x * 1000/Motors.d_time, Motors.delta_y* 1000/Motors.d_time
+        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs, Motors.delta_y* Motors.d_secs
         Motors.delta_x, Motors.delta_y = 0, 0
+        Motors.vturn = Motors.theta - Motors.last_theta
+        Motors.last_theta = Motors.theta 
+        
         
     
 
@@ -66,7 +75,7 @@ motor2 = Motors(2,330)
 rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}, pwm - {motor2.pwm}")
 rospy.loginfo(f"Motors list {Motors.list[0].num}, {Motors.list[1].num}, {Motors.list[2].num}")
 
-rate = rospy.Rate(int(1000/Motors.d_time))
+rate = rospy.Rate(1000/50) #1000/ millis
 
 
 
@@ -77,6 +86,7 @@ def callback(info):
         setattr(mot , "pwm" , info.data[getattr(mot,"num")*4 + 2])
         setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
     Motors.updateOdom()
+    Motors.last_time = rospy.Time.now()
 
 def listener():
 
