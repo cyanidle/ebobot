@@ -11,8 +11,9 @@ coeffs = [[120,120,120],    #prop_coeff
 rospy.init_node('pid_setter_node')
 pub = rospy.Publisher('set_pid', Float32 ,queue_size = 15)
 for coeff in coeffs:
-    for val in coeff:
-        rospy.loginfo(f"Published {val}")
+    for val in coeff: 
         pub.publish(Float32(val))
-        rospy.sleep(0.1)
+        rospy.loginfo(f"Published {val}")
+        rospy.sleep(0.3)
+#####pub.publish(Float32(-1))
 
