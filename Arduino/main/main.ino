@@ -108,8 +108,8 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
 /////////Adjustable !!!!!!!!!!                                                                                              
-float prop_coeff[] = {180,180,180};                                                                                          
-float inter_coeff[] = {200,200,200};                                                                                        
+float prop_coeff[] = {200,200,200};                                                                                          
+float inter_coeff[] = {220,220,220};                                                                                        
 float diff_coeff[] = {10,10,10};    
 /////////////////////////////////////////
 void setPidCallback(const std_msgs::Float32& set_pid){
