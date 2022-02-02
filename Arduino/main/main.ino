@@ -114,9 +114,11 @@ float diff_coeff[] = {30,30,30};
 /////////////////////////////////////////
 void setPidCallback(const std_msgs::Float32& set_pid){
   static int count = 0;
-  count++;
   int coeff = count/3;
   int mot = count%3;
+  char buffer[20];
+  sprintf(buffer, "new pid, count %d",count);
+  nh.loginfo(buffer);
   switch (coeff){
   case 0 :
     prop_coeff[mot] = set_pid.data;
@@ -128,6 +130,7 @@ void setPidCallback(const std_msgs::Float32& set_pid){
     diff_coeff[mot] = set_pid.data;
     break;
   }
+  count++;
   if (count == 9) count = 0;
 }
 ros::Subscriber<std_msgs::Float32> set_pid("set_pid" , setPidCallback);
