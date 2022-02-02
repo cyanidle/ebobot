@@ -48,18 +48,19 @@ class Motors:
         ddist_sum = 0
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum/(100*Motors.num * Motors.footprint_len)
+        Motors.theta += ddist_sum/(Motors.num * Motors.footprint_len)
         for mot in Motors.list:
-            Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians)
-            Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians)
+            Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
+            Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians) 
         Motors.last_x = Motors.x
         Motors.x += Motors.delta_x
         Motors.last_y = Motors.y
         Motors.y += Motors.delta_y
-        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs, Motors.delta_y* Motors.d_secs
+        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs, Motors.delta_y * Motors.d_secs
         Motors.delta_x, Motors.delta_y = 0, 0
         Motors.vturn = Motors.theta - Motors.last_theta
         Motors.last_theta = Motors.theta 
+        rospy.loginfo(f"theta = {Motors.theta}")
         
         
     
@@ -118,7 +119,7 @@ while not rospy.is_shutdown():
     odom.header.frame_id = "odom"
     odom.pose.pose = Pose(Point(Motors.x, Motors.y, 0.), Quaternion(*odom_quat))
     odom.child_frame_id = "base_link"
-    odom.twist.twist = Twist(Vector3(Motors.vx, Motors.vy, 0), Vector3(0, 0, Motors.theta))
+    odom.twist.twist = Twist(Vector3(Motors.vx, Motors.vy, 0), Vector3(0, 0, Motors.vturn))
     odom_pub.publish(odom)
     last_time = current_time
     rate.sleep()
