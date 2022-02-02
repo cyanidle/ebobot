@@ -116,8 +116,8 @@ void setPidCallback(const std_msgs::Float32& set_pid){
   static int count = 0;
   int coeff = count/3;
   int mot = count%3;
-  char buffer[20];
-  sprintf(buffer, "new pid, count %d",count);
+  char buffer[30];
+  sprintf(buffer, "count %d, coeff %d, mot %d",count, coeff, mot);
   nh.loginfo(buffer);
   switch (coeff){
   case 0 :
