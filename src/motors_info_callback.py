@@ -42,7 +42,7 @@ class Motors:
         self.angle = angle
         self.radians = math.radians(angle)
         Motors.list.append(self)
-    def updateOdom():
+    def updateOdom():               ########### 0.3 m  =  1.8 in odom FIXX
         Motors.duration = rospy.Time.now() - Motors.last_time
         Motors.d_secs = Motors.duration.to_sec()
         ddist_sum = 0
@@ -56,11 +56,11 @@ class Motors:
         Motors.x += Motors.delta_x
         Motors.last_y = Motors.y
         Motors.y += Motors.delta_y
-        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs, Motors.delta_y * Motors.d_secs
+        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs * 1000, Motors.delta_y * Motors.d_secs*1000 #d_millis
         Motors.delta_x, Motors.delta_y = 0, 0
         Motors.vturn = Motors.theta - Motors.last_theta
         Motors.last_theta = Motors.theta 
-        rospy.loginfo(f"theta = {Motors.theta}")
+      
         
         
     
