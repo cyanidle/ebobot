@@ -6,7 +6,7 @@ pub = rospy.Publisher('set_pid', Float32 ,queue_size = 15)
 rospy.sleep(1)
 with open('pid_settings.txt', 'r') as f:
     pids = f.readlines()
-for coeff in pids.readlines():
+for coeff in pids:
     for val in coeff.split(" "): 
         pub.publish(Float32(val))
         rospy.loginfo(f"Published {val}")
