@@ -5,7 +5,6 @@ from std_msgs.msg import Float32MultiArray
 import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
-from math import sin, cos, pi
 from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
@@ -15,7 +14,7 @@ last_time = rospy.Time.now()
 
 
 class Motors:
-    footprint_len = 0.55 #in meters
+    footprint_rad = 0.15 #in meters
     num = 3
     theta = 0
     x = 0
@@ -25,10 +24,11 @@ class Motors:
     delta_y = 0
     last_x = 0
     last_y = 0
-    vx = 0
-    vy = 0
+    spd_x = 0
+    spd_y = 0
+    Hz = 20 #default updates/second
     vturn = 0
-    d_secs = 0
+    delta_secs = 0
     duration = 50000 #in nanoseconds (default)
     last_time = rospy.Time.now()
     last_theta = 0
@@ -44,11 +44,12 @@ class Motors:
         Motors.list.append(self)
     def updateOdom():               ########### 0.3 m  =  1.8 in odom FIXX
         Motors.duration = rospy.Time.now() - Motors.last_time
-        Motors.d_secs = Motors.duration.to_sec()
+        Motors.delta_secs = Motors.duration.to_sec()
         ddist_sum = 0
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum/ Motors.num / Motors.footprint_len
+        Motors.theta += ddist_sum / Motors.num / Motors.footprint_rad
+        Motors.delta_x, Motors.delta_y = 0, 0  
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
             Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians) 
@@ -56,8 +57,7 @@ class Motors:
         Motors.x += Motors.delta_x
         Motors.last_y = Motors.y
         Motors.y += Motors.delta_y
-        Motors.vx, Motors.vy =  Motors.delta_x * Motors.d_secs * 1000, Motors.delta_y * Motors.d_secs*1000 #d_millis
-        Motors.delta_x, Motors.delta_y = 0, 0
+        Motors.spd_x, Motors.spd_y =  Motors.delta_x * Motors.delta_secs * Motors.Hz, Motors.delta_y * Motors.delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
         Motors.vturn = Motors.theta - Motors.last_theta
         Motors.last_theta = Motors.theta 
       
@@ -119,7 +119,7 @@ while not rospy.is_shutdown():
     odom.header.frame_id = "odom"
     odom.pose.pose = Pose(Point(Motors.x, Motors.y, 0.), Quaternion(*odom_quat))
     odom.child_frame_id = "base_link"
-    odom.twist.twist = Twist(Vector3(Motors.vx, Motors.vy, 0), Vector3(0, 0, Motors.vturn))
+    odom.twist.twist = Twist(Vector3(Motors.spd_x, Motors.spd_y, 0), Vector3(0, 0, Motors.vturn))
     odom_pub.publish(odom)
     last_time = current_time
     rate.sleep()
