@@ -1,8 +1,0 @@
-{
-    "configuration": "cpu=atmega2560",
-    "board": "arduino:avr:mega",
-    "programmer": "arduino:avrisp",
-    "port": "/dev/ttyACM0",
-    "output": "../build",
-    "sketch": "Arduino/main/main.ino"
-}
