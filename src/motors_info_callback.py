@@ -29,7 +29,7 @@ class Motors:
     vy = 0
     vturn = 0
     d_secs = 0
-    duration = 50 #in milliseconds (default)
+    duration = 50000 #in nanoseconds (default)
     last_time = rospy.Time.now()
     last_theta = 0
 
@@ -48,7 +48,7 @@ class Motors:
         ddist_sum = 0
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum/(Motors.num * Motors.footprint_len)
+        Motors.theta += ddist_sum/ Motors.num / Motors.footprint_len
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
             Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians) 
@@ -69,11 +69,11 @@ class Motors:
 
 #init motors with their angles
 motor0 = Motors(0,90) 
-rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}, pwm - {motor0.pwm}")
+rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
 motor1 = Motors(1,210)
-rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}, pwm - {motor1.pwm}")
+rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
 motor2 = Motors(2,330)
-rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}, pwm - {motor2.pwm}")
+rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
 rospy.loginfo(f"Motors list {Motors.list[0].num}, {Motors.list[1].num}, {Motors.list[2].num}")
 
 rate = rospy.Rate(1000/50) #1000/ millis
