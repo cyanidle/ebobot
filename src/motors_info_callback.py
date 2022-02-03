@@ -88,15 +88,8 @@ def callback(info):
         setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
     Motors.updateOdom()
     Motors.last_time = rospy.Time.now()
-
-def listener():
-    rospy.Subscriber("motors_info", Float32MultiArray, callback)
-
-
-
-
-
-listener() 
+#######################################################
+rospy.Subscriber("motors_info", Float32MultiArray, callback)
 odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
 odom_broadcaster = tf.TransformBroadcaster()
 
