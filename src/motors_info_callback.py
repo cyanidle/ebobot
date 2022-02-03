@@ -45,11 +45,11 @@ class Motors:
     def updateOdom():               ########### 0.3 m  =  1.8 in odom FIXX
         Motors.duration = rospy.Time.now() - Motors.last_time
         Motors.delta_secs = Motors.duration.to_sec()
-        ddist_sum = 0
+        ddist_sum = 0 #reset and calculate new change to theta
         for mot in Motors.list:
             ddist_sum += mot.ddist
         Motors.theta += ddist_sum / Motors.num / Motors.footprint_rad
-        Motors.delta_x, Motors.delta_y = 0, 0  
+        Motors.delta_x, Motors.delta_y = 0, 0  #reset and calculate new changes to coords
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
             Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians) 
@@ -74,9 +74,9 @@ motor1 = Motors(1,210)
 rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
 motor2 = Motors(2,330)
 rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
-rospy.loginfo(f"Motors list {Motors.list[0].num}, {Motors.list[1].num}, {Motors.list[2].num}")
+rospy.loginfo(f"Motors list {[mot.num for mot in Motors.listMotors]}")
 
-rate = rospy.Rate(1000/50) #1000/ millis
+
 
 
 
@@ -90,7 +90,6 @@ def callback(info):
     Motors.last_time = rospy.Time.now()
 
 def listener():
-
     rospy.Subscriber("motors_info", Float32MultiArray, callback)
 
 
@@ -101,11 +100,15 @@ listener()
 odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
 odom_broadcaster = tf.TransformBroadcaster()
 
+report_count = 0
+report_rate = 5 # Hz
 
+rate = rospy.Rate(Motors.Hz) 
 while not rospy.is_shutdown():
-    
+    report_count += 1
+    if report_count > Motors.Hz/report_rate:
+        rospy.loginfo(f"Theta = {Motors.theta}, Motors.x = {Motors.x}, Motors.y = {Motors.y}")
     current_time = rospy.Time.now()
-    
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
         (Motors.x, Motors.y, 0.),
