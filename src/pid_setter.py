@@ -2,9 +2,9 @@
 import rospy
 from std_msgs.msg import Float32
 ##############
-coeffs = [[210,210,210],    #prop_coeff
-         [220,220,220],    #inter_coeff
-         [10,10,10]]       #diff_coeff
+coeffs = [[220,220,220],    #prop_coeff
+         [230,230,230],    #inter_coeff
+         [3,3,3]]       #diff_coeff
 
 
 #############

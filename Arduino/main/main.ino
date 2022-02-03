@@ -44,8 +44,8 @@ long lastX[3];
 
 
 ///////////////////////// MOTORS
-float turn_max_speed = 0.30;
-float max_speed = 0.50;
+float turn_max_speed = 0.35;/////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
+float max_speed = 0.50; /////////////With headrom (<~90)
 bool stop_mot[3];
 float dist[3];
 float max_fwd_speed = 0.70;
