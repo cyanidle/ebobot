@@ -108,16 +108,19 @@ void speedCallback(const geometry_msgs::Twist& cmd_vel){
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel" , speedCallback);     
 
 /////////Adjustable !!!!!!!!!!                                                                                              
-float prop_coeff[] = {200,200,200};                                                                                          
-float inter_coeff[] = {220,220,220};                                                                                        
+float prop_coeff[] = {210,210,210};                                                                                          
+float inter_coeff[] = {230,230,230};                                                                                        
 float diff_coeff[] = {10,10,10};  
-int pid_count = 0;  
+
+
+
 /////////////////////////////////////////
 void setPidCallback(const std_msgs::Float32& set_pid){
+  static int pid_count = 0;
   int coeff = pid_count/3;
   int mot = pid_count%3;
   char buffer[35];
-  sprintf(buffer, "pid:count %d,coeff %d,mot %d",pid_count, coeff, mot);
+  sprintf(buffer, "pid:count %d,data %d",pid_count, (int)(set_pid.data));
   nh.loginfo(buffer);
   switch (coeff){
   case 0 :
