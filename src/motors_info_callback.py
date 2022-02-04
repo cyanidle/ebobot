@@ -8,6 +8,8 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
+
+debug = 0 #довольно приятно иногда офнуть нечитаемый мусор, можно потом в параметр запуска перевестиЫ
 info_len = 12
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
@@ -99,11 +101,12 @@ report_rate = 5 # Hz
 rate = rospy.Rate(Motors.Hz) 
 while not rospy.is_shutdown():
     report_count += 1
-    if report_count > Motors.Hz/report_rate:
-        rospy.loginfo(f"Theta = {Motors.theta}, Motors.x = {Motors.x}, Motors.y = {Motors.y}")
-        for mot in Motors.list:
-            rospy.loginfo(f"Motor {mot.num} current = {mot.curr}, target = {mot.targ}")
-        report_count = 0
+    if debug:
+        if report_count > Motors.Hz/report_rate:
+            rospy.loginfo(f"Theta = {Motors.theta}, Motors.x = {Motors.x}, Motors.y = {Motors.y}")
+            for mot in Motors.list:
+                rospy.loginfo(f"Motor {mot.num} current = {mot.curr}, target = {mot.targ}")
+            report_count = 0
     current_time = rospy.Time.now()
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
