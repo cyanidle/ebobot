@@ -42,11 +42,11 @@ long dX[3];
 long lastX[3];
 
 ///////////////////////// MOTORS
-float turn_max_speed = 0.35; /////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
-float max_speed = 0.50;      /////////////With headrom (<~90)
+float turn_max_speed = 0.25; /////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
+float max_speed = 0.50;      /////////////With headrom (<~80)
 bool stop_mot[3];
 float dist[3];
-float max_fwd_speed = 0.70;
+float absolute_max_speed = 0.75;
 float ddist[3];
 float targ_spd[3];
 float curr_spd[3];
@@ -79,6 +79,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   float x = cmd_vel.linear.x;
   float y = cmd_vel.linear.y;
   float turn = cmd_vel.angular.z;
+  constrain(turn, -1, 1);
   constrain(x, -1, 1);
   constrain(y, -1, 1);
   for (int mot = 0; mot < num_motors; mot++)
@@ -87,7 +88,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     {
       stop_mot[mot] = true;
     }
-    float spd = mots_x_coeffs[mot] * x * max_fwd_speed + mots_y_coeffs[mot] * y * max_fwd_speed;
+    float spd = mots_x_coeffs[mot] * x * absolute_max_speed + mots_y_coeffs[mot] * y * absolute_max_speed;
     spd += turn * turn_max_speed;
 
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
@@ -98,6 +99,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
     else
     {
+      constrain(spd,-absolute_max_speed, absolute_max_speed);
       stop_mot[mot] = false;
       targ_spd[mot] = spd;
     }
