@@ -74,7 +74,7 @@ motor1 = Motors(1,210)
 rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
 motor2 = Motors(2,330)
 rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
-rospy.loginfo(f"Motors list {[mot.num for mot in Motors.listMotors]}")
+rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
 
 
 
