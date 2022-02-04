@@ -79,9 +79,9 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   float x = cmd_vel.linear.x;
   float y = cmd_vel.linear.y;
   float turn = cmd_vel.angular.z;
-  constrain(turn, -1, 1);
-  constrain(x, -1, 1);
-  constrain(y, -1, 1);
+  turn = constrain(turn, -1, 1);
+  x = constrain(x, -1, 1);
+  y = constrain(y, -1, 1);
   for (int mot = 0; mot < num_motors; mot++)
   {
     if (x == 0 and y == 0 and turn == 0)
@@ -99,7 +99,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
     else
     {
-      constrain(spd,-absolute_max_speed, absolute_max_speed);
+      spd = constrain(spd,-absolute_max_speed, absolute_max_speed);
       stop_mot[mot] = false;
       targ_spd[mot] = spd;
     }
@@ -188,7 +188,7 @@ void PID(int mot)
              (error - last_error[mot]) / dtime * diff_coeff[mot];
   constrain(inter_term[mot], -30000, 30000);
   last_error[mot] = error;
-  constrain(pwm[mot], -255, 255);
+  pwm[mot] = constrain(pwm[mot], -255, 255);
 }
 //////////////////////////////////////////////////////
 void termsReset(int mot)
