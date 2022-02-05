@@ -51,20 +51,15 @@ class Motors:
     def updateOdom():               ########### 0.3 m  =  1.8 in odom FIXX
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
-        
         for mot in Motors.list:
             Motors.theta += mot.ddist / Motors.num / (Motors.footprint_rad) #по че му?
-        
-        
         for mot in Motors.list:
             if mot.ddist != 0:
                 Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num
                 Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / Motors.num
-        Motors.last_x = Motors.x
-        Motors.last_y = Motors.y
-        Motors.spd_x, Motors.spd_y =  Motors.delta_x * delta_secs * Motors.Hz, Motors.delta_y * delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
+        Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
+        Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) * delta_secs * Motors.Hz, (Motors.y - Motors.last_y) * delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
         Motors.spd_turn = Motors.theta - Motors.last_theta
-        Motors.last_theta = Motors.theta
         Motors.theta = Motors.theta % (2 * math.pi)
       
         
