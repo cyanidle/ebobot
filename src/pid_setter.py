@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rospy
+roslib.load_manifest('ebobot')
 from sys import argv
 path = argv ###две волшебные строки с первой ссылки в гугле, path - просто переменная
 from std_msgs.msg import Float32
