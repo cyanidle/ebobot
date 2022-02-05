@@ -11,7 +11,7 @@ rospy.init_node('motors_info_callback', anonymous=True)
 #То, что нужно с помощью конф файла реализовать
 debug = 1 #довольно приятно иногда офнуть свой рот, че там такого нечитаемого то бля?
 footprint_radius = 0.15
-debug_rate = 10 # Hz
+
 
 
 
@@ -22,7 +22,7 @@ last_time = rospy.Time.now()
 
 
 class Motors:
-    footprint_rad = 0.15 #in meters
+    footprint_rad = footprint_radius #in meters
     num = 3
     theta = 0
     x = 0
@@ -56,15 +56,15 @@ class Motors:
         ddist_sum = 0 #reset and calculate new change to theta
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum / (Motors.num * Motors.footprint_rad)
+        Motors.theta += ddist_sum / Motors.num / Motors.footprint_rad
         Motors.delta_x, Motors.delta_y = 0, 0  #reset and calculate new changes to coords
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
-            Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians) 
+            Motors.delta_y += mot.ddist * math.sin(Motors.theta + mot.radians)
         Motors.last_x = Motors.x
-        Motors.x += Motors.delta_x
+        Motors.x += Motors.delta_x / Motors.num
         Motors.last_y = Motors.y
-        Motors.y += Motors.delta_y
+        Motors.y += Motors.delta_y / Motors.num
         Motors.spd_x, Motors.spd_y =  Motors.delta_x * Motors.delta_secs * Motors.Hz, Motors.delta_y * Motors.delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
         Motors.vturn = Motors.theta - Motors.last_theta
         Motors.last_theta = Motors.theta 
@@ -108,13 +108,10 @@ rate = rospy.Rate(Motors.Hz)
 while not rospy.is_shutdown():
     report_count += 1
     if debug:
-        if report_count > Motors.Hz/debug_rate:
-            rospy.loginfo("---------------------------------")
-            rospy.loginfo(f"Theta = {round(Motors.theta,2)}, Motors.x = {round(Motors.x,2)}, Motors.y = {round(Motors.y,2)}")
-            for mot in Motors.list:
-                rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}")
-            
-            report_count = 0
+        rospy.loginfo("---------------------------------")
+        rospy.loginfo(f"Theta = {round(Motors.theta,2)}, Motors.x = {round(Motors.x,2)}, Motors.y = {round(Motors.y,2)}")
+        for mot in Motors.list:
+            rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}, ddist = {round(mot.ddist,4)}")
     current_time = rospy.Time.now()
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
