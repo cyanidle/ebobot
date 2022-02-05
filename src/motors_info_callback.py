@@ -8,8 +8,14 @@ from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
+#То, что нужно с помощью конф файла реализовать
+debug = 1 #довольно приятно иногда офнуть свой рот, че там такого нечитаемого то бля?
+footprint_radius = 0.15
+debug_rate = 10 # Hz
 
-debug = 0 #довольно приятно иногда офнуть свой рот, че там такого нечитаемого то бля?
+
+
+
 info_len = 12
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
@@ -50,7 +56,7 @@ class Motors:
         ddist_sum = 0 #reset and calculate new change to theta
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum / Motors.num / Motors.footprint_rad
+        Motors.theta += ddist_sum / (Motors.num * Motors.footprint_rad)
         Motors.delta_x, Motors.delta_y = 0, 0  #reset and calculate new changes to coords
         for mot in Motors.list:
             Motors.delta_x += mot.ddist * math.cos(Motors.theta + mot.radians) 
@@ -96,16 +102,18 @@ odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
 odom_broadcaster = tf.TransformBroadcaster()
 
 report_count = 0
-report_rate = 5 # Hz
+
 
 rate = rospy.Rate(Motors.Hz) 
 while not rospy.is_shutdown():
     report_count += 1
     if debug:
-        if report_count > Motors.Hz/report_rate:
-            rospy.loginfo(f"Theta = {Motors.theta}, Motors.x = {Motors.x}, Motors.y = {Motors.y}")
+        if report_count > Motors.Hz/debug_rate:
+            rospy.loginfo("---------------------------------")
+            rospy.loginfo(f"Theta = {round(Motors.theta,2)}, Motors.x = {round(Motors.x,2)}, Motors.y = {round(Motors.y,2)}")
             for mot in Motors.list:
-                rospy.loginfo(f"Motor {mot.num} current = {mot.curr}, target = {mot.targ}")
+                rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}")
+            
             report_count = 0
     current_time = rospy.Time.now()
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
