@@ -54,11 +54,12 @@ class Motors:
         ddist_sum = 0 #reset and calculate new change to theta
         for mot in Motors.list:
             ddist_sum += mot.ddist
-        Motors.theta += ddist_sum / Motors.num / (Motors.footprint_rad * 2) #по че му?
+        Motors.theta += ddist_sum / Motors.num / (Motors.footprint_rad) #по че му?
         
         for mot in Motors.list:
-            Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num
-            Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians)/ Motors.num
+            if mot.ddist != 0:
+                Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num
+                Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians)/ Motors.num
         Motors.last_x = Motors.x
         Motors.last_y = Motors.y
         Motors.spd_x, Motors.spd_y =  Motors.delta_x * delta_secs * Motors.Hz, Motors.delta_y * delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
