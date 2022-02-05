@@ -9,7 +9,7 @@ from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
 
-debug = 0 #довольно приятно иногда офнуть нечитаемый мусор, можно потом в параметр запуска перевестиЫ
+debug = 0 #довольно приятно иногда офнуть свой рот, че там такого нечитаемого то бля?
 info_len = 12
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
