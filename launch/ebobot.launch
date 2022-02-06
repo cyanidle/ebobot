@@ -2,6 +2,8 @@
 
 <arg name="port" default="/dev/ttyACM0"/>
 <arg name="arduino_baud" default="57600"/>
+<arg name="debug" default="0"/>
+<arg name="footprint_radius" default="0.15"/>
 
 <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" output="log" respawn="true" respawn_delay="10">
         <param name="port" value="$(arg port)"/>
@@ -9,8 +11,11 @@
     </node>
 
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback_node" output="log" respawn="true" respawn_delay="10"> 
+        <rosparam name = "debug" value = "$(arg debug)"/>
+        <rosparam name = "footprint_radius" value = "$(arg footprint_radius)"/>
+        <rosparam name = "path" value = "$(find ebobot)/src/pid_settings.txt"/>
     </node>
     <node pkg="ebobot" type="pid_setter.py" name="pid_setter_node" output="log">
-        <param "$(find ebobot)/src/pid_settings.txt"/>
+        <rosparam name = "path" value = "$(find ebobot)/src/pid_settings.txt"/>
     </node>
 </launch>
