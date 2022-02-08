@@ -86,12 +86,13 @@ report_count = 0
 
 rate = rospy.Rate(Motors.Hz) 
 while not rospy.is_shutdown():
-    report_count += 1
     if debug:
-        rospy.loginfo("---------------------------------")
-        rospy.loginfo(f"Theta = {round(Motors.theta,2)}, Motors.x = {round(Motors.x,2)}, Motors.y = {round(Motors.y,2)}")
-        for mot in Motors.list:
-            rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}, dist = {round(mot.dist)}, ddist = {round(mot.ddist,4)}")
+        report_count += 1
+        if report_count > 5:
+            report_count = 0
+            rospy.loginfo(f"motor 1: {motor0.curr}, {motor0.targ},{motor0.dist},{motor0.ddist}")
+    
+    
     current_time = rospy.Time.now()
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
