@@ -256,7 +256,7 @@ void loop()
     {
       motors_msg.data[mot * 4] = targ_spd[mot];
       motors_msg.data[mot * 4 + 1] = curr_spd[mot];
-      motors_msg.data[mot * 4 + 2] = (float)pwm[mot];
+      motors_msg.data[mot * 4 + 2] = dist[mot];
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
   }

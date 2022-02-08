@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import roslib; 
+import roslib
 roslib.load_manifest('ebobot')
 import rospy
 from std_msgs.msg import Float32MultiArray
@@ -11,9 +11,9 @@ rospy.init_node('motors_info_callback', anonymous=True)
 
 #То, что нужно с помощью конф файла реализовать
 
-debug = rospy.get_param('debug', 1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
-footprint_radius = rospy.get_param('footprint_radius', 0.15)
-info_len = rospy.get_param('motors_info_len', 12)
+debug = rospy.get_param('debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
+footprint_radius = rospy.get_param('footprint_radius',0.15)
+info_len = rospy.get_param('motors_info_len',12)
 
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
@@ -34,11 +34,11 @@ class Motors:
     last_time = rospy.Time.now()
     last_theta = 0
 
-    def __init__(self, num, angle,curr = 0, targ = 0,pwm = 0,ddist = 0):
+    def __init__(self, num, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
         self.num = num
         self.curr = curr
         self.targ = targ
-        self.pwm = pwm
+        self.dist = dist
         self.ddist = ddist
         self.angle = angle
         self.radians = math.radians(angle)
@@ -72,7 +72,7 @@ def callback(info):
     for mot in Motors.list:
         setattr(mot , "targ" , info.data[getattr(mot,"num")*4])
         setattr(mot , "curr" , info.data[getattr(mot,"num")*4 + 1])
-        setattr(mot , "pwm" , info.data[getattr(mot,"num")*4 + 2])
+        setattr(mot , "dist" , info.data[getattr(mot,"num")*4 + 2])
         setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
     Motors.updateOdom()
     Motors.last_time = rospy.Time.now()
@@ -91,7 +91,7 @@ while not rospy.is_shutdown():
         rospy.loginfo("---------------------------------")
         rospy.loginfo(f"Theta = {round(Motors.theta,2)}, Motors.x = {round(Motors.x,2)}, Motors.y = {round(Motors.y,2)}")
         for mot in Motors.list:
-            rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}, pwm = {round(mot.pwm)}, ddist = {round(mot.ddist,4)}")
+            rospy.loginfo(f"Motor {mot.num} current = {round(mot.curr,2)}, target = {round(mot.targ,2)}, dist = {round(mot.dist)}, ddist = {round(mot.ddist,4)}")
     current_time = rospy.Time.now()
     odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
     odom_broadcaster.sendTransform(
