@@ -3,9 +3,10 @@ import rospy
 import roslib
 roslib.load_manifest('ebobot')
 #from sys import argv
-path = rospy.get_param('path', 'src/pid_settings.txt') ###две волшебные строки с первой ссылки в гугле, path - просто переменная
-from std_msgs.msg import Float32
 rospy.init_node('pid_setter_node')
+path = rospy.get_param('pid_setter_node/path', 'src/pid_settings.txt') ###две волшебные строки с первой ссылки в гугле, path - просто переменная
+from std_msgs.msg import Float32
+
 pid_msg = Float32()
 pub = rospy.Publisher('set_pid', Float32 ,queue_size = 15)
 rospy.sleep(1)

@@ -11,14 +11,13 @@ rospy.init_node('motors_info_callback', anonymous=True)
 
 #То, что нужно с помощью конф файла реализовать
 
-debug = rospy.get_param('debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
-footprint_radius = rospy.get_param('footprint_radius',0.15)
-info_len = rospy.get_param('motors_info_len',12)
+debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
+info_len = rospy.get_param('motors_info_callback/motors_info_len',12)
 
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
 class Motors:
-    footprint_rad = footprint_radius #in meters
+    footprint_rad = rospy.get_param('motors_info_callback/footprint_radius',0.15) #in meters
     num = 3
     theta = 0
     x = 0
