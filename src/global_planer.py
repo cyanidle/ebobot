@@ -45,7 +45,7 @@ class Goal: ##Полная жопа, я не ебу как это реализо
             if Goal.costmap[delta_complex.real+current_pos[0]][delta_complex.imag+current_pos[1]] == 0:
                 break
             turn = dir * Goal.step_radians
-            delta_complex = (cmath.sin(turn) + cmath.cos(turn)) * delta_complex    
+            delta_complex = (cmath.sin(turn) + 1j*cmath.cos(turn)) * delta_complex    
         #convert complex delta_vector back to real
         #add delta vector to current pos
             
