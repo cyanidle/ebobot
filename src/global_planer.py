@@ -38,7 +38,7 @@ class Goal: ##Полная жопа, я не ебу как это реализо
         current_pos = Goal.list.pop(1)  #this is the last and current position
         target_vect = Goal.target - current_pos
         norm = target_vect/np.max(np.abs(target_vect))
-        next_pos = norm * Goal + current_pos
+        next_pos = norm * Goal.target + current_pos
         delta_vect = next_pos - current_pos
         delta_complex = delta_vect[0] + 1j*delta_vect[1]
         for dir in switchGenerator():
