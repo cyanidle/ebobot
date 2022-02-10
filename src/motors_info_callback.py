@@ -16,7 +16,7 @@ info_len = rospy.get_param('motors_info_callback/motors_info_len',12)
 
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
-class Motors:
+class Motors():
     footprint_rad = rospy.get_param('motors_info_callback/footprint_radius',0.15) #in meters
     num = 3
     theta = 0
