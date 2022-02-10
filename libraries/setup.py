@@ -1,10 +1,9 @@
+## ! DO NOT MANUALLY INVOKE THIS setup.py, USE CATKIN INSTEAD
+from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
-setup(
-    name='Dorvect',
-    packages=['ebobot'],
-    package_dir={'': 'include'},
-    version='1.0.0',
-    description='Simple vectors with complex rotor funcionality',
-    author='Doronin A.D.',
-    license='MIT',
+# fetch values from package.xml
+setup_args = generate_distutils_setup(
+packages=['ebobot'],
+package_dir={'': 'include'},
 )
+setup(**setup_args)
