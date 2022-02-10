@@ -8,7 +8,7 @@ import numpy as np
 rospy.init_node('global_planer')
 #Messages and actions
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, OccupancyGrid
 ######
 
 #Пусть глобал планер посылает экшоны (goal nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
@@ -50,7 +50,8 @@ class Dorvect():
     def __div__(self, other):
         return Dorvect([self.x/ other.x, self.y / other.y,self.th/ other.th])
     
-
+def poseCallback(): ######################## ДОДЕЛАТЬ!!!!!!!!!
+    return
 
 switch = 1
 def switchGenerator():
@@ -59,9 +60,13 @@ class Goal(): ##Полная жопа, я не ебу как это реализ
     #Params
     step = rospy.get_param('global_planer/step',0.1)
     step_radians = rospy.get_param('global_planer/step_radians', 0.03)
-    #Params
+    path_publisher_topic =  rospy.get_param('global_planer/path_publisher_topic', 'global_path')
+    path_subscriber_topic =  rospy.get_param('global_planer/path_subscriber_topic', 'target_pose')
+    #/Params
+    target_subscriber = rospy.Subscriber(path_subscriber_topic, PoseStamped, poseCallback)
+    path_publisher = rospy.Publisher(path_publisher_topic, Path, queue_size=20)
     list = []
-    costmap = []
+    costmap = []  
     target = Dorvect()
     def setNew(new_goal = [0,0,0]): #new_goal is a list [x,y,th]
         Goal.list.clear()
@@ -80,14 +85,34 @@ class Goal(): ##Полная жопа, я не ебу как это реализ
         count = 0
         for dir in switchGenerator():
             count += 1
-            if Goal.costmap[next_pos.x][next_pos.y] == 0:
+            if Goal.costmap[round(next_pos.x,2)][round(next_pos.y,2)] == 0:
                 if count > 1:
                     Goal.list.append(current_pos)
                 Goal.list.append(next_pos)
                 break
             turn = dir * Goal.step_radians * count
-            next_pos.updateFromImag((cmath.sin(turn) + 1j*cmath.cos(turn)) * next_pos.imag)    
-        
+            next_pos.updateFromImag((cmath.sin(turn) + 1j*cmath.cos(turn)) * next_pos.imag)
+
+        #### ADD a check whether the goal is reached
+
+ 
+    def publish():
+        msg = Path()
+        msg.header.frame_id = "/map" ###????????
+        msg.header.stamp = rospy.Time.now()
+        for goal in Goal.list:
+                pose = PoseStamped()
+                pose.pose.position.x = goal.vect[0]
+                pose.pose.position.y = goal.vect[1]
+                pose.pose.position.z = 0
+                quaternion = tf.transformations.quaternion_from_euler(0, 0, goal.vect[2])
+                pose.pose.orientation.x = quaternion[0]
+                pose.pose.orientation.y = quaternion[1]
+                pose.pose.orientation.z = quaternion[2]
+                pose.pose.orientation.w = quaternion[3]
+                msg.poses.append(pose) 
+        Goal.path_publisher.publish(msg)
+        rospy.loginfo(f"Published new route with {len(Goal.list)} points") 
         
             
         
