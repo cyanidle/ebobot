@@ -28,7 +28,7 @@ class Dorvect():
     def norm2d(self):
         return max([abs(self.x),abs(self.y)])
     def norm3d(self):
-        return max(self.__abs__(self))
+        return max([abs(self.x),abs(self.y),abs(self.th)])
     def normalized3d(self):
         return Dorvect([val/self.norm3d() for val in self.vect])
     #def max2d(self):
