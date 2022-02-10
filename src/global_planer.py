@@ -82,11 +82,9 @@ class Goal(): ##Полная жопа, я не ебу как это реализ
         norm = target_vect/np.max(np.abs(target_vect))
         delta_vect = target_vect.normalized3d() * Goal.step
         next_pos = current_pos + delta_vect
-        count = 0
-        for dir in switchGenerator():
-            count += 1
+        for count, dir in enumerate(switchGenerator()):
             if Goal.costmap[round(next_pos.x,2)][round(next_pos.y,2)] == 0:
-                if count > 1:
+                if count > 0:
                     Goal.list.append(current_pos)
                 Goal.list.append(next_pos)
                 break
