@@ -109,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ebobot
-#  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs
+CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
