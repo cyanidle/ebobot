@@ -1,1 +1,1 @@
-Epic gaiming
+Small class, which is only usefull, when doing some complex rotor math

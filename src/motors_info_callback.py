@@ -17,7 +17,7 @@ info_len = rospy.get_param('motors_info_callback/motors_info_len',12)
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
 class Motors():
-    footprint_rad = rospy.get_param('motors_info_callback/footprint_radius',0.15) #in meters
+    wheels_footprint_rad = rospy.get_param('motors_info_callback/wheels_footprint_radius',0.15) #in meters
     num = 3
     theta = 0
     x = 0
@@ -46,7 +46,7 @@ class Motors():
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
         for mot in Motors.list:
-            Motors.theta += mot.ddist / Motors.num / (Motors.footprint_rad) /4  #по че му? (temporary)
+            Motors.theta += mot.ddist / Motors.num / (Motors.wheels_footprint_rad) /4  #по че му? (temporary)
         for mot in Motors.list:
             if mot.ddist != 0:
                 Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num /2 #temporary
