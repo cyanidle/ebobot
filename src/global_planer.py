@@ -24,11 +24,9 @@ def targetCallback(target):
     Global.setNew(goal)
 def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
-    costmap.info.width
-    costmap.info.height
-    for y in range(width):
-        for x in range(height):
-            Global.costmap[[x][y]] = costmap.data[x+y]
+    for y in range(costmap.info.width):
+        for x in range(costmap.info.height):
+            Global.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
 
 class Global(): ##Полная жопа
