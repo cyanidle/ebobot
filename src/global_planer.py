@@ -23,11 +23,12 @@ def targetCallback(target):
     goal = [target.pose.position.x,target.pose.position.y,tf.transformations.euler_from_quarternion(target.pose.orientation)[2]]
     Global.setNew(goal)
 def costmapCallback(costmap):
-    costmap.info.resolution
+    Global.costmap_resolution = costmap.info.resolution
     costmap.info.width
     costmap.info.height
-    costmap.data
-    array = costmap.data
+    for y in range(width):
+        for x in range(height):
+            Global.costmap[[x][y]] = costmap.data[x+y]
     pass #Dodelai
 
 class Global(): ##Полная жопа
