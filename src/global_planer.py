@@ -1,4 +1,3 @@
-from tokenize import blank_re
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
