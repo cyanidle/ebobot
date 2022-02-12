@@ -43,6 +43,7 @@ class Local():
     cost_coords_list = []
     targets = []
     current_target = 0
+    current_target_pos = Dorvect([0,0,0])
     #/Global values
 
     #def __init__(self):
@@ -68,20 +69,24 @@ class Local():
                 for y in range(-y_max,y_max+1):
                     Local.cost_coords_list.append((x,y))
     def reset():
-        Local.current_target = 0
-    def getCost():
+        Local.current_target = -1 
+
+    def getCost(curr_x, curr_y):
         cost = 0
         for x,y in Local.cost_coords_list:
-            cost += Local.costmap[[x],[y]]
+            cost += Local.costmap[[curr_x+x],[curr_y+y]]
         return cost
     #def getPoses():
     def cmdVel():
         twist = Twist()
-        #twist.linear.x = 
-        #twist.angular.y =
-        #twist.angular.z =
+        targ_vect = getattr(Local.robot_pos - Local.current_target_pos,"vect")  
+        move = targ.vect/np.linalg.norm(targ_vect)*Local.cost_speed_coeff*Local.getCost(targ_vect[0],targ_vect[1]) #make param
+        twist.linear.x = move[0]
+        twist.angular.y = move[1]
+        twist.angular.z = move[2] #make slower at last point
         cmd_vel_publisher.publish(twist)
-
+    def updateTarget():
+        if abs(Local.robot_pos-Local.current_target_pos) < Local.threshhold: #make param
 if __name__ == "__main__":
     #Topics
     path_subscriber = rospy.Subscriber(Local.path_subscribe_topic, Path, pathCallback)
