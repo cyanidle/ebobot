@@ -14,8 +14,17 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 
 def robotPosCallback(pose):
     Local.robot_pos = Dorvect([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
-def pathCallback():################Доделать
-    pass 
+def pathCallback(path):################Доделать
+    
+                # pose.pose.position.x = goal.vect[0]
+                # pose.pose.position.y = goal.vect[1]
+                # pose.pose.position.z = 0
+                # quaternion = tf.transformations.quaternion_from_euler(0, 0, goal.vect[2])
+                # pose.pose.orientation.x = quaternion[0]
+                # pose.pose.orientation.y = quaternion[1]
+                # pose.pose.orientation.z = quaternion[2]
+                # pose.pose.orientation.w = quaternion[3]
+                # msg.poses.append(pose) 
 #Field :   204x304 cm
 class Local():
     #Params
@@ -38,6 +47,7 @@ class Local():
     robot_pos = Dorvect([0,0,0])
     costmap = []
     cost_coords_list = []
+    targets = []
     #/Global values
 
     #def __init__(self):
