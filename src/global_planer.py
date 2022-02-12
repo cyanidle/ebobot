@@ -1,3 +1,4 @@
+from tokenize import blank_re
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -20,84 +21,111 @@ def odomCallback(odom):
     Global.robot_pos[0] =(odom.pose.position.x)
     Global.robot_pos[1] =(odom.pose.position.y)
     Global.robot_pos[2] =(tf.transformations.euler_from_quarternion(odom.pose.orientation)[2])
-def targetCallback(target): ######################## ДОДЕЛАТЬ!!!!!!!!
-    Global = []
-    Global.append(target.pose.position.x)
-    Global.append(target.pose.position.y)
-    Global.append(tf.transformations.euler_from_quarternion(target.pose.orientation)[2])
-    Global.setNew(Global)
-
-#####################
-switch = 1
-def switchGenerator():
-    switch = switch * -1
-    yield switch
-#####################
+def targetCallback(target): 
+    goal = [target.pose.position.x,target.pose.position.y,tf.transformations.euler_from_quarternion(target.pose.orientation)[2]]
+    Global.setNew(goal)
 
 
-class Global(): ##Полная жопа, я не ебу как это реализовать, через ООП или нет, пока что так
+class Global(): ##Полная жопа
     #Params
-    costmap_resolution = 2 # digits after comma, in meters
+    cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
+    seconds_per_update = rospy.get_param('global_planer/seconds_per_update',0.5)
+    dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
+    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
+    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',2) # digits after comma, in meters
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
     odom_topic =  rospy.get_param('global_planer/odom_topic',"/odom")
     debug = rospy.get_param('global_planer/debug',1)
-    threshhold =  rospy.get_param('global_planer/Global_threshhold',0.05)
+    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',0.12)
     step = rospy.get_param('global_planer/step',0.1)
-    step_radians = rospy.get_param('global_planer/step_radians', 0.03)
+    step_radians = rospy.get_param('global_planer/step_radians', 0.1) 
     path_publisher_topic =  rospy.get_param('global_planer/path_publisher_topic', 'global_path')
     pose_subscriber_topic =  rospy.get_param('global_planer/pose_subscriber_topic', 'target_pose')
     #/Params
-
-    
-
-    robot_pos = [0,0,0]
+    ################################################ global values
+    goal_reached = 1
+    start_pos = Dorvect([0,0,0])
+    robot_pos = Dorvect([0,0,0])
     list = []
     costmap = []  
     target = Dorvect()
+    num_jumps = 0
+    ################################################
+    switch = 1
+    next_switch_dir = 0
+    def switchGenerator():
+        Global.switch = Global.switch * -1
+        if Global.next_switch_dir:
+            yield Global.next_switch_dir
+        else:
+            yield Global.switch
+    ################################################
     def setNew(new_Global = [0,0,0]): #new_Global is a list [x,y,th]
         Global.list.clear()
-        Global.reached = 0
+        Global.goal_reached = 0
         Global.target = Dorvect(new_Global)
         Global.costmap = [[],[]] #here we shoudl retrieve global_costmap from server
         #!!!!!!!!!!!!!!
-        Global.list.append(Dorvect(Global.robot_pos)) #Здесь нужно получить новые актуальные координаты ебобота!!!!!!!!!!
+        Global.list.append((Dorvect(Global.robot_pos),0)) #Здесь нужно получить новые актуальные координаты ебобота!!!!!!!!!!
+        Global.start_pos = Global.robot_pos
         #!!!!!!!!!!!!!!
-
+    def reset():
+        blank = Dorvect([0,0,0])
+        Global.target = blank
+        Global.robot_pos = blank
    #@staticmethod
-    def appendNextPos():
-        current_pos = Global.list.pop(1)  #this is the last and current position
+    def appendNextPos(): ###### Самый пиздец
+        current_pos = Global.list.pop(-1)  #this is the last and current position
         target_vect = Global.target - current_pos
         delta_vect = target_vect.normalized3d() * Global.step
         next_pos = current_pos + delta_vect
-        if (next_pos - Global.target).dist() < Global.threshhold:
-            Global.list.append(current_pos)
-            Global.reached = 1
-        
-        for count, dir in enumerate(switchGenerator()):
+        Global.num_jumps += 1
+        for count, dir in enumerate(Global.switchGenerator()):
+            if Global.num_jumps > Global.maximum_jumps:
+                rospy.logerror(f"Jumps > {Global.maximum_jumps}")
+                Global.goal_reached = 1
             if Global.costmap[round(next_pos.x,2)][round(next_pos.y,2)] == 0:
-                if count > 0 or Global.consecutive_jumps > Global.consecutive_jumps_threshhold:
-                    Global.list.append(current_pos)
+                if Dorvect.dist(Global.target - current_pos) < Global.dist_to_target_threshhold:
+                    Global.num_jumps = 0
+                    Global.goal_reached = 1
+                    Global.list.append((Global.target,Dorvect.dist(current_pos - Global.start_pos)))
+                elif count > 0 or Global.consecutive_jumps > Global.consecutive_jumps_threshhold:
+                    Global.list.append((current_pos,Dorvect.dist(current_pos - Global.start_pos)))
                     Global.consecutive_jumps = 0
                 else:
-                    Global.list.append(next_pos)
+                    Global.list.append((next_pos,Dorvect.dist(next_pos - Global.start_pos)))
                     Global.consecutive_jumps += 1
                     break
             turn = dir * Global.step_radians * count
             if abs(turn) > 4:
-                rospy.logwarn(f"Help me stepbro, im stuck")
-            next_pos.updateFromImag((cmath.sin(turn) + 1j*cmath.cos(turn)) * next_pos.imag)  
+                rospy.logerror(f"Help me stepbro, im stuck")
+                if Global.debug:
+                    Global.reset()
+                break
+            delta_vect.updateFromImag((cmath.sin(turn) + 1j*cmath.cos(turn)) * next_pos.imag)
+            next_pos = current_pos + delta_vect
             if Global.debug:
                 rospy.loginfo(f"nextpos = {next_pos}, turn = {turn}")
-                if Global.reached:
+                if Global.goal_reached:
                     rospy.logwarn(f"Global.append called, when Global reached")   
-       
-
+    def cleanupDeadEnds():
+        list_to_remove = 0
+        max_dist = 0
+        for num, _, dist in enumerate(Global.list):
+            if dist > max_dist:
+                max_dist = dist
+            else:
+                for subnum, _ ,subdist in enumerate(Global.list[:num]):
+                    if subdist-dist>Global.dead_end_dist_diff_threshhold:
+                        list_to_remove.append(subnum)
+        for num in list_to_remove:
+            Global.list.pop(num)
     #@staticmethod
     def publish():
         msg = Path()
         msg.header.frame_id = "/map" ###????????
         msg.header.stamp = rospy.Time.now()
-        for goal in Global.list:
+        for goal,_ in Global.list:
                 pose = PoseStamped()
                 pose.pose.position.x = goal.vect[0]
                 pose.pose.position.y = goal.vect[1]
@@ -122,16 +150,23 @@ if __name__ == "__main__":
     target_subscriber = rospy.Subscriber(Global.pose_subscriber_topic, PoseStamped, targetCallback)
     path_publisher = rospy.Publisher(Global.path_publisher_topic, Path, queue_size=20)
     #/Topics
+    while not not rospy.is_shutdown():
+        while not Global.goal_reached:
+            Global.appendNextPos()
+        if Global.cleanup_feature:
+            Global.cleanupDeadEnds()
+        Global.publish()
+    rospy.sleep(Global.seconds_per_update)
 
 
 
     
     #pizdec
-#Пока что я предполагаю использовать класс: Цель, который хитровыебанным образорм будет добавлять чекпоинты
+#Пока что я предполагаю использовать класс: Global, который хитровыебанным образорм будет добавлять чекпоинты
 #В некий внутриклассовый список, чтобы потом его высрать в Path 
 
-#Основной алгоритм - пускаем лучи фиксированной длины в сторону цели, каждый раз добавляя объект "ДорВектор" в список позиций, и исползуем последнюю позицию, как опору
-# !!! Используем Global.list.pop(1) - это вернет объект вектора последней позиции, запишет в локальную переменную и удалит его из списка (для очитки при движении по прямой)
+#Основной алгоритм - пускаем лучи фиксированной длины в сторону цели, каждый раз добавляя объект "ДорВектор" в список позиций tuple(vect, dist), и исползуем последнюю позицию, как опору
+# !!! Используем Global.list.pop(-1) - это вернет объект вектора последней позиции, запишет в локальную переменную и удалит его из списка (для очитки при движении по прямой)
 #Когда позциия засчитана, как успешная (не триллион точек по прямой, а только необходимые для огибания препятствия) она записывается в список целей
 #Если направление прыжка не менялось <порог последовательных прыжков>, то точку все же возвращаем в список
 
