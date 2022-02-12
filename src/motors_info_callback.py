@@ -77,7 +77,7 @@ def callback(info):
     Motors.last_time = rospy.Time.now()
 #######################################################
 rospy.Subscriber("motors_info", Float32MultiArray, callback)
-odom_pub = rospy.Publisher("odom", Odometry, queue_size=80)
+odom_pub = rospy.Publisher("odom", Odometry, queue_size=50)
 odom_broadcaster = tf.TransformBroadcaster()
 
 report_count = 0
