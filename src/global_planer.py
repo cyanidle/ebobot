@@ -14,7 +14,7 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
 #В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_Global
-from libraries import Dorvect
+from libraries.Dorvect import Dorvect
 
 def odomCallback(odom):
     Global.robot_pos[0] =(odom.pose.position.x)
