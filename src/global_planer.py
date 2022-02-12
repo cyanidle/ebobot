@@ -31,7 +31,7 @@ class Global(): ##Полная жопа
     seconds_per_update = rospy.get_param('global_planer/seconds_per_update',0.5)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
-    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',2) # digits after comma, in meters
+    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.05) # meters/cell
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
     odom_topic =  rospy.get_param('global_planer/odom_topic',"/odom")
     debug = rospy.get_param('global_planer/debug',1)

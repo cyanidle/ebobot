@@ -9,6 +9,9 @@ from libraries.Dorvect import Dorvect
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
 #To the next
 
+
+
+#Field :   204x304 cm
 class Local():
     #Params
     debug = rospy.get_param('local_planer/debug', 1)
@@ -25,7 +28,7 @@ class Local():
     #/Params
 
     #Global values
-    x_list =[]
+    costmap = []
     cost_coords_list = []
     #/Global values
 
@@ -47,11 +50,15 @@ class Local():
                     rospy.loginfo(f"Precalc max x --> {x}, max y --> {round(vect.y)}")
                 x_list.append((x, round(vect.y)))
             last_x = round(vect.x)
-        for x_max, y_max in Local.x_list:
+        for x_max, y_max in x_list:
             for x in range(-x_max,x_max+1):
                 for y in range(-y_max,y_max+1):
                     Local.cost_coords_list.append((x,y))
     def getCost():
+        cost = 0
+        for x,y in Local.cost_coords_list:
+            cost += Local.costmap[[x],[y]]
+        return cost
     def getPoses():
     def cmdVel():
 
