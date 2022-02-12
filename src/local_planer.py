@@ -17,6 +17,7 @@ class Local():
     circles_dist = rospy.get_param('local_planer/circles_dist', base_footprint_radius/num_of_circles)
     #/Params
     def __init__(self):
+    def precalculateFromRadius():
     def getCost(self):
     def getPoses(self):
     def cmdVel(self):
