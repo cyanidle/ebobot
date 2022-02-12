@@ -22,16 +22,18 @@ def robotPosCallback(odom):
 def targetCallback(target): 
     goal = [target.pose.position.x,target.pose.position.y,tf.transformations.euler_from_quarternion(target.pose.orientation)[2]]
     Global.setNew(goal)
-
+def costmapCallback(costmap):
+    pass #Dodelai
 
 class Global(): ##Полная жопа
     #Params
+    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
     maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
     seconds_per_update = rospy.get_param('global_planer/seconds_per_update',0.5)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
-    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.05) # meters/cell
+    #costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.05) # meters/cell
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     debug = rospy.get_param('global_planer/debug',1)
@@ -46,7 +48,8 @@ class Global(): ##Полная жопа
     start_pos = Dorvect([0,0,0])
     robot_pos = Dorvect([0,0,0])
     list = []
-    costmap = []  
+    costmap = [] 
+    costmap_resolution = 0
     target = Dorvect()
     num_jumps = 0
     ################################################
@@ -83,7 +86,7 @@ class Global(): ##Полная жопа
             if Global.num_jumps > Global.maximum_jumps:
                 rospy.logerror(f"Jumps > {Global.maximum_jumps}")
                 Global.goal_reached = 1
-            if Global.costmap[round(next_pos.x,2)][round(next_pos.y,2)] < Global.maximum_cost:
+            if Global.costmap[next_pos.x//Global.costmap_resolution][next_pos.y//Global.costmap_resolution] < Global.maximum_cost:
                 if Dorvect.dist(Global.target - current_pos) < Global.dist_to_target_threshhold:
                     Global.num_jumps = 0
                     Global.goal_reached = 1
