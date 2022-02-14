@@ -4,7 +4,7 @@ import rospy
 import cmath
 import tf
 rospy.init_node('local_planer')
-from libraries.Dorvect import Dorvect
+from libraries.DorLib import Dorvect, deltaCoordsInRad
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
 #To the next
 #Messages and actions
@@ -16,7 +16,7 @@ def robotPosCallback(pose):
     Local.robot_pos = Dorvect([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
 def pathCallback(path):################Доделать
     for pose in path:
-        target = [pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(.pose.orientation)]
+        target = [pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(pose.pose.orientation)]
         Local.targets.append(target)
     Local.reset()
 #Field :   204x304 cm
@@ -50,23 +50,8 @@ class Local():
         Local.x_list.clear()
         Local.cost_coords_list.clear()
         Local.precalcCostCoordsFromRadius(radius)
-    def precalcCostCoordsFromRadius(radius):
-        rad = radius                           #Local.safe_footprint_radius
-        vect = Dorvect(rad,0,0)
-        x_list = []
-        x_list.append((0,rad))
-        last_x = 0
-        for i in range(cmath.pi//(Local.step_radians*2)+1): #This shit here casts some vectors with dist = rad in a quarter circle #Should fix for different rad steps.  
-            vect.updateFromImag(vect.imag * (cmath.cos(-Local.step_radians) + 1j * cmath.sin(-Local.step_radians))) #This may cause a bug later (excess coords) or (missing coords) near y=0, x = rad
-            for x in range(last_x,round(vect.x)+1):
-                if Local.debug:
-                    rospy.loginfo(f"Precalc max x --> {x}, max y --> {round(vect.y)}")
-                x_list.append((x, round(vect.y)))
-            last_x = round(vect.x)
-        for x_max, y_max in x_list:
-            for x in range(-x_max,x_max+1):
-                for y in range(-y_max,y_max+1):
-                    Local.cost_coords_list.append((x,y))
+    def precalcCostCoordsFromRadius():
+        Local.cost_coords_list = [(x,y) for x,y in deltaCoordsInRad(Local.safe_footprint_radius,Local.step_radians)]
     def reset():
         Local.current_target = 0
     def getCost():
