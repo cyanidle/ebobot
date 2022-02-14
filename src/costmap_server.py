@@ -14,21 +14,27 @@ from map_msgs.msg import OccupancyGridUpdate
 import png
 
 
-def publish(): ###An example
-        msg = Path()
+
+def publishUpdate(): ###An example
+        msg = OccupancyGridUpdate()
         msg.header.frame_id = "/map" ###????????
         msg.header.stamp = rospy.Time.now()
+        msg.width
+        msg.height
         for goal,_ in Global.list:
-                pose = PoseStamped()
-                pose.pose.position.x = goal.vect[0]
-                pose.pose.position.y = goal.vect[1]
-                pose.pose.position.z = 0
-                quaternion = tf.transformations.quaternion_from_euler(0, 0, goal.vect[2])
-                pose.pose.orientation.x = quaternion[0]
-                pose.pose.orientation.y = quaternion[1]
-                pose.pose.orientation.z = quaternion[2]
-                pose.pose.orientation.w = quaternion[3]
-                msg.poses.append(pose) 
+                msg.data[i]
+        goal.path_publisher.publish(msg)
+        rospy.loginfo(f"Published new route with {len(Global.list)} points") 
+        
+def publish(): ###An example
+        msg = OccupancyGrid()
+        msg.header.frame_id = "/map" ###????????
+        msg.header.stamp = rospy.Time.now()
+        msg.info.resolution
+        msg.info.width
+        msg.info.height
+        for goal,_ in Global.list:
+                msg.data[i]
         goal.path_publisher.publish(msg)
         rospy.loginfo(f"Published new route with {len(Global.list)} points") 
         
