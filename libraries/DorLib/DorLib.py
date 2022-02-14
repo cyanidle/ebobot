@@ -1,17 +1,18 @@
-import numpy as np
+#!/usr/bin/env python
+from numpy import linalg, array
 from math import sin, cos, radians,ceil
                     
 class Dorvect():    
     def __init__(self,vect = [0,0,0]):
         self.x,self.y,self.th = vect
-        self.vect = np.array([self.x,self.y,self.th])
+        self.vect = array([self.x,self.y,self.th])
         self.imag = self.x + 1j*self.y
     def updateFromImag(self,imag):
         self = Dorvect([imag.real,imag.imag,self.th])
     def dist(self):
-        return np.linalg.norm(self.vect)
+        return linalg.norm(self.vect)
     def normalized3d(self):
-        norm = np.linalg.norm(self.vect)
+        norm = linalg.norm(self.vect)
         return Dorvect([val/norm for val in self.vect])
     #def toImag(self):
         #self.imag = self.x + 1j*self.y
@@ -41,9 +42,9 @@ class Dorvect():
 def deltaCoordsInRad(rad,step):                       
     maxes_list = []
     last_x = 0
-    for ang in range(0,radians(90)+step,step): #This shit here casts some vectors with dist = rad in a quarter circle #Should fix for different rad steps.  
-        x_max = ceil(cos(ang)*rad)
-        y_max = ceil(sin(ang)*rad)
+    for num in range(radians(90)//step + 1):   
+        x_max = ceil(cos(num*step)*rad)
+        y_max = ceil(sin(num*step)*rad)
         for x in range(last_x,x_max):
             maxes_list.append((x, y_max))
         last_x = x_max

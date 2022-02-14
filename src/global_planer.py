@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -7,8 +8,9 @@ import tf
 import numpy as np
 rospy.init_node('global_planer')
 #Messages and actions
+from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
-from nav_msgs.msg import Path, OccupancyGrid, Odometry
+from nav_msgs.msg import Path, OccupancyGrid, Odometry, OccupancyGridUpdate
 ######
 
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
@@ -24,25 +26,33 @@ def targetCallback(target):
     Global.setNew(goal)
 def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
-    for y in range(costmap.info.width):
-        for x in range(costmap.info.height):
+    for y in range(costmap.info.width+1):
+        for x in range(costmap.info.height+1):
             Global.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
+def costmapUpdateCallback(update):
+    origin_x = update.x
+    origin_y = update.y
+    for x in range (update.height+1):
+        for y in range (update.width+1):
+            Global.costmap[origin_x + x][origin_y + y] = update.data[x+y]
+
+    
 
 class Global(): ##Полная жопа
     #Params
+    costmap_update_topic = rospy.get_param('global_planer/costmap_topic_update','/costmap_update')
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
     maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
     seconds_per_update = rospy.get_param('global_planer/seconds_per_update',0.5)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
-    #costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.05) # meters/cell
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     debug = rospy.get_param('global_planer/debug',1)
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',0.12)
-    step = rospy.get_param('global_planer/step',0.1)
+    step = rospy.get_param('global_planer/step',0.2)
     step_radians = rospy.get_param('global_planer/step_radians', 0.1) 
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'target_pose')
@@ -70,7 +80,7 @@ class Global(): ##Полная жопа
         Global.list.clear()
         Global.goal_reached = 0
         Global.target = Dorvect(new_Global)
-        Global.costmap = [[],[]] #here we shoudl retrieve global_costmap from server
+        Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
         #!!!!!!!!!!!!!!
         Global.list.append(Global.robot_pos,0) #Здесь нужно получить новые актуальные координаты ебобота!!!!!!!!!!
         Global.start_pos = Global.robot_pos
@@ -115,17 +125,17 @@ class Global(): ##Полная жопа
                 if Global.goal_reached:
                     rospy.logwarn(f"Global.append called, when Global reached")   
     def cleanupDeadEnds():
-        list_to_remove = 0
+        list_to_remove = []
         max_dist = 0
-        for num, _, dist in enumerate(Global.list):
+        for num, vect, dist in enumerate(Global.list):
             if dist > max_dist:
                 max_dist = dist
             else:
-                for subnum, _ ,subdist in enumerate(Global.list[:num]):
+                for _ ,subdist in Global.list[:num]:
                     if subdist-dist>Global.dead_end_dist_diff_threshhold:
-                        list_to_remove.append(subnum)
-        for num in list_to_remove:
-            Global.list.pop(num)
+                        list_to_remove.append((vect,dist))
+        for val in list_to_remove:
+            Global.list.remove(val)
     #@staticmethod
     def publish():
         msg = Path()
@@ -152,6 +162,8 @@ class Global(): ##Полная жопа
 
 if __name__ == "__main__":
     #Topics
+    costmap_update_subscriber = rospy.Subscriber(Global.costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
+    costmap_subscriber = rospy.Subscriber(Global.costmap_topic, OccupancyGrid, costmapCallback)
     robot_pos_subscriber = rospy.Subscriber(Global.robot_pos_topic, PoseStamped, robotPosCallback)
     target_subscriber = rospy.Subscriber(Global.pose_subscribe_topic, PoseStamped, targetCallback)
     path_publisher = rospy.Publisher(Global.path_publish_topic, Path, queue_size=20)

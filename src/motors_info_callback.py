@@ -10,13 +10,15 @@ from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
 #То, что нужно с помощью конф файла реализовать
-
 debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
 info_len = rospy.get_param('motors_info_callback/motors_info_len',12)
 
 current_time = rospy.Time.now()
 last_time = rospy.Time.now()
 class Motors():
+    theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
+    y_coeff = rospy.get_param('motors_info_callback/y_coeff',1)
+    x_coeff = rospy.get_param('motors_info_callback/x_coeff',1)
     wheels_footprint_rad = rospy.get_param('motors_info_callback/wheels_footprint_radius',0.15) #in meters
     num = 3
     theta = 0
@@ -42,15 +44,15 @@ class Motors():
         self.angle = angle
         self.radians = math.radians(angle)
         Motors.list.append(self)
-    def updateOdom():               ########### 0.3 m  =  1.8 in odom FIXX
+    def updateOdom():              
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
         for mot in Motors.list:
-            Motors.theta += mot.ddist / Motors.num / (Motors.wheels_footprint_rad) /4  #по че му? (temporary)
+            Motors.theta += mot.ddist / Motors.num / (Motors.wheels_footprint_rad) /4 * Motors.theta_coeff  #по че му? (temporary)
         for mot in Motors.list:
             if mot.ddist != 0:
-                Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num /2 #temporary
-                Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / Motors.num /2 #temporary
+                Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num /2 * Motors.x_coeff#temporary
+                Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / Motors.num /2 * Motors.y_coeff#temporary
         Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
         Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) * delta_secs * Motors.Hz, (Motors.y - Motors.last_y) * delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
         Motors.spd_turn = Motors.theta - Motors.last_theta

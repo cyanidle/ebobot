@@ -1,15 +1,18 @@
+#!/usr/bin/env python
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
 import cmath
 import tf
 rospy.init_node('local_planer')
+##########################
 from libraries.DorLib import Dorvect, deltaCoordsInRad
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
 #To the next
 #Messages and actions
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
+from map_msgs.msg import OccupancyGridUpdate
 ######
 
 def robotPosCallback(pose):
@@ -19,13 +22,25 @@ def pathCallback(path):################Доделать
         target = [pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(pose.pose.orientation)]
         Local.targets.append(target)
     Local.reset()
+def costmapCallback(costmap):
+    Local.costmap_resolution = costmap.info.resolution
+    for y in range(costmap.info.width+1):
+        for x in range(costmap.info.height+1):
+            Local.costmap[x][y] = costmap.data[x+y]
+    pass #Dodelai
+def costmapUpdateCallback(update):
+    origin_x = update.x
+    origin_y = update.y
+    for x in range (update.height+1):
+        for y in range (update.width+1):
+            Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
 #Field :   204x304 cm
 class Local():
     #Params
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
     debug = rospy.get_param('local_planer/debug', 1)
-    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/global_path') #### TAKEN FROM GLOBAL_PLANER PARAMS
+    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/global_path')
     num_of_circles = rospy.get_param('local_planer/num_of_circles', 3)
     step_radians = rospy.get_param('local_planer/step_radians', cmath.pi/4)
     #### Params for footprint cost calc
@@ -37,14 +52,14 @@ class Local():
     circles_dist = rospy.get_param('local_planer/circles_dist', base_footprint_radius/num_of_circles)
     #/Params
 
-    #Global values
+    #Local values
     robot_pos = Dorvect([0,0,0])
     costmap = []
     cost_coords_list = []
     targets = []
     current_target = 0
     current_target_pos = Dorvect([0,0,0])
-    #/Global values
+    #/Local values
 
     #def __init__(self):
     def recalcCostCoordsFromRadius(radius):
@@ -72,8 +87,11 @@ class Local():
         cmd_vel_publisher.publish(twist)
     def updateTarget():
         if abs(Local.robot_pos-Local.current_target_pos) < Local.threshhold: #make param
+            pass
 if __name__ == "__main__":
     #Topics
+    costmap_update_subscriber = rospy.Subscriber(Local.costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
+    costmap_subscriber = rospy.Subscriber(Local.costmap_topic, OccupancyGrid, costmapCallback)
     path_subscriber = rospy.Subscriber(Local.path_subscribe_topic, Path, pathCallback)
     cmd_vel_publisher = rospy.Publisher(Local.cmd_vel_topic, Twist, queue_size = 25)
     robot_pos_subscriber = rospy.Subscriber(Local.robot_pos_topic, PoseStamped, robotPosCallback)
