@@ -96,4 +96,6 @@ if __name__ == "__main__":
     cmd_vel_publisher = rospy.Publisher(Local.cmd_vel_topic, Twist, queue_size = 25)
     robot_pos_subscriber = rospy.Subscriber(Local.robot_pos_topic, PoseStamped, robotPosCallback)
     #/Topics
+    while True:
+        rospy.sleep(1)
     #epic

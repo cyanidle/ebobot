@@ -153,7 +153,7 @@ class Global(): ##Полная жопа
                 pose.pose.orientation.z = quaternion[2]
                 pose.pose.orientation.w = quaternion[3]
                 msg.poses.append(pose) 
-        goal.path_publisher.publish(msg)
+        Global.path_publisher.publish(msg)
         rospy.loginfo(f"Published new route with {len(Global.list)} points") 
         
             
@@ -167,15 +167,16 @@ if __name__ == "__main__":
     costmap_subscriber = rospy.Subscriber(Global.costmap_topic, OccupancyGrid, costmapCallback)
     robot_pos_subscriber = rospy.Subscriber(Global.robot_pos_topic, PoseStamped, robotPosCallback)
     target_subscriber = rospy.Subscriber(Global.pose_subscribe_topic, PoseStamped, targetCallback)
-    path_publisher = rospy.Publisher(Global.path_publish_topic, Path, queue_size=20)
+    path_publisher = rospy.Publisher(Global.path_publish_topic, Path, queue_size=10)
     #/Topics
+    rospy.sleep(1)
     while not not rospy.is_shutdown():
         while not Global.goal_reached:
             Global.appendNextPos()
         if Global.cleanup_feature:
             Global.cleanupDeadEnds()
         Global.publish()
-    rospy.sleep(Global.seconds_per_update)
+        rospy.sleep(Global.seconds_per_update)
 
 
 
