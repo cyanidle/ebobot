@@ -12,11 +12,12 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry, OccupancyGridUpdate
 ######
-
+from libraries.DorLib import Dorvect
+######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
 #В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_Global
-from libraries.DorLib import Dorvect
+
 
 def robotPosCallback(odom):
     Global.robot_pos[0] = Dorvect([odom.pose.position.x,odom.pose.position.y,tf.transformations.euler_from_quarternion(odom.pose.orientation)[2]])

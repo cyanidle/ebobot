@@ -5,8 +5,6 @@ import rospy
 import cmath
 import tf
 rospy.init_node('local_planer')
-##########################
-from libraries.DorLib import Dorvect, deltaCoordsInRad
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
 #To the next
 #Messages and actions
@@ -15,6 +13,8 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 ######
 
+from libraries.DorLib import Dorvect, deltaCoordsInRad
+######
 def robotPosCallback(pose):
     Local.robot_pos = Dorvect([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
 def pathCallback(path):################Доделать

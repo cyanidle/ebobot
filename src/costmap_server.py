@@ -10,7 +10,8 @@ rospy.init_node('costmap_server')
 ##########
 from nav_msgs.msg import OccupancyGrid, OccupancyGridUpdate
 from map_msgs.msg import OccupancyGridUpdate
-
+###########
+import png
 
 
 def publish(): ###An example
