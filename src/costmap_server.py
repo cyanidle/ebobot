@@ -14,7 +14,12 @@ from map_msgs.msg import OccupancyGridUpdate
 import png
 
 
-
+class Costmap():
+    file = png.Reader('src/costmap.png')
+    width,height,rows,_ = file.read()
+    
+if __name__=="__main__":
+    
 def publishUpdate(): ###An example
         msg = OccupancyGridUpdate()
         msg.header.frame_id = "/map" ###????????
@@ -24,8 +29,7 @@ def publishUpdate(): ###An example
         for goal,_ in Global.list:
                 msg.data[i]
         goal.path_publisher.publish(msg)
-        rospy.loginfo(f"Published new route with {len(Global.list)} points") 
-        
+        rospy.loginfo(f"Published new route with {len(Global.list)} points")   
 def publish(): ###An example
         msg = OccupancyGrid()
         msg.header.frame_id = "/map" ###????????
