@@ -3,32 +3,46 @@
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
-#import math
+from math import radians
 import numpy as np
 import tf
 
 rospy.init_node('costmap_server')
 ##########
-from nav_msgs.msg import OccupancyGrid, OccupancyGridUpdate
+from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 ###########
-import png
-from src import deltaCoordsInRad
+#from dorlib import lib
+def deltaCoordsInRad(rad=0,step=radians(90)):  
+    step = step - radians(90)%step                      
+    maxes_list = []
+    last_x = 0
+    for num in range(radians(90)//step + 1):   
+        x_max = ceil(cos(num*step)*rad)
+        y_max = ceil(sin(num*step)*rad)
+        for x in range(last_x,x_max):
+            maxes_list.append((x, y_max))
+        last_x = x_max
+    for x_max, y_max in maxes_list:
+        for x in range(-x_max,x_max):
+            for y in range(-y_max,y_max):
+                yield (x,y)
+
 
 import numpy as np
 import cv2
 
-color_image = cv2.imread(FILE)
-gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+color_image = cv2.imread("costmap.png")
+#gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
 
-n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
+#n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
 class Costmap():
     #Params
     seconds_per_update = rospy.get_param('costmap_server/seconds_per_update',0.5)
     inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.3)
     inflation_step_radians = rospy.get_param('costmap_server/inflation_step_radians',0.2)
     resolution = rospy.get_param('costmap_server/resolution',0.05)
-    file = rospy.get_param('costmap_server/file','/src/costmap.png')
+    file = rospy.get_param('costmap_server/file','/costmap.png')
 
     ##
     costmap_publish_topic = rospy.get_param('costmap_server/costmap_publish_topic','/costmap')
@@ -42,8 +56,8 @@ class Costmap():
     grid = []
     #list = []
     #/Global
-    file = png.Reader('src/costmap.png')
-    width,height,pixels,metadata = file.read()
+   
+    
     #[Costmap.pixels[x+y] for x, y in zip(range(Costmap.height),range(Costmap.width))]
     # def __init__(self):
     #     Costmap.list.append(self)

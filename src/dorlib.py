@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from numpy import linalg, array
 from math import sin, cos, radians,ceil           
-def deltaCoordsInRad(rad,step):  
+def deltaCoordsInRad(rad=0,step=radians(90)):  
     step = step - radians(90)%step                      
     maxes_list = []
     last_x = 0
@@ -15,7 +15,7 @@ def deltaCoordsInRad(rad,step):
         for x in range(-x_max,x_max):
             for y in range(-y_max,y_max):
                 yield (x,y)
-def deltaCoordsOnRad(rad,step):
+def deltaCoordsOnRad(rad=0,step=radians(90)):
     step = step - radians(360)%step
     maxes= []
     list = []

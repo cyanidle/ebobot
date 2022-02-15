@@ -11,7 +11,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 ######
-from Dorlib import deltaCoordsInRad
+from dorlib import deltaCoordsInRad
 ######
 def robotPosCallback(pose):
     Local.robot_pos = np.array([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])

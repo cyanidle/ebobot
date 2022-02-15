@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import roslib
-roslib.load_manifest('ebobot')
+# import roslib
+# roslib.load_manifest('ebobot')
 import rospy
 #import math
 import cmath
@@ -12,7 +12,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 ######
-from Dorlib import deltaCoordsOnRad
+#from dorlib import deltaCoordsOnRad
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
