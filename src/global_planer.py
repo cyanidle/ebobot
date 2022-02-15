@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -10,7 +10,7 @@ rospy.init_node('global_planer')
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
-from nav_msgs.msg import Path, OccupancyGrid, Odometry, OccupancyGridUpdate
+from nav_msgs.msg import Path, OccupancyGrid, Odometry
 ######
 from libraries.DorLib import Dorvect
 ######
