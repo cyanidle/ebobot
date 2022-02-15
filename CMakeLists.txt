@@ -16,7 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 )
-catkin_python_setup()
+##catkin_python_setup()
+
+
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -119,10 +122,10 @@ CATKIN_DEPENDS python-numpy pypng map_msgs geometry_msgs nav_msgs roscpp rospy r
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-libraries
-  ${catkin_INCLUDE_DIRS}
-)
+# include_directories(
+# libraries
+#   ${catkin_INCLUDE_DIRS}
+# )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -164,7 +167,7 @@ libraries
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # catkin_install_python(PROGRAMS
-#   scripts/my_python_script
+#   libraries/DorLib.py #src/global_planer.py src/local_planer.py src/costmap_server.py src/motors_info_callback.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
@@ -176,7 +179,7 @@ libraries
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-# install(TARGETS ${PROJECT_NAME}
+# install(TARGETS ${PROJECT_NAME} 
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
