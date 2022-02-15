@@ -5,14 +5,14 @@ import rospy
 #import math
 import cmath
 import tf
-import numpy as np
+
 rospy.init_node('global_planer')
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 ######
-from DorLib import Dorvect
+from DorLib import Dorvect, deltaCoordsOnRad
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
@@ -46,7 +46,7 @@ class Global(): ##Полная жопа
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
     maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
-    seconds_per_update = rospy.get_param('global_planer/seconds_per_update',0.5)
+    update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
@@ -162,22 +162,26 @@ class Global(): ##Полная жопа
     
 
 if __name__ == "__main__":
+    rate = rospy.Rate(Global.update_rate)
     #Topics
     costmap_update_subscriber = rospy.Subscriber(Global.costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(Global.costmap_topic, OccupancyGrid, costmapCallback)
     robot_pos_subscriber = rospy.Subscriber(Global.robot_pos_topic, PoseStamped, robotPosCallback)
     target_subscriber = rospy.Subscriber(Global.pose_subscribe_topic, PoseStamped, targetCallback)
     path_publisher = rospy.Publisher(Global.path_publish_topic, Path, queue_size=10)
+    ###
+    rospy.loginfo("Topics init")
     #/Topics
     rospy.sleep(1)
-    while not not rospy.is_shutdown():
+    while not rospy.is_shutdown():
+        #rospy.loginfo("1 cycle")
         if not Global.goal_reached:
             while not Global.goal_reached:
                 Global.appendNextPos()
             if Global.cleanup_feature:
                 Global.cleanupDeadEnds()
             Global.publish()
-        rospy.sleep(Global.seconds_per_update)
+        rate.sleep()
 
 
 

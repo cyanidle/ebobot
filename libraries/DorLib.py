@@ -39,10 +39,11 @@ class Dorvect:
         return Dorvect([self.x * other.x, self.y * other.y,self.th * other.th])
     def __div__(self, other):
         return Dorvect([self.x/ other.x, self.y / other.y,self.th/ other.th])
-def deltaCoordsInRad(rad,step):                       
+def deltaCoordsInRad(rad,step):  
+    step = step - radians(90)%step                      
     maxes_list = []
     last_x = 0
-    for num in range(radians(90)//step + 1):   
+    for num in range(step + 1):   
         x_max = ceil(cos(num*step)*rad)
         y_max = ceil(sin(num*step)*rad)
         for x in range(last_x,x_max):
@@ -52,3 +53,4 @@ def deltaCoordsInRad(rad,step):
         for x in range(-x_max,x_max):
             for y in range(-y_max,y_max):
                 yield (x,y)
+def deltaCoordsOnRad(rad,step):
