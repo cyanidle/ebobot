@@ -12,23 +12,7 @@ rospy.init_node('costmap_server')
 from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 ###########
-#from dorlib import lib
-def deltaCoordsInRad(rad=0,step=radians(90)):  
-    step = step - radians(90)%step                      
-    maxes_list = []
-    last_x = 0
-    for num in range(radians(90)//step + 1):   
-        x_max = ceil(cos(num*step)*rad)
-        y_max = ceil(sin(num*step)*rad)
-        for x in range(last_x,x_max):
-            maxes_list.append((x, y_max))
-        last_x = x_max
-    for x_max, y_max in maxes_list:
-        for x in range(-x_max,x_max):
-            for y in range(-y_max,y_max):
-                yield (x,y)
-
-
+from dorlib import deltaCoordsInRad
 import numpy as np
 import cv2
 
