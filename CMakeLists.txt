@@ -109,7 +109,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ebobot
-CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs
+CATKIN_DEPENDS python-numpy pypng map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -120,7 +120,7 @@ CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+libraries
   ${catkin_INCLUDE_DIRS}
 )
 

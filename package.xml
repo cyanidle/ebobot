@@ -74,7 +74,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>ebot_msgs</exec_depend> 
   <exec_depend>map_msgs</exec_depend>
-  <exec_depend>pypng</exec_depend> 
+  <exec_depend>pypng</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

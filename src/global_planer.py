@@ -12,7 +12,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 ######
-from libraries.DorLib import Dorvect
+from DorLib import Dorvect
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
@@ -86,7 +86,7 @@ class Global(): ##Полная жопа
         Global.list.append(Global.robot_pos,0) #Здесь нужно получить новые актуальные координаты ебобота!!!!!!!!!!
         Global.start_pos = Global.robot_pos
         #!!!!!!!!!!!!!!
-    def reset():
+    def reset(): #For reset service
         blank = Dorvect([0,0,0])
         Global.target = blank
         Global.robot_pos = blank
