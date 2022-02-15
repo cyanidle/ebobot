@@ -3,14 +3,14 @@ import rospy
 import roslib
 roslib.load_manifest('ebobot')
 #from sys import argv
-rospy.init_node('pid_setter_node')
-path = rospy.get_param('pid_setter_node/path', 'src/pid_settings.txt') ###две волшебные строки с первой ссылки в гугле, path - просто переменная
+rospy.init_node('pid_setter')
+path = rospy.get_param('pid_setter/path', 'scripts/pid_settings.txt') 
 from std_msgs.msg import Float32
 
 pid_msg = Float32()
 pub = rospy.Publisher('set_pid', Float32 ,queue_size = 15)
 rospy.sleep(1)
-with open(path, 'r') as f: ## хуй знает почему так, но 0 аргумент это путь на сам иполняемый файл
+with open(path, 'r') as f: 
     pids = f.readlines()
     for coeff in pids:
         for val in coeff.split(" "):

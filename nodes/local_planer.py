@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import roslib
-roslib.load_manifest('ebobot')
 import rospy
 import cmath
 import tf
-rospy.init_node('local_planer')
+import numpy as np
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
 #To the next
 #Messages and actions
@@ -12,14 +11,13 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 ######
-
-from libraries.DorLib import Dorvect, deltaCoordsInRad
+from ebobot.Dorlib import deltaCoordsInRad
 ######
 def robotPosCallback(pose):
-    Local.robot_pos = Dorvect([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
+    Local.robot_pos = np.array([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
 def pathCallback(path):################Доделать
     for pose in path:
-        target = [pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(pose.pose.orientation)]
+        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(pose.pose.orientation)])
         Local.targets.append(target)
     Local.reset()
 def costmapCallback(costmap):
@@ -36,7 +34,11 @@ def costmapUpdateCallback(update):
             Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
 #Field :   204x304 cm
 class Local():
+    rospy.init_node('local_planer')
+    roslib.load_manifest('ebobot')
     #Params
+    costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
+    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_update')
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
     debug = rospy.get_param('local_planer/debug', 1)
@@ -52,18 +54,24 @@ class Local():
     circles_dist = rospy.get_param('local_planer/circles_dist', base_footprint_radius/num_of_circles)
     #/Params
 
-    #Local values
-    robot_pos = Dorvect([0,0,0])
+    #Topics
+    costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
+    costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
+    path_subscriber = rospy.Subscriber(path_subscribe_topic, Path, pathCallback)
+    cmd_vel_publisher = rospy.Publisher(cmd_vel_topic, Twist, queue_size = 25)
+    robot_pos_subscriber = rospy.Subscriber(robot_pos_topic, PoseStamped, robotPosCallback)
+    #/Topics
+
+    #global values
+    robot_pos = np.array([0,0,0])
     costmap = []
     cost_coords_list = []
     targets = []
     current_target = 0
-    current_target_pos = Dorvect([0,0,0])
-    #/Local values
+    current_target_pos = np.array([0,0,0])
+    #/global values
 
-    #def __init__(self):
     def recalcCostCoordsFromRadius(radius):
-        Local.x_list.clear()
         Local.cost_coords_list.clear()
         Local.precalcCostCoordsFromRadius(radius)
     def precalcCostCoordsFromRadius():
@@ -80,22 +88,12 @@ class Local():
     def cmdVel():
         twist = Twist()
         targ_vect = getattr(Local.robot_pos - Local.current_target_pos,"vect")  
-        move = targ.vect/np.linalg.norm(targ_vect)*Local.cost_speed_coeff*Local.getCost(targ_vect[0],targ_vect[1]) #make param
+        move = targ_vect/np.linalg.norm(targ_vect)*Local.cost_speed_coeff*Local.getCost(targ_vect[0],targ_vect[1]) #make param
         twist.linear.x = move[0]
         twist.angular.y = move[1]
         twist.angular.z = move[2] #make slower at last point
-        cmd_vel_publisher.publish(twist)
+        Local.cmd_vel_publisher.publish(twist)
     def updateTarget():
         if abs(Local.robot_pos-Local.current_target_pos) < Local.threshhold: #make param
             pass
-if __name__ == "__main__":
-    #Topics
-    costmap_update_subscriber = rospy.Subscriber(Local.costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
-    costmap_subscriber = rospy.Subscriber(Local.costmap_topic, OccupancyGrid, costmapCallback)
-    path_subscriber = rospy.Subscriber(Local.path_subscribe_topic, Path, pathCallback)
-    cmd_vel_publisher = rospy.Publisher(Local.cmd_vel_topic, Twist, queue_size = 25)
-    robot_pos_subscriber = rospy.Subscriber(Local.robot_pos_topic, PoseStamped, robotPosCallback)
-    #/Topics
-    while True:
-        rospy.sleep(1)
-    #epic
+
