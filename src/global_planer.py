@@ -113,7 +113,7 @@ class Global(): ##Полная жопа
                     Global.list.append((next_pos,Dorvect.dist(next_pos - Global.start_pos)))
                     Global.consecutive_jumps += 1
                     break
-            turn = dir * Global.step_radians * count
+            turn = dir * Global.step_radians * (count//2)
             if abs(turn) > 4:
                 rospy.logerror(f"Help me stepbro, im stuck")
                 if Global.debug:
