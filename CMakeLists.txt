@@ -23,7 +23,7 @@ CATKIN_DEPENDS python-numpy pypng map_msgs geometry_msgs nav_msgs roscpp rospy r
 )
 
 catkin_install_python(PROGRAMS
-  scripts/pid_setter.py #nodes/costmap_server nodes/global_planer nodes/local_planer nodes/motors_info_callback 
+  scripts/pid_setter.py nodes/motors_info_callback.py nodes/move_base.py#nodes/costmap_server nodes/global_planer nodes/local_planer nodes/motors_info_callback 
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

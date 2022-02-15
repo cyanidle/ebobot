@@ -11,7 +11,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 ######
-from ebobot.Dorlib import deltaCoordsInRad
+from Dorlib.Dorlib import deltaCoordsInRad
 ######
 def robotPosCallback(pose):
     Local.robot_pos = np.array([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
@@ -37,21 +37,21 @@ class Local():
     rospy.init_node('local_planer')
     roslib.load_manifest('ebobot')
     #Params
-    costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
-    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_update')
-    robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
-    cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
-    debug = rospy.get_param('local_planer/debug', 1)
-    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/global_path')
-    num_of_circles = rospy.get_param('local_planer/num_of_circles', 3)
-    step_radians = rospy.get_param('local_planer/step_radians', cmath.pi/4)
+    costmap_topic = rospy.get_param('planers/costmap_topic', '/costmap')
+    costmap_update_topic = rospy.get_param('planers/costmap_update_topic', '/costmap_update')
+    robot_pos_topic = rospy.get_param('planers/robot_pos_topic', '/odom')
+    cmd_vel_topic = rospy.get_param('planers/cmd_vel_topic', '/cmd_vel')
+    debug = rospy.get_param('planers/debug', 1)
+    path_subscribe_topic =  rospy.get_param('planers/path_subscribe_topic', '/global_path')
+    num_of_circles = rospy.get_param('planers/num_of_circles', 3)
+    step_radians = rospy.get_param('planers/step_radians', cmath.pi/4)
     #### Params for footprint cost calc
-    footprint_calc_step_radians = rospy.get_param('local_planer/footprint_calc_step_radians', 0.3)
-    #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
-    base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
-    safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.25)
+    footprint_calc_step_radians = rospy.get_param('planers/footprint_calc_step_radians', 0.3)
+    #calculate_base_cost = rospy.get_param('planers/calculate_base_cost', 1)
+    base_footprint_radius = rospy.get_param('planers/base_footprint_radius', 0.20) #optional
+    safe_footprint_radius = rospy.get_param('planers/safe_footprint_radius', 0.25)
     #### /Params for footprint cost calc
-    circles_dist = rospy.get_param('local_planer/circles_dist', base_footprint_radius/num_of_circles)
+    circles_dist = rospy.get_param('planers/circles_dist', base_footprint_radius/num_of_circles)
     #/Params
 
     #Topics
@@ -96,4 +96,3 @@ class Local():
     def updateTarget():
         if abs(Local.robot_pos-Local.current_target_pos) < Local.threshhold: #make param
             pass
-

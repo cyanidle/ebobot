@@ -7,13 +7,13 @@ import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-
+rospy.init_node('motors_info_callback', anonymous=True)
 
 
 class Motors():
     #Params
     debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
-    info_len = rospy.get_param('motors_info_callback/motors_info_len',12)
+    info_len = rospy.get_param('motors_info_callback/motors_info_len',12) 
     theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
     y_coeff = rospy.get_param('motors_info_callback/y_coeff',1)
     x_coeff = rospy.get_param('motors_info_callback/x_coeff',1)
@@ -37,7 +37,7 @@ class Motors():
 
 
 
-    rospy.init_node('motors_info_callback', anonymous=True)
+    
 
     def __init__(self, num, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
         self.num = num
@@ -75,21 +75,26 @@ def callback(info):
     Motors.updateOdom()
     Motors.last_time = rospy.Time.now()
 #######################################################
-def main():
+if __name__=="__main__":
     motors_info_subscriber = rospy.Subscriber("motors_info", Float32MultiArray, callback)
     odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
     odom_broadcaster = tf.TransformBroadcaster()
     rate = rospy.Rate(Motors.Hz)
     report_count = 0
+
+    #init motors with their angles
+    motor0 = Motors(0,90) 
+    rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
+    motor1 = Motors(1,210)
+    rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
+    motor2 = Motors(2,330)
+    rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
+    rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
+    rospy.loginfo(f"Dorlib: {dir(Dorlib)}")
+    ###################
+    rospy.sleep(1)
     while not rospy.is_shutdown():
-        #init motors with their angles
-        motor0 = Motors(0,90) 
-        rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
-        motor1 = Motors(1,210)
-        rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
-        motor2 = Motors(2,330)
-        rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
-        rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
+        
         if Motors.debug:
             report_count += 1
             if report_count > 5:

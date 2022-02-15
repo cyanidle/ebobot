@@ -12,7 +12,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 ######
-from ebobot.Dorlib import deltaCoordsOnRad
+from Dorlib.Dorlib import deltaCoordsOnRad
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
@@ -42,21 +42,21 @@ def costmapUpdateCallback(update):
 
 class Global(): ##Полная жопа
     #Params
-    costmap_update_topic = rospy.get_param('global_planer/costmap_topic_update','/costmap_update')
-    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
-    cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
-    update_rate = rospy.get_param('global_planer/update_rate',2)
-    dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',0.10)
-    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',500)
-    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',5)
-    robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
-    debug = rospy.get_param('global_planer/debug',1)
-    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',0.12)
-    step = rospy.get_param('global_planer/step',0.2)
-    step_radians = rospy.get_param('global_planer/step_radians', 0.1) 
-    path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
-    pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'target_pose')
+    costmap_update_topic = rospy.get_param('planers/costmap_update_topic','/costmap_update')
+    costmap_topic = rospy.get_param('planers/costmap_topic','/costmap')
+    maximum_cost = rospy.get_param('planers/maximum_cost',30)
+    cleanup_feature = rospy.get_param('planers/cleanup_feature',1)
+    update_rate = rospy.get_param('planers/update_rate',2)
+    dead_end_dist_diff_threshhold = rospy.get_param('planers/dead_end_dist_diff_threshhold',0.10)
+    maximum_jumps = rospy.get_param('planers/maximum_jumps',500)
+    consecutive_jumps_threshhold = rospy.get_param('planers/consecutive_jumps_threshhold',5)
+    robot_pos_topic =  rospy.get_param('planers/robot_pos_topic',"/odom")
+    debug = rospy.get_param('planers/debug',1)
+    dist_to_target_threshhold =  rospy.get_param('planers/global_dist_to_target_threshhold',0.12)
+    step = rospy.get_param('planers/step',0.2)
+    step_radians = rospy.get_param('planers/step_radians', 0.1) 
+    path_publish_topic =  rospy.get_param('planers/path_publish_topic', 'global_path')
+    pose_subscribe_topic =  rospy.get_param('planers/pose_subscribe_topic', 'target_pose')
     #/Params
     #Topics
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
@@ -165,25 +165,3 @@ class Global(): ##Полная жопа
         Global.path_publisher.publish(msg)
         rospy.loginfo(f"Published new route with {len(Global.list)} points") 
         
-            
-        
-
-    
-
-if __name__ == "__main__":
-    rate = rospy.Rate(Global.update_rate)
-    
-    
-
-
-
-    
-    #pizdec
-#Пока что я предполагаю использовать класс: Global, который хитровыебанным образорм будет добавлять чекпоинты
-#В некий внутриклассовый список, чтобы потом его высрать в Path 
-
-#Основной алгоритм - пускаем лучи фиксированной длины в сторону цели, каждый раз добавляя объект "ДорВектор" в список позиций tuple(vect, dist), и исползуем последнюю позицию, как опору
-# !!! Используем Global.list.pop(-1) - это вернет объект вектора последней позиции, запишет в локальную переменную и удалит его из списка (для очитки при движении по прямой)
-#Когда позциия засчитана, как успешная (не триллион точек по прямой, а только необходимые для огибания препятствия) она записывается в список целей
-#Если направление прыжка не менялось <порог последовательных прыжков>, то точку все же возвращаем в список
-

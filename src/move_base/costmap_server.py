@@ -13,9 +13,15 @@ from nav_msgs.msg import OccupancyGrid, OccupancyGridUpdate
 from map_msgs.msg import OccupancyGridUpdate
 ###########
 import png
-from libraries.DorLib import deltaCoordsInRad
+from src.Dorlib import deltaCoordsInRad
 
+import numpy as np
+import cv2
 
+color_image = cv2.imread(FILE)
+gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+
+n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
 class Costmap():
     #Params
     seconds_per_update = rospy.get_param('costmap_server/seconds_per_update',0.5)
