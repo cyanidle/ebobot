@@ -171,11 +171,12 @@ if __name__ == "__main__":
     #/Topics
     rospy.sleep(1)
     while not not rospy.is_shutdown():
-        while not Global.goal_reached:
-            Global.appendNextPos()
-        if Global.cleanup_feature:
-            Global.cleanupDeadEnds()
-        Global.publish()
+        if not Global.goal_reached:
+            while not Global.goal_reached:
+                Global.appendNextPos()
+            if Global.cleanup_feature:
+                Global.cleanupDeadEnds()
+            Global.publish()
         rospy.sleep(Global.seconds_per_update)
 
 
