@@ -179,7 +179,8 @@ class Global(): ##Полная жопа
                     Global.list.append((Global.target,current_dist))
                     break
                 elif Global.consecutive_jumps > Global.consecutive_jumps_threshhold:                  #additional point is added in case of long straight jump
-                    Global.list.append((current_pos,current_dist))   
+                    Global.list.append((current_pos,np.linalg.norm(current_pos - Global.start_pos[:2])))  
+                    Global.list.append((next_pos,current_dist))  
                     Global.consecutive_jumps = 0                                                      #consecutive jumps counter reset
                     break
                 elif num > 1:                                                                                           
