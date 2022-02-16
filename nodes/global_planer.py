@@ -211,7 +211,7 @@ class Global(): ##Полная жопа
                         rospy.loginfo(f"Scheduling point {point} for removal")
                         list_to_remove.append(subnum)
                 for done,num in enumerate(list_to_remove):
-                    Global.list.pop(num-done)
+                    rospy.loginfo(f"Removing {Global.list.pop(num-done}")
   
     @staticmethod
     def sendTransfrom(x , y, th):      
