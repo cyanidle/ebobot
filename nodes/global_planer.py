@@ -24,11 +24,13 @@ def robotPosCallback(odom):
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.x,target.pose.position.y,euler[2]]
-    rospy.loginfo(f"\n--------------------\n GOT NEW TARGET: {goal}\n --------------------")
+    rospy.loginfo(f"\n#################\n GOT NEW TARGET: {goal}\n###################")
     Global.setNew(goal)
 def costmapCallback(costmap):
     rospy.loginfo("Got new map")
     Global.costmap_resolution = costmap.info.resolution
+    Global.costmap_width = costmap.info.width
+    Global.costmap_height = costmap.info.height
     for y in range(costmap.info.width+1):
         for x in range(costmap.info.height+1):
             Global.costmap[x][y] = costmap.data[x+y]
@@ -84,11 +86,13 @@ class Global(): ##Полная жопа
                 default_costmap_list[x][y] = 60
     costmap = np.array(default_costmap_list) 
     costmap_resolution = 2
+    costmap_height = 151
+    costmap_width = 101
     target = np.array([0,0,0])
     num_jumps = 0
     consecutive_jumps = 0
     poses = dCoordsOnCircle(step, step_circle_resolution)
-    lock_dir = 0
+    lock_dir = False
     #Debug
     if debug:
         rospy.loginfo(f"costmap = {costmap}")
@@ -124,12 +128,18 @@ class Global(): ##Полная жопа
             #rospy.loginfo(f"next_pos = {next_pos[0]}")
         for num,coords in enumerate(Global.poses):
             x,y = coords
-            if Global.lock_dir == 1:
-                x = -abs(x)
-                y = abs(y)
-            elif Global.lock_dir == -1:
+            if Global.lock_dir == "top":
                 x = abs(x)
+                #y = abs(y)
+            elif Global.lock_dir == "right":
+                #x = -abs(x)
+                y = abs(y)
+            elif Global.lock_dir == "left":
+                #x = abs(x)
                 y = -abs(y)
+            elif Global.lock_dir == "bot":
+                x = -abs(x)
+                #y = abs(y)
             next_pos_x,next_pos_y = round(float(next_pos[0])),round(float(next_pos[1]))
             if Global.debug:
                 rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
@@ -139,7 +149,10 @@ class Global(): ##Полная жопа
                 rospy.logerror(f"Jumps > maximum({Global.maximum_jumps})")
                 Global.goal_reached = 1
                 break
-            
+            if abs(next_pos_x) > Global.costmap_height:
+                continue
+            if abs(next_pos_y) >  Global.costmap_width:
+                continue
             if Global.costmap[next_pos_x][next_pos_y] < Global.maximum_cost:   #if next cell is acceptable then
                 #rospy.loginfo(f"{Global.target[:2]}")        
                 #rospy.loginfo(f"{current_pos}")               
@@ -169,14 +182,17 @@ class Global(): ##Полная жопа
     def cleanupDeadEnds():
         list_to_remove = []
         max_dist = 0
-        for num, vect, dist in enumerate(Global.list):
+        for num, tuple in enumerate(Global.list):
+            vect, dist = tuple
             if dist > max_dist:
                 max_dist = dist
             else:
                 for _ ,subdist in Global.list[:num]:
                     if subdist-dist>Global.dead_end_dist_diff_threshhold:
                         list_to_remove.append((vect,dist))
+        rospy.loginfo(f"Found {len(list_to_remove)} dead ends")
         for val in list_to_remove:
+            rospy.loginfo(f"Removing {val}")
             Global.list.remove(val)
     @staticmethod
     def sendTransfrom(x , y, th):      
@@ -225,5 +241,9 @@ if __name__=="__main__":
                 Global.appendNextPos()
                 if Global.debug:
                     rospy.loginfo(f"appended {Global.list[-1]}")
+            if Global.cleanup_feature:
+                Global.cleanupDeadEnds()
+                rospy.loginfo("Dead Ends cleaned up!")
             Global.publish()
+
         rate.sleep()
