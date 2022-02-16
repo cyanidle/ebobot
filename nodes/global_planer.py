@@ -47,21 +47,24 @@ def costmapUpdateCallback(update):
 
 class Global(): ##Полная жопа
     #Params
-    costmap_update_topic = rospy.get_param('planers/costmap_update_topic','/costmap_update')
-    costmap_topic = rospy.get_param('planers/costmap_topic','/costmap')
-    maximum_cost = rospy.get_param('planers/maximum_cost',30)
-    cleanup_feature = rospy.get_param('planers/cleanup_feature',1)
-    update_rate = rospy.get_param('planers/update_rate',2)
-    dead_end_dist_diff_threshhold = rospy.get_param('planers/dead_end_dist_diff_threshhold',2) #in cells
-    maximum_jumps = rospy.get_param('planers/maximum_jumps',400)
-    consecutive_jumps_threshhold = rospy.get_param('planers/consecutive_jumps_threshhold',4)
-    robot_pos_topic =  rospy.get_param('planers/robot_pos_topic',"/odom")
-    debug = rospy.get_param('planers/debug',1)
-    dist_to_target_threshhold =  rospy.get_param('planers/global_dist_to_target_threshhold',4) #in cells
-    step = rospy.get_param('planers/step',4) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
-    step_circle_resolution = rospy.get_param('planers/step_circle_resolution', 3)  #number of slices on circle circumference (more = more round)
-    path_publish_topic =  rospy.get_param('planers/path_publish_topic', 'global_path')
-    pose_subscribe_topic =  rospy.get_param('planers/pose_subscribe_topic', 'target_pose')
+    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_update')
+    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
+    maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
+    cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
+    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
+    stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',10)
+    stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
+    update_rate = rospy.get_param('global_planer/update_rate',2)
+    dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
+    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',400)
+    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
+    robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
+    debug = rospy.get_param('global_planer/debug',1)
+    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',4) #in cells
+    step = rospy.get_param('global_planer/step',4) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
+    step_circle_resolution = rospy.get_param('global_planer/step_circle_resolution', 3)  #number of slices on circle circumference (more = more round)
+    path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
+    pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'target_pose')
     #/Params
     #Topics
     path_broadcaster = tf.TransformBroadcaster()
@@ -93,6 +96,8 @@ class Global(): ##Полная жопа
     consecutive_jumps = 0
     poses = dCoordsOnCircle(step, step_circle_resolution)
     lock_dir = False
+    lock_dirs = [0, 'right', 'left', 'top' , 'bot']
+    lock_dir_num = 0
     #Debug
     if debug:
         rospy.loginfo(f"costmap = {costmap}")
@@ -113,6 +118,14 @@ class Global(): ##Полная жопа
         Global.consecutive_jumps = 0
         #!!!!!!!!!!!!!!
     @staticmethod
+    def checkIfStuck(num):
+        if num%Global.stuck_check_jumps == 0:
+            if np.linalg.norm(Global.list[-1][0] - Global.list[-1*Global.stuck_check_jumps][0]) < Global.stuck_dist_threshhold:
+                Global.lock_dir_num += 1
+            else:
+                Global.lock_dir_num = 0
+            Global.lock_dir = Global.lock_dirs[Global.lock_dir_num]
+    @staticmethod
     def reset(): #For reset service
         blank = np.array([0,0,0])
         Global.target = blank
@@ -129,17 +142,19 @@ class Global(): ##Полная жопа
             rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
             #rospy.loginfo(f"next_pos = {next_pos[0]}")
         for num,coords in enumerate(Global.poses):
+            if Global.stuck_check_feature:
+                Global.checkIfStuck(num)
             x,y = coords
-            if Global.lock_dir == "top":
+            if Global.lock_dir == 'top':
                 x = abs(x)
                 #y = abs(y)
-            elif Global.lock_dir == "right":
+            elif Global.lock_dir == 'right':
                 #x = -abs(x)
                 y = abs(y)
-            elif Global.lock_dir == "left":
+            elif Global.lock_dir == 'left':
                 #x = abs(x)
                 y = -abs(y)
-            elif Global.lock_dir == "bot":
+            elif Global.lock_dir == 'bot':
                 x = -abs(x)
                 #y = abs(y)
             next_pos_x,next_pos_y = round(float(next_pos[0])),round(float(next_pos[1]))
