@@ -19,18 +19,22 @@ from dorlib import dCoordsOnCircle
 
 
 def robotPosCallback(odom):
-    Global.robot_pos[0] = np.array([odom.pose.position.x,odom.pose.position.y,tf.transformations.euler_from_quarternion(odom.pose.orientation)[2]])
+    Global.robot_pos = np.array([odom.pose.position.x,odom.pose.position.y,tf.transformations.euler_from_quarternion(odom.pose.orientation)[2]])
 
 def targetCallback(target): 
-    goal = [target.pose.position.x,target.pose.position.y,tf.transformations.euler_from_quarternion(target.pose.orientation)[2]]
+    euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
+    goal = [target.pose.position.x,target.pose.position.y,euler[2]]
+    rospy.loginfo(f"Got new target: {goal}")
     Global.setNew(goal)
 def costmapCallback(costmap):
+    rospy.loginfo("Got new map")
     Global.costmap_resolution = costmap.info.resolution
     for y in range(costmap.info.width+1):
         for x in range(costmap.info.height+1):
             Global.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
 def costmapUpdateCallback(update):
+    rospy.loginfo("Got new map update")
     origin_x = update.x
     origin_y = update.y
     for x in range (update.height+1):
@@ -52,7 +56,7 @@ class Global(): ##Полная жопа
     robot_pos_topic =  rospy.get_param('planers/robot_pos_topic',"/odom")
     debug = rospy.get_param('planers/debug',1)
     dist_to_target_threshhold =  rospy.get_param('planers/global_dist_to_target_threshhold',2) #in cells
-    step = rospy.get_param('planers/step',4) #in cells (with resolution 2x2 step of 1 = 2cm)
+    step = rospy.get_param('planers/step',4) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
     step_circle_resolution = rospy.get_param('planers/step_circle_resolution', 3)  #number of slices on circle circumference (more = more round)
     path_publish_topic =  rospy.get_param('planers/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('planers/pose_subscribe_topic', 'target_pose')
@@ -72,20 +76,29 @@ class Global(): ##Полная жопа
     start_pos = np.array([0,0,0])
     robot_pos = np.array([0,0,0])
     list = []
-    costmap = [] 
-    costmap_resolution = 0
+    if debug:
+        default_costmap_list = [[0]*101 for _ in range(151)]
+    costmap = np.array(default_costmap_list) 
+    costmap_resolution = 2
     target = np.array([0,0,0])
     num_jumps = 0
     consecutive_jumps = 0
     poses = dCoordsOnCircle(step, step_circle_resolution)
+
+    #Debug
+    if debug:
+        rospy.loginfo(f"costmap = {costmap}")
+    #/Debug
+
+
     @staticmethod
     def setNew(new_Global = [0,0,0]): #new_Global is a list [x,y,th] where x and y are cells on costmap
         Global.list.clear()
         Global.goal_reached = 0
         Global.target = np.array(new_Global)
-        Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
+        #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
         #!!!!!!!!!!!!!!
-        Global.list.append(Global.robot_pos[:2],0) #Здесь нужно получить по ебалу от негров, потому объявление войны было ошибкой!
+        Global.list.append((Global.robot_pos[:2],0)) #Здесь нужно получить по ебалу от негров, потому объявление войны было ошибкой!
         Global.start_pos = Global.robot_pos
         #!!!!!!!!!!!!!!
     @staticmethod
@@ -98,16 +111,26 @@ class Global(): ##Полная жопа
         current_pos = np.array(Global.list.pop(-1)[:2])  #this is the last and current position
         target_vect = np.array(Global.target[:2]) - current_pos
         delta_vect = target_vect/np.linalg.norm(target_vect) * Global.step
-        next_pos = current_pos + delta_vect
+        next_pos = current_pos + delta_vect 
         Global.num_jumps += 1
-        for num,x,y in enumerate(Global.poses):
-            current_dist = np.linalg.norm(next_pos - Global.start_pos[:2])
+        if Global.debug:
+            rospy.loginfo(f"next_pos = {next_pos}, current_pos = {current_pos}, target_vect = {target_vect}")
+            rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
+        for num,coords in enumerate(Global.poses):
+            x,y = coords
+            next_pos_x,next_pos_y = round(float(next_pos[0][0])),round(float(next_pos[0][1]))
+            if Global.debug:
+                rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
+            current_dist = np.linalg.norm(next_pos - Global.start_pos[:2]) #get current dist to starting point
             if Global.num_jumps > Global.maximum_jumps:                                               #check for jumps overflow
                 rospy.logerror(f"Jumps > maximum({Global.maximum_jumps})")
                 Global.goal_reached = 1
                 break
-            if Global.costmap[next_pos[0]][next_pos[1]] < Global.maximum_cost:                        #if next cell is acceptable then
-                if np.linalg.norm(Global.target - current_pos) < Global.dist_to_target_threshhold:    #its checked to be close enough to the goal
+            
+            if Global.costmap[next_pos_x][next_pos_y] < Global.maximum_cost:   #if next cell is acceptable then
+                #rospy.loginfo(f"{Global.target[:2]}")        
+                #rospy.loginfo(f"{current_pos}")               
+                if np.linalg.norm(Global.target[:2] - current_pos[0]) < Global.dist_to_target_threshhold:    #its checked to be close enough to the goal
                     Global.num_jumps = 0                                                              #if too close - ignored, last target added
                     Global.goal_reached = 1
                     Global.list.append((Global.target,current_dist))
@@ -116,7 +139,7 @@ class Global(): ##Полная жопа
                     Global.list.append((current_pos,current_dist))   
                     Global.consecutive_jumps = 0                                                      #consecutive jumps counter reset
                     break
-                elif num > 0:                                                                                          
+                elif num > 1:                                                                                           
                     Global.list.append((next_pos,np.linalg.norm(next_pos - Global.start_pos[:2])))    #if a turn is made, the laast point is also saved
                     Global.consecutive_jumps += 1
                     break
@@ -155,7 +178,7 @@ class Global(): ##Полная жопа
         msg = Path()
         msg.header.frame_id = "/map" ###????????
         msg.header.stamp = rospy.Time.now()
-        target = Global.list.pop()
+        target = Global.list.pop()[0]
         for goal,_ in Global.list:
                 pose = PoseStamped()
                 pose.pose.position.x = goal[0]
@@ -163,8 +186,6 @@ class Global(): ##Полная жопа
                 Global.sendTransfrom(goal[0],goal[1],0)
                 msg.poses.append(pose) 
         target_pos = PoseStamped()
-        pose.pose.position.x = target[0]
-        pose.pose.position.y = target[1]
         quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
         target_pos.pose.orientation.x = quaternion[0]
         target_pos.pose.orientation.y = quaternion[1]
@@ -176,4 +197,13 @@ class Global(): ##Полная жопа
         msg.poses.append(target_pos)
         Global.path_publisher.publish(msg)
         rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
-        
+
+if __name__=="__main__":
+    rate = rospy.Rate(Global.update_rate)
+    while not rospy.is_shutdown():
+
+        if not Global.goal_reached:
+            while not Global.goal_reached:
+                Global.appendNextPos()
+            Global.publish()
+        rate.sleep()

@@ -81,7 +81,7 @@ if __name__=="__main__":
     odom_broadcaster = tf.TransformBroadcaster()
     rate = rospy.Rate(Motors.Hz)
     report_count = 0
-
+    
     #init motors with their angles
     motor0 = Motors(0,90) 
     rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
@@ -90,7 +90,7 @@ if __name__=="__main__":
     motor2 = Motors(2,330)
     rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
     rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
-    rospy.loginfo(f"Dorlib: {dir(Dorlib)}")
+   
     ###################
     rospy.sleep(1)
     while not rospy.is_shutdown():
@@ -99,7 +99,10 @@ if __name__=="__main__":
             report_count += 1
             if report_count > 5:
                 report_count = 0
-                rospy.loginfo(f"motor 1: {motor0.curr}, {motor0.targ},{motor0.dist},{motor0.ddist}")
+                rospy.loginfo("__________________")
+                for mot in Motors.list:
+                    
+                    rospy.loginfo(f"motor {mot.num}: {mot.curr}, {mot.targ},{mot.dist},{mot.ddist}")
         
         
         current_time = rospy.Time.now()

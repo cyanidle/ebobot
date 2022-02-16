@@ -12,7 +12,7 @@ rospy.init_node('costmap_server')
 from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 ###########
-from dorlib import deltaCoordsInRad
+from dorlib import dCoordsInRad
 import numpy as np
 import cv2
 
