@@ -24,7 +24,7 @@ def robotPosCallback(odom):
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.x,target.pose.position.y,euler[2]]
-    rospy.loginfo(f"\n#################\n GOT NEW TARGET: {goal}\n###################")
+    rospy.loginfo(f"\n####################################################\n GOT NEW TARGET: {goal}\n####################################################")
     Global.setNew(goal)
 def costmapCallback(costmap):
     rospy.loginfo("Got new map")
@@ -102,6 +102,8 @@ class Global(): ##Полная жопа
     @staticmethod
     def setNew(new_Global = [0,0,0]): #new_Global is a list [x,y,th] where x and y are cells on costmap
         Global.list.clear()
+        if Global.debug:
+            rospy.loginfo(f"List after clearing {Global.list}")
         Global.goal_reached = 0
         Global.target = np.array(new_Global)
         #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
@@ -183,17 +185,18 @@ class Global(): ##Полная жопа
         list_to_remove = []
         max_dist = 0
         for num, tuple in enumerate(Global.list):
-            vect, dist = tuple
+            _, dist = tuple
             if dist > max_dist:
                 max_dist = dist
             else:
-                for _ ,subdist in Global.list[:num]:
+                for subnum , tuple in enumerate(Global.list[:num]):
+                    point, subdist = tuple
                     if subdist-dist>Global.dead_end_dist_diff_threshhold:
-                        list_to_remove.append((vect,dist))
-        rospy.loginfo(f"Found {len(list_to_remove)} dead ends")
-        for val in list_to_remove:
-            rospy.loginfo(f"Removing {val}")
-            Global.list.remove(val)
+                        rospy.loginfo(f"Scheduling point {point} for removal")
+                        list_to_remove.append(subnum)
+                for done,num in enumerate(list_to_remove):
+                    Global.list.pop(num-done)
+  
     @staticmethod
     def sendTransfrom(x , y, th):      
         Global.path_broadcaster.sendTransform(
@@ -237,6 +240,7 @@ if __name__=="__main__":
     while not rospy.is_shutdown():
 
         if not Global.goal_reached:
+            start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
                 if Global.debug:
@@ -245,5 +249,7 @@ if __name__=="__main__":
                 Global.cleanupDeadEnds()
                 rospy.loginfo("Dead Ends cleaned up!")
             Global.publish()
+            end_time = rospy.Time.now() ### end time
+            rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
 
         rate.sleep()
