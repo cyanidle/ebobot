@@ -16,10 +16,7 @@ from dorlib import deltaCoordsInRad
 import numpy as np
 import cv2
 
-color_image = cv2.imread("costmap.png")
-#gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
 
-#n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
 class Costmap():
     #Params
     seconds_per_update = rospy.get_param('costmap_server/seconds_per_update',0.5)
@@ -33,7 +30,9 @@ class Costmap():
     costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_update')
     #/Params
 
-
+    color_image = cv2.imread("costmap.png")
+    gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+    n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
     
     #Global
     inflation_coords_list = deltaCoordsInRad(inflation_radius//resolution,inflation_step_radians)
