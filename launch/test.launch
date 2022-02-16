@@ -1,8 +1,0 @@
-<launch>
-    <node pkg="ebobot" type="test_pub.py" name="pub_node" output="log" respawn="true" respawn_delay="10">
-        
-    </node>
-
-    <node pkg="ebobot" type="test_listen.py" name="listen_node" output="log" respawn="true" respawn_delay="10">
-    </node>
-</launch>
