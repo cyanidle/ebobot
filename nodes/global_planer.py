@@ -189,7 +189,7 @@ class Global(): ##Полная жопа
                     break
                 else:    
                     Global.consecutive_jumps += 1
-                    Global.list.append((current_pos,current_dist))                                    #otherwise remove current, add next
+                    #Global.list.append((current_pos,current_dist))                                    #otherwise remove current, add next
                     Global.list.append((next_pos,current_dist))
                     break
             else:
