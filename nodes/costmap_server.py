@@ -73,7 +73,7 @@ class Costmap():
         Costmap.grid_update_publisher.publish(msg)
     @staticmethod
     def getInflationFromDist(dist): ###dist in cells
-        return 100/((dist/Costmap.safe_footprint_radius)**Costmap.inflation_power) ####fix
+        return 100*((Costmap.safe_footprint_radius/(dist**Costmap.inflation_power))) ####fix
     @staticmethod
     def inflate(x,y):
         Costmap.applied_list = []
