@@ -19,7 +19,8 @@ from dorlib import dCoordsOnCircle
 
 
 def robotPosCallback(odom):
-    Global.robot_pos = np.array([odom.pose.position.x,odom.pose.position.y,tf.transformations.euler_from_quarternion(odom.pose.orientation)[2]])
+    quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
+    Global.robot_pos = np.array([odom.pose.pose.position.x,odom.pose.pose.position.y,tf.transformations.euler_from_quaternion(quat)[2]]) / Global.costmap_resolution
 
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
@@ -70,7 +71,7 @@ class Global(): ##Полная жопа
     path_broadcaster = tf.TransformBroadcaster()
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
-    robot_pos_subscriber = rospy.Subscriber(robot_pos_topic, PoseStamped, robotPosCallback)
+    robot_pos_subscriber = rospy.Subscriber(robot_pos_topic, Odometry, robotPosCallback)
     target_subscriber = rospy.Subscriber(pose_subscribe_topic, PoseStamped, targetCallback)
     path_publisher = rospy.Publisher(path_publish_topic, Path, queue_size=10)
     ###
@@ -88,7 +89,7 @@ class Global(): ##Полная жопа
             for y in range (0,80):
                 default_costmap_list[x][y] = 60
     costmap = np.array(default_costmap_list) 
-    costmap_resolution = 2
+    costmap_resolution = 0.02 #meters per cell (default param comes from costmap server)
     costmap_height = 151
     costmap_width = 101
     target = np.array([0,0,0])
@@ -119,7 +120,7 @@ class Global(): ##Полная жопа
         #!!!!!!!!!!!!!!
     @staticmethod
     def checkIfStuck(num):
-        if num%Global.stuck_check_jumps == 0:
+        if num%Global.stuck_check_jumps - Global.stuck_check_jumps == 0:
             if np.linalg.norm(Global.list[-1][0] - Global.list[-1*Global.stuck_check_jumps][0]) < Global.stuck_dist_threshhold:
                 Global.lock_dir_num += 1
             else:
@@ -211,7 +212,7 @@ class Global(): ##Полная жопа
                         rospy.loginfo(f"Scheduling point {point} for removal")
                         list_to_remove.append(subnum)
                 for done,num in enumerate(list_to_remove):
-                    rospy.loginfo(f"Removing {Global.list.pop(num-done}")
+                    rospy.loginfo(f"Removing {Global.list.pop(num-done)}")
   
     @staticmethod
     def sendTransfrom(x , y, th):      
