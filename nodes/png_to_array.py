@@ -3,17 +3,13 @@ import numpy
 import numpy as np
 import cv2
 
-
-
 def converting_image_to_array():
     image = Image.open("costmap.png")
     array = numpy.array(image)
-
-print(array) # что же всплыло ? 
+    print(array)
 
 def main():
     converting_image_to_array()
-
 
 if __name__ == '__main__':
     main()
