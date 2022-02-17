@@ -49,7 +49,7 @@ class Local():
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 400) #100 are walls, then there is inflation
     num_of_steps_between_globals = rospy.get_param('local_planer/num_of_steps_between_globals', 4)
-    update_rate = rospy.get_param('local_planer/update_rate', 5) # in Hz
+    update_rate = rospy.get_param('local_planer/update_rate', 10) # in Hz
     cost_speed_coeff = rospy.get_param('local_planer/cost_speed_coeff', 0.2)
     threshhold = rospy.get_param('local_planer/threshhold', 2) #in cells
     costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
@@ -67,7 +67,6 @@ class Local():
     base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
     #### /Params for footprint cost calc
-   
     #/Params
 
     #Topics
@@ -98,12 +97,8 @@ class Local():
     #/global values
     ##############################deltaCoordsPrecalc
     @staticmethod
-    def recalcCostCoordsFromRadius():
-        Local.cost_coords_list.clear()
-        Local.precalcCostCoordsFromRadius()
-    @staticmethod
-    def precalcCostCoordsFromRadius():
-        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius/Local.costmap_resolution,Local.footprint_calc_step_radians_resolution)]
+    def recalcCostCoordsFromRadius(radius):
+        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(radius/Local.costmap_resolution,Local.footprint_calc_step_radians_resolution)]
     #############################/deltaCoordsPrecalc
     @staticmethod
     def clearTargets():
@@ -164,13 +159,14 @@ class Local():
             if point_cost > Local.cost_threshhold:
                 Local.skipped += 1
                 Local.current_target += 1
-                yield Local.fetchPoint(current, target+1)
+                yield Local.fetchPoint(current, target+1) #or break??
             elif np.linalg.norm(curr_targ - target) < Local.threshhold:
                 Local.skipped = 0
                 Local.current_target += 1
                 yield point
             else:
                 yield point
+                
     @staticmethod
     def updateTarget():
         Local.current_target +=1
@@ -180,12 +176,13 @@ class Local():
         while np.linalg.norm(Local.robot_pos - actual_target) > Local.threshhold:
             cost_speed_coeff = Local.cost_speed_coeff*Local.getCost(target[0],target[1])
             Local.cmdVel(target, cost_speed_coeff * Local.getPathSpdCoeff())
+            rospy.sleep(1/Local.update_rate)
  
 
 
 def main():
     rate = rospy.Rate(Local.update_rate)
-    Local.precalcCostCoordsFromRadius()
+    #Local.precalcCostCoordsFromRadius()
     if Local.debug:
         rospy.loginfo(f"Cost coords = {Local.cost_coords_list}")
     while not rospy.is_shutdown():
@@ -195,7 +192,7 @@ def main():
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
                 Local.goal_reached = 1
             if np.linalg.norm(Local.robot_pos-current_target) > Local.threshhold: #make param
-                Local.updateTarget()
+                Local.updateTarget(rate)
     rate.sleep()
 
 if __name__=="__main__":
