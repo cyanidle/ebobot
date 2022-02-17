@@ -141,6 +141,7 @@ class Local():
         final_coeff = coeff * Local.path_speed_coeff
         if final_coeff < Local.min_speed_coeff:
             final_coeff = Local.min_speed_coeff
+        rospy.loginfo(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
     @staticmethod
     def fetchPoint(current, target):
@@ -173,6 +174,7 @@ class Local():
         current_pos = Local.robot_pos
         target = current_pos  - Local.targets[Local.current_target]
         actual_target = Local.fetchPoint(current_pos, target)
+        rospy.loginfo(f'Riding to {actual_target}')
         while np.linalg.norm(Local.robot_pos - actual_target) > Local.threshhold:
             cost_speed_coeff = Local.cost_speed_coeff*Local.getCost(target[0],target[1])
             Local.cmdVel(target, cost_speed_coeff * Local.getPathSpdCoeff())
@@ -190,6 +192,7 @@ def main():
             current_target = Local.targets[Local.current_target]
                 #if current_target == len(Local.targets):
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
+                rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
             if np.linalg.norm(Local.robot_pos-current_target) > Local.threshhold: #make param
                 Local.updateTarget(rate)
