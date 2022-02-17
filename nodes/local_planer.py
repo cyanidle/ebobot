@@ -103,7 +103,7 @@ class Local():
         Local.precalcCostCoordsFromRadius()
     @staticmethod
     def precalcCostCoordsFromRadius():
-        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius,Local.footprint_calc_step_radians_resolution)]
+        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius/Local.costmap_resolution,Local.footprint_calc_step_radians_resolution)]
     #############################/deltaCoordsPrecalc
     @staticmethod
     def clearTargets():
