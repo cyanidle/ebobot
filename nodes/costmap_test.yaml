@@ -1,0 +1,140 @@
+---
+  version: 1.0
+  image: 
+    name: costmap.yaml
+    baseName: costmap.png
+    format: PNG
+    formatDescription: PNG
+    mimeType: image/png
+    class: DirectClass
+    geometry: 
+      width: 101
+      height: 151
+      x: 0
+      y: 0
+    
+    resolution: 
+      x: 37.79
+      y: 37.79
+    
+    printSize: 
+      x: 2.67266
+      y: 3.99577
+    
+    units: PixelsPerCentimeter
+    type: Bilevel
+    baseType: Undefined
+    endianness: Undefined
+    colorspace: sRGB
+    depth: 1
+    baseDepth: 8
+    channelDepth: 
+      red: 1
+      green: 1
+      blue: 1
+    
+    pixels: 45753
+    imageStatistics: 
+      overall: 
+        min: 0
+        max: 255
+        mean: 195.476
+        median: 0
+        standardDeviation: 27723
+        kurtosis: -0.411617
+        skewness: -1.26031
+        entropy: 0.783938
+      
+    
+    channelStatistics: 
+      red: 
+        min: 0
+        max: 255
+        mean: 195.476
+        median: 0
+        standardDeviation: 27723
+        kurtosis: -0.411843
+        skewness: -1.26023
+        entropy: 0.783938
+       
+      green: 
+        min: 0
+        max: 255
+        mean: 195.476
+        median: 0
+        standardDeviation: 27723
+        kurtosis: -0.411843
+        skewness: -1.26023
+        entropy: 0.783938
+       
+      blue: 
+        min: 0
+        max: 255
+        mean: 195.476
+        median: 0
+        standardDeviation: 27723
+        kurtosis: -0.411843
+        skewness: -1.26023
+        entropy: 0.783938
+      
+    
+    renderingIntent: Perceptual
+    gamma: 0.45455
+    chromaticity: 
+      redPrimary: 
+        x: 0.64
+        y: 0.33
+      
+      greenPrimary: 
+        x: 0.3
+        y: 0.6
+      
+      bluePrimary: 
+        x: 0.15
+        y: 0.06
+      
+      whitePrimary: 
+        x: 0.3127
+        y: 0.329
+      
+    
+    matteColor: #BDBDBD
+    backgroundColor: #FFFFFF
+    borderColor: #DFDFDF
+    transparentColor: #00000000
+    interlace: None
+    intensity: Undefined
+    compose: Over
+    pageGeometry: 
+      width: 101
+      height: 151
+      x: 0
+      y: 0
+    
+    dispose: Undefined
+    iterations: 0
+    compression: Zip
+    orientation: Undefined
+    properties: 
+      "date:create": "2022-02-17T05:43:27+00:00"
+      "date:modify": "2022-02-17T05:43:27+00:00"
+      "png:cHRM": chunk was found (see Chromaticity, above)
+      "png:gAMA": gamma=0.45455 (See Gamma, above)
+      "png:IHDR.bit-depth-orig": 8
+      "png:IHDR.bit_depth": 8
+      "png:IHDR.color-type-orig": 2
+      "png:IHDR.color_type": 2 (Truecolor)
+      "png:IHDR.interlace_method": 0 (Not interlaced)
+      "png:IHDR.width,height": 101, 151
+      "png:pHYs": x_res=3779, y_res=3779, units=1
+      "png:sRGB": intent=0 (Perceptual Intent)
+      signature: 57fd939581a82ee3cc2269316102a8ece5df81d452499b5911405d76c63bc437
+    
+    tainted: false
+    filesize: 464B
+    numberPixels: 15251
+    pixelsPerSecond: 3.14055MB
+    userTime: 0.000u
+    elapsedTime: 0:01.004
+    version: costmap v1.0
+...
