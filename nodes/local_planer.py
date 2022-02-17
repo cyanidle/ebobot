@@ -11,17 +11,22 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 ######
-from dorlib import deltaCoordsInRad
-######
+from dorlib import dCoordsInRad
+######Callbacks
 def robotPosCallback(pose):
-    Local.robot_pos = np.array([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(pose.pose.orientation)[2]])
+    quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
+    Local.robot_pos = np.array([pose.pose.x,pose.pose.y,tf.transformations.euler_from_quarternion(quat)[2]]) / Local.costmap_resolution
 def pathCallback(path):################Доделать
     for pose in path:
-        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.quaternion_from_euler(pose.pose.orientation)])
+        quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
+        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.euler_from_quarternion(quat)[2]])
         Local.targets.append(target)
-    Local.reset()
+    Local.gotNewPath()
 def costmapCallback(costmap):
+    rospy.loginfo("Got new map")
     Local.costmap_resolution = costmap.info.resolution
+    Local.costmap_width = costmap.info.width
+    Local.costmap_height = costmap.info.height
     for y in range(costmap.info.width+1):
         for x in range(costmap.info.height+1):
             Local.costmap[x][y] = costmap.data[x+y]
@@ -32,6 +37,7 @@ def costmapUpdateCallback(update):
     for x in range (update.height+1):
         for y in range (update.width+1):
             Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
+######/Callbacks
 #Field :   204x304 cm
 class Local():
     rospy.init_node('local_planer')
@@ -44,7 +50,7 @@ class Local():
     debug = rospy.get_param('planers/debug', 1)
     path_subscribe_topic =  rospy.get_param('planers/path_subscribe_topic', '/global_path')
     num_of_circles = rospy.get_param('planers/num_of_circles', 3)
-    step_radians = rospy.get_param('planers/step_radians', cmath.pi/4)
+    step_radians_resolution = rospy.get_param('planers/step_radians_resolution', 6) #numver of vectors in eash quarter of a circle (more = more round field)
     #### Params for footprint cost calc
     footprint_calc_step_radians = rospy.get_param('planers/footprint_calc_step_radians', 0.3)
     #calculate_base_cost = rospy.get_param('planers/calculate_base_cost', 1)
@@ -63,28 +69,36 @@ class Local():
     #/Topics
 
     #global values
+    costmap_resolution = 0.02
     robot_pos = np.array([0,0,0])
     costmap = []
-    cost_coords_list = []
+    costmap_height = 151
+    costmap_width = 101
+    cost_coords_list = dCoordsInRad(safe_footprint_radius,)
     targets = []
     current_target = 0
     current_target_pos = np.array([0,0,0])
     #/global values
 
+    @staticmethod
     def recalcCostCoordsFromRadius(radius):
         Local.cost_coords_list.clear()
         Local.precalcCostCoordsFromRadius(radius)
+    @staticmethod
     def precalcCostCoordsFromRadius():
-        Local.cost_coords_list = [(x,y) for x,y in deltaCoordsInRad(Local.safe_footprint_radius,Local.step_radians)]
-    def reset():
-        Local.current_target = -1 
-
-    def getCost(curr_x, curr_y):
+        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius,Local.step_radians)]
+    @staticmethod
+    def gotNewPath():
+        Local.current_target = 0 
+    
+    @staticmethod
+    def getCost(curr_x,curr_y):
         cost = 0
         for x,y in Local.cost_coords_list:
             cost += Local.costmap[[curr_x+x],[curr_y+y]]
         return cost
-    #def getPoses():
+   
+    @staticmethod
     def cmdVel():
         twist = Twist()
         targ_vect = getattr(Local.robot_pos - Local.current_target_pos,"vect")  
@@ -93,6 +107,7 @@ class Local():
         twist.angular.y = move[1]
         twist.angular.z = move[2] #make slower at last point
         Local.cmd_vel_publisher.publish(twist)
+    @staticmethod
     def updateTarget():
         if abs(Local.robot_pos-Local.current_target_pos) < Local.threshhold: #make param
             pass
