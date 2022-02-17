@@ -54,10 +54,12 @@ class Costmap():
     #     Costmap.list.append(self)
     @staticmethod
     def initCostmap():
+        start_time = rospy.Time.now()
         Costmap.grid = [[Costmap.pixels[x+y] for x in range(Costmap.height+1)] for y in range(Costmap.width+1)]
         for x,y in Costmap.grid:
             Costmap.inflate(x,y)
         Costmap.applied_list.clear()
+        rospy.loginfo(f"Costmap init done in {(rospy.Time.now() - start_time).to_sec()}")
     @staticmethod
     def publishUpdate(): ###An example
         msg = OccupancyGridUpdate()
