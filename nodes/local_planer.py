@@ -115,6 +115,8 @@ class Local():
             new_parsed_targets.append(target[:2].append(delta_theta * num))
         new_parsed_targets.append(final_target)
         Local.targets = new_parsed_targets
+        if Local.debug:
+            rospy.loginfo(f"Parsed targets = {Local.targets}")
     @staticmethod
     def getCost(pose):
         curr_x,curr_y = pose[0], pose[1]
