@@ -9,7 +9,7 @@ def converting_image_to_array():
     image = Image.open("costmap.png")
     array = numpy.array(image)
 
- print(array) # что же всплыло ? 
+print(array) # что же всплыло ? 
 
 def main():
     converting_image_to_array()
