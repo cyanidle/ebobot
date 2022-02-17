@@ -45,7 +45,7 @@ class Local():
     rospy.init_node('local_planer')
     roslib.load_manifest('ebobot')
     #Params
-    min_speed_coeff = rospy.get_param('local_planer/min_speed_coeff', 0,3)
+    min_speed_coeff = rospy.get_param('local_planer/min_speed_coeff', 0.3)
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 400) #100 are walls, then there is inflation
     num_of_steps_between_globals = rospy.get_param('local_planer/num_of_steps_between_globals', 4)
@@ -65,7 +65,7 @@ class Local():
     footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', 6) #number of vectors for footprint
     #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
     base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
-    safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.25)
+    safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
     #### /Params for footprint cost calc
    
     #/Params
@@ -98,12 +98,12 @@ class Local():
     #/global values
     ##############################deltaCoordsPrecalc
     @staticmethod
-    def recalcCostCoordsFromRadius(radius):
+    def recalcCostCoordsFromRadius():
         Local.cost_coords_list.clear()
-        Local.precalcCostCoordsFromRadius(radius)
+        Local.precalcCostCoordsFromRadius()
     @staticmethod
     def precalcCostCoordsFromRadius():
-        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius,Local.step_radians)]
+        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(Local.safe_footprint_radius,Local.footprint_calc_step_radians_resolution)]
     #############################/deltaCoordsPrecalc
     @staticmethod
     def clearTargets():
@@ -149,6 +149,8 @@ class Local():
         return final_coeff
     @staticmethod
     def fetchPoint(current, target):
+        if Local.debug:
+            rospy.loginfo(f"Fetching point with curr = {current}, targ = {target}")
         for num in range(Local.num_of_steps_between_globals*Local.skipped):
             curr_targ = (Local.targets[target] - current) /num
             min_cost = 0
@@ -183,7 +185,10 @@ class Local():
 
 def main():
     rate = rospy.Rate(Local.update_rate)
-    while rospy.is_shutdown():
+    Local.precalcCostCoordsFromRadius()
+    if Local.debug:
+        rospy.loginfo(f"Cost coords = {Local.cost_coords_list}")
+    while not rospy.is_shutdown():
         if not Local.goal_reached:
             current_target = Local.targets[Local.current_target]
                 #if current_target == len(Local.targets):
