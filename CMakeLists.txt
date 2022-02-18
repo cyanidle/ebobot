@@ -28,7 +28,7 @@ catkin_install_python(PROGRAMS
   nodes/costmap_server.py 
   nodes/global_planer.py 
   nodes/local_planer.py
- 
+  nodes/laser_scan_callback.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

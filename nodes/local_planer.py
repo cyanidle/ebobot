@@ -45,6 +45,7 @@ class Local():
     rospy.init_node('local_planer')
     roslib.load_manifest('ebobot')
     #Params
+    delta_thetas_enable =  rospy.get_param('local_planer/min_speed_coeff', 0)
     min_speed_coeff = rospy.get_param('local_planer/min_speed_coeff', 0.3)
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 400) #100 are walls, then there is inflation
@@ -62,10 +63,10 @@ class Local():
     circles_dist = rospy.get_param('local_planer/circles_dist', 5) #in cells
     circles_step_radians_resolution = rospy.get_param('local_planer/circles_step_radians_resolution', 3) #number of vectors in each quarter of a circle (more = more round field)
     #### Params for footprint cost calc
-    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', 6) #number of vectors for footprint
     #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
     base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
+    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', safe_footprint_radius/1.5) #number of vectors for footprint
     #### /Params for footprint cost calc
     #/Params
 
@@ -78,6 +79,8 @@ class Local():
     #/Topics
 
     #global values
+    current_max_subtargets = 0
+    subtarget = 0
     skipped = 0
     goal_reached = 1
     new_targets = []
@@ -87,7 +90,7 @@ class Local():
     costmap = np.array(default_costmap_list)
     costmap_height = 151
     costmap_width = 101
-    cost_coords_list = dCoordsInRad(safe_footprint_radius,footprint_calc_step_radians_resolution)
+    cost_coords_list = dCoordsOnCircle(safe_footprint_radius,footprint_calc_step_radians_resolution)
     targets = []
     current_target = 0
     cost_check_poses = []
@@ -98,7 +101,7 @@ class Local():
     ##############################deltaCoordsPrecalc
     @staticmethod
     def recalcCostCoordsFromRadius(radius):
-        Local.cost_coords_list = [(x,y) for x,y in dCoordsInRad(radius/Local.costmap_resolution,Local.footprint_calc_step_radians_resolution)]
+        Local.cost_coords_list = [(x,y) for x,y in dCoordsOnCircle(radius/Local.costmap_resolution,Local.footprint_calc_step_radians_resolution)]
     #############################/deltaCoordsPrecalc
     @staticmethod
     def clearTargets():
@@ -109,7 +112,11 @@ class Local():
     def parseTargets():
         current_theta = Local.robot_pos[2]
         final_target = Local.new_targets.pop()
-        delta_theta = (final_target[2] - current_theta) / (len(Local.targets) + 1)
+        if Local.delta_thetas_enable:
+
+            delta_theta = (final_target[2] - current_theta) / (len(Local.targets) + 1)
+        else:
+            delta_theta = 0
         new_parsed_targets = []
         for num,target in enumerate(Local.targets):
             new_parsed_targets.append(target[:2].append(delta_theta * num))
@@ -145,31 +152,52 @@ class Local():
             final_coeff = Local.min_speed_coeff
         rospy.loginfo(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
-    @staticmethod
-    def fetchPoint(current, target):
-        if Local.debug:
-            rospy.loginfo(f"Fetching point with curr = {current}, targ = {target}")
-        for num in range(Local.num_of_steps_between_globals*Local.skipped):
-            curr_targ = (Local.targets[target] - current) /num
-            min_cost = 0
-            for x,y in Local.cost_check_poses:
+    @classmethod
+    def fetchPoint(cls,current, target):     #dist to target should be checked in updateDist()
+        if cls.debug:
+            rospy.loginfo(f"Fetching point with curr = {current}, target = {target}")
+            rospy.loginfo(f"Skipped = {cls.skipped}, subtarget = {cls.subtarget}, target = {cls.current_target}")
+        cls.current_max_subtargets = cls.num_of_steps_between_globals*cls.skipped
+        curr_targ = (cls.targets[target] - current) / cls.current_max_subtargets * cls.subtarget
+        cls.subtarget += 1
+        min_cost = 0
+        if cls.current_target == len(cls.targets):
+            point = curr_targ
+        else:
+            for x,y in cls.cost_check_poses:
                 pose = np.array([curr_targ[0] + x, curr_targ[1] + y, curr_targ[2]])
-                curr_cost = Local.getCost(pose)
+                curr_cost = cls.getCost(pose)
                 if curr_cost < min_cost:
-                   point = pose
-                   point_cost = curr_cost
-                   min_cost = curr_cost 
-            if point_cost > Local.cost_threshhold:
-                Local.skipped += 1
-                Local.current_target += 1
-                yield Local.fetchPoint(current, target+1) #or break??
-            elif np.linalg.norm(curr_targ - target) < Local.threshhold:
-                Local.skipped = 0
-                Local.current_target += 1
+                    point = pose
+                    point_cost = curr_cost
+                    min_cost = curr_cost
+            if cls.debug:
+                rospy.loginfo(f"Best subpoint = {point}")
+            if point_cost > cls.cost_threshhold:
+                if cls.debug:
+                    rospy.loginfo(f"Recursing")
+                cls.subtarget += 1
+                cls.skipped += 1
+                cls.current_target += 1
+                yield cls.fetchPoint(current, target+1)
+            elif cls.subtarget == cls.current_max_subtargets:
+                if cls.debug:
+                    rospy.loginfo(f"Fetching full target")
+                cls.skipped = 0
+                cls.subtarget = 0
+                cls.current_target += 1
                 yield point
+            # elif np.linalg.norm(curr_targ - cls.targets[target]) < cls.threshhold:
+            #     cls.skipped = 0
+            #     cls.current_target += 1
+            #     cls.subtarget = 0
+            #     yield point
             else:
+                if cls.debug:
+                    rospy.loginfo(f"Fetching subtarget")
+                cls.subtarget += 1
                 yield point
-                
+           
     @staticmethod
     def updateTarget():
         Local.current_target +=1
