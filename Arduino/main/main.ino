@@ -1,6 +1,8 @@
 #include <TimerMs.h>
 #include <ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/MultiArrayLayout.h>
+#include <std_msgs/MultiArrayDimension.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 
@@ -220,11 +222,18 @@ void setup()
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
-  /*
-  motors_msg.layout.dim_length = ;
-  motors_msg.layout.dim[0].label = "";
-  motors_msg.layout.dim[0].size = ;
-  */
+
+  
+  motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
+  motors_msg.layout.dim_length = 2;
+  motors_msg.layout.dim[0].label = "Motor";
+  motors_msg.layout.dim[0].size = 3;
+  motors_msg.layout.dim[0].stride = 12;
+  motors_msg.layout.dim[1].label = "Info";
+  motors_msg.layout.dim[1].size = 4;
+  motors_msg.layout.dim[0].stride = 4;
+
+  
   motors_msg.layout.data_offset = 0;
   motors_msg.data_length = 12;
   motors_msg.data = (float *)malloc(sizeof(float) * 12);
