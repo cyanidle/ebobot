@@ -163,6 +163,8 @@ class Local():
         min_cost = 0
         if cls.current_target == len(cls.targets):
             point = curr_targ
+            point_cost = 0
+            rospy.loginfo("Last point!")
         else:
             for x,y in cls.cost_check_poses:
                 pose = np.array([curr_targ[0] + x, curr_targ[1] + y, curr_targ[2]])
@@ -173,7 +175,7 @@ class Local():
                     min_cost = curr_cost
             if cls.debug:
                 rospy.loginfo(f"Best subpoint = {point}")
-            if point_cost > cls.cost_threshhold:
+        if point_cost > cls.cost_threshhold: #unindent everything pls
                 if cls.debug:
                     rospy.loginfo(f"Recursing")
                 cls.subtarget += 1
