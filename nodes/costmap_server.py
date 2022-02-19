@@ -115,6 +115,7 @@ class Costmap():
                 new_x,new_y = x+dx,y+dy
                 if new_x < cls.height and new_x >= 0 and new_y  < cls.width and new_y  >= 0:
                     sum += cls.grid[new_x][new_y]
+                    num += 1
             new_grid[x][y] = sum/num
         cls.grid = new_grid
     @classmethod
