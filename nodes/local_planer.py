@@ -90,7 +90,7 @@ class Local():
     costmap = np.array(default_costmap_list)
     costmap_height = 151
     costmap_width = 101
-    cost_coords_list = dCoordsOnCircle(safe_footprint_radius,footprint_calc_step_radians_resolution)
+    cost_coords_list = dCoordsOnCircle(safe_footprint_radius/costmap_resolution,footprint_calc_step_radians_resolution)
     targets = []
     current_target = 0
     cost_check_poses = []
@@ -163,6 +163,8 @@ class Local():
         min_cost = 0
         if cls.current_target == len(cls.targets):
             point = curr_targ
+            point_cost = 0
+            rospy.loginfo("Last point!")
         else:
             for x,y in cls.cost_check_poses:
                 pose = np.array([curr_targ[0] + x, curr_targ[1] + y, curr_targ[2]])
@@ -173,30 +175,25 @@ class Local():
                     min_cost = curr_cost
             if cls.debug:
                 rospy.loginfo(f"Best subpoint = {point}")
-            if point_cost > cls.cost_threshhold:
-                if cls.debug:
-                    rospy.loginfo(f"Recursing")
-                cls.subtarget += 1
-                cls.skipped += 1
-                cls.current_target += 1
-                yield cls.fetchPoint(current, target+1)
-            elif cls.subtarget == cls.current_max_subtargets:
-                if cls.debug:
-                    rospy.loginfo(f"Fetching full target")
-                cls.skipped = 0
-                cls.subtarget = 0
-                cls.current_target += 1
-                yield point
-            # elif np.linalg.norm(curr_targ - cls.targets[target]) < cls.threshhold:
-            #     cls.skipped = 0
-            #     cls.current_target += 1
-            #     cls.subtarget = 0
-            #     yield point
-            else:
-                if cls.debug:
-                    rospy.loginfo(f"Fetching subtarget")
-                cls.subtarget += 1
-                yield point
+        if point_cost > cls.cost_threshhold: #unindent everything pls
+            if cls.debug:
+                rospy.loginfo(f"Point failed! Recursing...")
+            cls.subtarget += 1
+            cls.skipped += 1
+            cls.current_target += 1
+            yield cls.fetchPoint(current, target+1)
+        elif cls.subtarget == cls.current_max_subtargets:
+            if cls.debug:
+                rospy.loginfo(f"Fetching full target")
+            cls.skipped = 0
+            cls.subtarget = 0
+            cls.current_target += 1
+            yield point
+        else:
+            if cls.debug:
+                rospy.loginfo(f"Fetching subtarget")
+            cls.subtarget += 1
+            yield point
            
     @staticmethod
     def updateTarget():
