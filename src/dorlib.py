@@ -27,7 +27,7 @@ def dCoordsInRad(rad,resolution = 3):
                     if y > 0: 
                         list.append((-x,-y))
         last_x = x_max
-    print (list)
+    #print (list)
     return list
 
 
