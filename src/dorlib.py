@@ -27,6 +27,7 @@ def dCoordsInRad(rad,resolution = 3):
                     if y > 0: 
                         list.append((-x,-y))
         last_x = x_max
+    print (list)
     return list
 
 
@@ -43,4 +44,4 @@ def dCoordsOnCircle(rad,resolution = 3):
     print(f"Got coords on circle! {list}")
     return list
 
-#print(dCoordsInRad(10))
+#dCoordsInRad(5)

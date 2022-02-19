@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from turtle import width
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -14,19 +13,22 @@ from map_msgs.msg import OccupancyGridUpdate
 from dorlib import dCoordsInRad
 import numpy as np
 import cv2
-
+import os
 
 class Costmap():
     #Params
+    inflate_enable = rospy.get_param('costmap_server/inflate_enable',0)
     debug = rospy.get_param('costmap_server/debug',1)
-    inflation_buff_coeff = rospy.get_param('costmap_server/inflation_buff_coeff',0.2)
+    write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1 )
+    inflation_buff_coeff = rospy.get_param('costmap_server/inflation_buff_coeff',0.5) #less = more
     inflation_power = rospy.get_param('costmap_server/inflation_power',2)
     update_rate = rospy.get_param('costmap_server/update_rate',0.5)
-    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.3)
-    inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',0.2)
+    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.08)
+    inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
     resolution = rospy.get_param('costmap_server/resolution',0.02)
     file = rospy.get_param('costmap_server/file','/home/alexej/catkin_ws/src/ebobot/nodes/costmap.png')
-    safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.30)
+    file_dir = rospy.get_param('costmap_server/file_dir','/home/alexej/catkin_ws/src/ebobot/nodes/')
+    #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
     ##
     #Topics
     costmap_broadcaster = tf.TransformBroadcaster()
@@ -48,27 +50,61 @@ class Costmap():
     for x in range(height):
         for y in range(width):
             grid_parser.append((x,y))
+    
+    inflation_coords_list = dCoordsInRad(inflation_radius//resolution,inflation_step_radians_resolution)
     if debug:
         rospy.loginfo(f"Costmap shape is {width,height}(w,h)")
-    #applied_list = []
-    inflation_coords_list = dCoordsInRad(inflation_radius//resolution,inflation_step_radians_resolution)
-    
+        rospy.loginfo(f"{inflation_coords_list}")
     grid = np.array([[0]*101 for _ in range(151)])
-    #list = []
     #/Global
    
     @classmethod
     def initCostmap(cls):
         start_time = rospy.Time.now()
-        cls.grid = np.array(cls.pixels)#new_grid
+        cls.grid = cls.pixels#new_grid
         if cls.debug:
-            rospy.loginfo(f"Map read (First row = {cls.grid[0]})")
-        for x,y in cls.grid_parser:
-            if cls.debug:
-                rospy.loginfo(f"Inflating {x},{y}")
-            cls.inflate(x,y)
+            rospy.loginfo(f"Map read \n(First row = {cls.grid[0]})\n(Row 40 = {cls.grid[39]})")
+        if cls.inflate_enable:
+            for x,y in cls.grid_parser:
+                if not rospy.is_shutdown():
+                    if cls.debug:
+                        rospy.loginfo(f"Inflating {x},{y}")
+                    cls.inflate(x,y)
+            if cls.write_map_enable:
+                os.chdir(cls.file_dir)
+                cv2.imwrite("inflated_costmap.png", cls.grid * 255/100)
+                if cls.debug:
+                    mask = np.array([[0]*100 ] for _ in range(100))
+                    for x, y in cls.inflation_coords_list:
+                        mask[50+x][50+y] = 255
+                    cv2.imwrite("inflation_mask.png", mask)
+                rospy.loginfo(f"Saving map into {cls.file_dir}")
         rospy.loginfo(f"Costmap init done in {(rospy.Time.now() - start_time).to_sec()}")
+        
     
+    @classmethod
+    def getInflationFromDist(cls,dist): ###dist in cells
+        if dist:
+            inflation = round(100 * cls.safe_footprint_radius/(cls.inflation_buff_coeff*dist**cls.inflation_power)) 
+        else:
+            inflation = 100
+        if inflation > 100:
+            inflation = 100
+        elif inflation < 0:
+            inflation = 0
+        return inflation
+    @classmethod
+    def inflate(cls,x,y):
+        if cls.pixels[x][y] > 90:
+            for d_x, d_y in cls.inflation_coords_list:
+                next_x, next_y = x+d_x, y + d_y
+                if (next_x > 0 and next_x < cls.height) and (next_y>0 and next_y <cls.width):
+                    inflation = cls.getInflationFromDist(np.linalg.norm(np.array([next_x,next_y]-np.array([x,y]))))
+                    if cls.debug:
+                        rospy.loginfo(f"x {next_x}, y {next_y}, inflation = {inflation}")
+                    cls.grid[next_x][next_y] += inflation
+                    if cls.grid[next_x][next_y] > 100:
+                        cls.grid[next_x][next_y] = 100
     @classmethod
     def publishUpdate(cls): ###An example
         msg = OccupancyGridUpdate()
@@ -83,24 +119,6 @@ class Costmap():
         msg.data = data_list
         cls.grid_update_publisher.publish(msg)
     @classmethod
-    def getInflationFromDist(cls,dist): ###dist in cells
-        if dist:
-            inflation = round(100 - cls.inflation_buff_coeff*dist**cls.inflation_power)
-        else:
-            inflation = 100
-        # if inflation > 100:
-        #     inflation = 100
-        return  inflation
-    @classmethod
-    def inflate(cls,x,y):
-        for d_x, d_y in cls.inflation_coords_list:
-                next_x, next_y = abs(x+d_x), abs(y + d_y)
-                if (next_x > 0 and next_x < cls.height) and (next_y>0 and next_y <cls.width):
-                    inflation = cls.getInflationFromDist(np.linalg.norm(np.array([next_x,next_y]-np.array([x,y]))))
-                    if cls.debug:
-                        rospy.loginfo(f"x {next_x}, y {next_y}, inflation = {inflation}")
-                    cls.grid[next_x][next_y] += inflation
-    @classmethod
     def publish(cls): ###An example
         msg = OccupancyGrid()
         curr_time = rospy.Time.now()
@@ -111,12 +129,13 @@ class Costmap():
         msg.info.height = cls.height
         for x in range(cls.height):
             for y in range(cls.width):
-                msg.data.append(cls.grid[x,y])
+                msg.data.append(int(cls.grid[x,y]))
+        zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
         cls.costmap_broadcaster.sendTransform(
-            (0, 0, 0.),
-            (0,0,0,0),
+            (0, 0, 0),
+            zero_quat,
             curr_time ,
-            "fixed",
+            "costmap",
             "map"
             )
         cls.grid_publisher.publish(msg)
@@ -155,7 +174,6 @@ def main():
     rospy.sleep(1)
     Costmap.initCostmap()
     Costmap.publish()
-    
     while not rospy.is_shutdown():
         Costmap.publish()
         rate.sleep()
