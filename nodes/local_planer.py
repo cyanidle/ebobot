@@ -178,6 +178,9 @@ class Local():
         if point_cost > cls.cost_threshhold: #unindent everything pls
             if cls.debug:
                 rospy.loginfo(f"Point failed! Recursing...")
+            if target == len(cls.targets):
+                rospy.loginfo(f"Goal failed! Sending Stop!")
+                yield current
             cls.subtarget += 1
             cls.skipped += 1
             cls.current_target += 1

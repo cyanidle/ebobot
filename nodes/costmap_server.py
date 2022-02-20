@@ -141,7 +141,7 @@ class Costmap():
     @classmethod
     def publishUpdate(cls): ###An example
         msg = OccupancyGridUpdate()
-        msg.header.frame_id = "/map" ###????????
+        msg.header.frame_id = "costmap" ###????????
         msg.header.stamp = rospy.Time.now()
         msg.width = cls.width
         msg.height = cls.height
@@ -155,7 +155,7 @@ class Costmap():
     def publish(cls): ###An example
         msg = OccupancyGrid()
         curr_time = rospy.Time.now()
-        msg.header.frame_id = "/map" ###????????
+        msg.header.frame_id = "costmap" ###????????
         msg.header.stamp = curr_time 
         msg.info.resolution = cls.resolution
         msg.info.width = cls.width
@@ -169,7 +169,7 @@ class Costmap():
             zero_quat,
             curr_time ,
             "costmap",
-            "map"
+            "costmap" ##???
             )
         cls.grid_publisher.publish(msg)
 
