@@ -113,7 +113,7 @@ class Costmap():
             sum = 0
             for dx, dy in interpolation_list:
                 new_x,new_y = x+dx,y+dy
-                if new_x < cls.height and new_x >= 0 and new_y  < cls.width and new_y  >= 0:
+                if new_x <= cls.height- cls.interpolation_radius and new_x >= cls.interpolation_radius-1 and new_y  <= cls.width - cls.interpolation_radius and new_y  >= cls.interpolation_radius-1:
                     sum += cls.grid[new_x][new_y]
                     num += 1
             new_grid[x][y] = sum/num
