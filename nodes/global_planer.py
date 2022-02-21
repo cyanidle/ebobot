@@ -65,7 +65,7 @@ class Global(): ##Полная жопа
     step = rospy.get_param('global_planer/step',4) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
     step_circle_resolution = rospy.get_param('global_planer/step_circle_resolution', 3)  #number of slices on circle circumference (more = more round)
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
-    pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'target_pose')
+    pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     #/Params
     #Topics
     path_broadcaster = tf.TransformBroadcaster()
