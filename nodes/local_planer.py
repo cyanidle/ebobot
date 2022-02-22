@@ -27,17 +27,14 @@ def pathCallback(path):################Доделать
 def costmapCallback(costmap):
     rospy.loginfo("Got new map")
     Local.costmap_resolution = costmap.info.resolution
-    Local.costmap_width = costmap.info.width
     Local.costmap_height = costmap.info.height
-    for y in range(costmap.info.width):
-        for x in range(costmap.info.height):
-            Local.costmap[x][y] = costmap.data[x+y]
-    pass #Dodelai
+    Local.costmap_width = costmap.info.width
+    Local.costmap= np.rot90(np.reshape(costmap.data,(Local.costmap_height, Local.costmap_width))   ,3)
 def costmapUpdateCallback(update):
     origin_x = update.x
     origin_y = update.y
-    for x in range (update.height):
-        for y in range (update.width):
+    for x in range (update.width):
+        for y in range (update.height):
             Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
 ######/Callbacks
 #Field :   204x304 cm
@@ -88,8 +85,8 @@ class Local():
     robot_pos = np.array([0,0,0])
     default_costmap_list = [[0]*101 for _ in range(151)]
     costmap = np.array(default_costmap_list)
-    costmap_height = 151
-    costmap_width = 101
+    costmap_width = 151
+    costmap_height = 101
     cost_coords_list = dCoordsInRad(safe_footprint_radius//costmap_resolution,footprint_calc_step_radians_resolution)
     targets = []
     current_target = 0
@@ -198,17 +195,17 @@ class Local():
             cls.subtarget += 1
             yield point
            
-    @staticmethod
-    def updateTarget():
-        Local.current_target +=1
-        current_pos = Local.robot_pos
-        target = current_pos  - Local.targets[Local.current_target]
-        actual_target = Local.fetchPoint(current_pos, target)
+    @classmethod
+    def updateTarget(cls):
+        cls.current_target +=1
+        current_pos = cls.robot_pos
+        target = current_pos  - cls.targets[cls.current_target]
+        actual_target = cls.fetchPoint(current_pos, target)
         rospy.loginfo(f'Riding to {actual_target}')
-        while np.linalg.norm(Local.robot_pos - actual_target) > Local.threshhold:
-            cost_speed_coeff = Local.cost_speed_coeff*Local.getCost(target[0],target[1])
-            Local.cmdVel(target, cost_speed_coeff * Local.getPathSpdCoeff())
-            rospy.sleep(1/Local.update_rate)
+        while np.linalg.norm(cls.robot_pos - actual_target) > cls.threshhold:
+            cost_speed_coeff = cls.cost_speed_coeff*cls.getCost(target[0],target[1])
+            cls.cmdVel(target, cost_speed_coeff * cls.getPathSpdCoeff())
+            rospy.sleep(1/cls.update_rate)
  
 
 

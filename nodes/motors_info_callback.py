@@ -104,9 +104,10 @@ if __name__=="__main__":
         
         if Motors.debug:
             report_count += 1
-            if report_count > 5:
+            if report_count > 10:
                 report_count = 0
                 rospy.loginfo("__________________")
+                rospy.loginfo(f"x = {Motors.x},y = {Motors.y},th = {Motors.theta}")
                 for mot in Motors.list:
                     
                     rospy.loginfo(f"motor {mot.num}: {mot.curr}, {mot.targ},{mot.dist},{mot.ddist}")
@@ -118,14 +119,14 @@ if __name__=="__main__":
             (Motors.x, Motors.y, 0.),
             odom_quat,
             current_time,
-            "base_link",
-            "odom"
+            "odom",
+            "costmap"
             )
         odom = Odometry()
         odom.header.stamp = current_time
         odom.header.frame_id = "odom"
         odom.pose.pose = Pose(Point(Motors.x, Motors.y, 0.), Quaternion(*odom_quat))
-        odom.child_frame_id = "base_link"
+        odom.child_frame_id = "costmap"
         odom.twist.twist = Twist(Vector3(Motors.spd_x, Motors.spd_y, 0), Vector3(0, 0, Motors.spd_turn))
         odom_pub.publish(odom)
         last_time = current_time
