@@ -17,21 +17,21 @@ import os
 
 class Costmap():
     #Params
-    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',0) #in cells
-    interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',0)
-    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.015)
+    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',1) #in cells
+    interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
+    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.008)
     super_debug = rospy.get_param('costmap_server/super_debug',0)
-    inflate_enable = rospy.get_param('costmap_server/inflate_enable',0)
+    inflate_enable = rospy.get_param('costmap_server/inflate_enable',1)
     debug = rospy.get_param('costmap_server/debug',1)
     write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1 )
     inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
     inflation_nonlinear_power = rospy.get_param('costmap_server/inflation_nonlinear_power',1)
     update_rate = rospy.get_param('costmap_server/update_rate',0.5)
-    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.4)
+    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.2)
     inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
     resolution = rospy.get_param('costmap_server/resolution',0.02)
-    file = rospy.get_param('costmap_server/file','~/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
-    file_dir = rospy.get_param('costmap_server/file_dir','~/catkin_ws/src/ebobot/nodes/costmap/')
+    file = rospy.get_param('costmap_server/file','/home/aa/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
+    file_dir = rospy.get_param('costmap_server/file_dir','/home/aa/catkin_ws/src/ebobot/nodes/costmap/')
     #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
     ##
     #Topics
@@ -90,9 +90,9 @@ class Costmap():
         inflation = 0
         if dist:
             if cls.inflation_nonlinear_enable:
-                inflation = cls.pixels[x][y] * cls.base_inflation_coeff * (dist/cls.inflation_radius_in_cells)**cls.inflation_nonlinear_power
+                inflation = cls.pixels[x][y] * cls.base_inflation_coeff * 1/(dist/cls.inflation_radius_in_cells)**cls.inflation_nonlinear_power
             else:
-                inflation = cls.pixels[x][y] * cls.base_inflation_coeff * (dist/cls.inflation_radius_in_cells)
+                inflation = cls.pixels[x][y] * cls.base_inflation_coeff * 1/(dist/cls.inflation_radius_in_cells)
         #else:
             #inflation = 100
         if inflation > 100:
@@ -112,6 +112,7 @@ class Costmap():
             num = 0
             sum = 0
             for dx, dy in interpolation_list:
+                rospy.loginfo_once('Interpolation working...')
                 new_x,new_y = x+dx,y+dy
                 if new_x < cls.height and new_x >= 1 and new_y  < cls.width and new_y  >= 1:
                     sum += cls.grid[new_x][new_y]
