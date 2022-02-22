@@ -19,7 +19,7 @@ class Costmap():
     #Params
     interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',2) #in cells
     interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
-    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.0016) #VERY DANGEROUS
+    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.0015) #VERY DANGEROUS
     super_debug = rospy.get_param('costmap_server/super_debug',0)
     inflate_enable = rospy.get_param('costmap_server/inflate_enable',0)
     debug = rospy.get_param('costmap_server/debug',1)
@@ -52,23 +52,19 @@ class Costmap():
     
     #Global
     inflation_radius_in_cells = inflation_radius/resolution
-    width,height = int(len(pixels)), int(len(pixels[0]))
+    height,width = int(len(pixels)), int(len(pixels[0]))
     grid_parser = []
     for x in range(height):
         for y in range(width):
             grid_parser.append((x,y))
-    
     inflation_coords_list = dCoordsInRad(inflation_radius//resolution,inflation_step_radians_resolution)
-    if debug:
-        rospy.loginfo(f"Costmap shape is {width,height}(w,h)")
-        rospy.loginfo(f"Costmap is {pixels}")
-        rospy.loginfo(f"Inflation radius in cells = {inflation_radius_in_cells}")
-    grid = np.array([[0]*101 for _ in range(151)])
+    grid = np.array([[0 for _ in range(151)]  for _ in range(101)])
     #/Global
    
     @classmethod
     def initCostmap(cls):
         start_time = rospy.Time.now()
+        
         cls.grid = cls.pixels#new_grid
         #if cls.debug:
             #rospy.loginfo(f"Map read \n(First row = {cls.grid[0]})\n(Row 40 = {cls.grid[39]})")
@@ -168,9 +164,8 @@ class Costmap():
         msg.info.resolution = cls.resolution
         msg.info.width = cls.width
         msg.info.height = cls.height
-        for x in range(cls.height):
-            for y in range(cls.width):
-                msg.data.append(int(cls.grid[x,y]))
+        for x, y in cls.grid_parser:
+            msg.data.append(int(cls.grid[x,y]))
         zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
         cls.costmap_broadcaster.sendTransform(
             (0, 0, 0),
@@ -212,6 +207,10 @@ class Obstacle:
 
 def main():
     rospy.init_node('costmap_server')
+    if Costmap.debug:
+        rospy.loginfo(f"Costmap shape is {Costmap.width,Costmap.height}(w,h)")
+        rospy.loginfo(f"Costmap is {Costmap.pixels}")
+        rospy.loginfo(f"Inflation radius in cells = {Costmap.inflation_radius_in_cells}")
     rate = rospy.Rate(Costmap.update_rate)
     rospy.sleep(1)
     Costmap.initCostmap()

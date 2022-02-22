@@ -137,6 +137,8 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
     nh.loginfo("set diff");
     diff_coeff[mot] = set_pid.data;
     break;
+  //case 3:
+    //max_speed = set_pid.data
   }
   pid_count++;
   if (pid_count > 8)

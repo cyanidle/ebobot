@@ -2,7 +2,7 @@
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
-#import math
+from math import pi
 import tf
 import numpy as np
 
@@ -19,21 +19,23 @@ from dorlib import dCoordsOnCircle
 
 
 def robotPosCallback(odom):
-    quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
-    Global.robot_pos = np.array([odom.pose.pose.position.x,odom.pose.pose.position.y,tf.transformations.euler_from_quaternion(quat)[2]]) / Global.costmap_resolution
+    euler = tf.transformations.euler_from_quaternion([odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w])
+    Global.robot_pos = np.array([odom.pose.pose.position.x,    odom.pose.pose.position.y,    euler[2]%(pi*2)]) / Global.costmap_resolution
 
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
-    goal = [target.pose.position.x,target.pose.position.y,euler[2]]
+    goal = [target.pose.position.x/Global.costmap_resolution,target.pose.position.y/Global.costmap_resolution,euler[2]%(pi*2)]
     rospy.loginfo(f"\n####################################################\n GOT NEW TARGET: {goal}\n####################################################")
     Global.setNew(goal)
 def costmapCallback(costmap):
-    rospy.loginfo("Got new map")
+    
     Global.costmap_resolution = costmap.info.resolution
     Global.costmap_width = costmap.info.width
     Global.costmap_height = costmap.info.height
-    for y in range(costmap.info.width):
-        for x in range(costmap.info.height):
+    Global.costmap = np.array([[0]*Global.costmap_width for _ in range(Global.costmap_height)])
+    rospy.loginfo(f"Got new map, width = {Global.costmap_width}, height = {Global.costmap_height}")
+    for x in range(costmap.info.height):
+        for y in range(costmap.info.width):
             Global.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
 def costmapUpdateCallback(update):
@@ -92,9 +94,6 @@ class Global(): ##Полная жопа
     default_costmap_list = []
     if debug:
         default_costmap_list = [[0]*101 for _ in range(151)]
-        for x in range(50,80):
-            for y in range (0,80):
-                default_costmap_list[x][y] = 60
     costmap = np.array(default_costmap_list) 
     #costmap_resolution = 0.02 #meters per cell (default param comes from costmap server)
     costmap_height = 151
@@ -118,7 +117,7 @@ class Global(): ##Полная жопа
     def setNew(new_Global = [0,0,0]): #new_Global is a list [x,y,th] where x and y are cells on costmap
         Global.list.clear()
         if Global.debug:
-            rospy.loginfo(f"Start from {Global.robot_pos}")
+            rospy.loginfo(f"\n############################\nStart from {Global.robot_pos}\n############################")
         Global.goal_reached = 0
         Global.target = np.array(new_Global)
         #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
