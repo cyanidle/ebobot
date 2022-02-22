@@ -3,15 +3,21 @@ import roslib
 roslib.load_manifest('ebobot')
 import rospy
 from std_msgs.msg import Float32MultiArray
+from geometry_msgs.msg import PoseWithCovarianceStamped
 import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
 rospy.init_node('motors_info_callback', anonymous=True)
 
-
+def estimateCallback(target): 
+    euler = tf.transformations.euler_from_quaternion([target.pose.pose.orientation.x,target.pose.pose.orientation.y,target.pose.pose.orientation.z,target.pose.pose.orientation.w])
+    goal = [target.pose.pose.position.x,target.pose.pose.position.y,euler[2]]
+    rospy.loginfo(f"\n####################################################\n GOT NEW ESTIMATE: {goal}\n####################################################")
+    Motors.x,Motors.y,Motors.theta = goal[0], goal[1], goal[2]
 class Motors():
     #Params
+    estimate_pos = rospy.get_param('motors_info_callback/estimate_pos',"initialpose")
     debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
     info_len = rospy.get_param('motors_info_callback/motors_info_len',12) 
     theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
@@ -79,6 +85,7 @@ if __name__=="__main__":
     motors_info_subscriber = rospy.Subscriber("motors_info", Float32MultiArray, callback)
     odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
     odom_broadcaster = tf.TransformBroadcaster()
+    estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
     rate = rospy.Rate(Motors.Hz)
     report_count = 0
     

@@ -17,17 +17,17 @@ import os
 
 class Costmap():
     #Params
-    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',1) #in cells
+    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',2) #in cells
     interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
-    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.008)
+    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.0016) #VERY DANGEROUS
     super_debug = rospy.get_param('costmap_server/super_debug',0)
     inflate_enable = rospy.get_param('costmap_server/inflate_enable',1)
     debug = rospy.get_param('costmap_server/debug',1)
     write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1 )
     inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
     inflation_nonlinear_power = rospy.get_param('costmap_server/inflation_nonlinear_power',1)
-    update_rate = rospy.get_param('costmap_server/update_rate',0.5)
-    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.2)
+    update_rate = rospy.get_param('costmap_server/update_rate',0.55)
+    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.45)
     inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
     resolution = rospy.get_param('costmap_server/resolution',0.02)
     file = rospy.get_param('costmap_server/file','/home/aa/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
@@ -71,6 +71,7 @@ class Costmap():
         #if cls.debug:
             #rospy.loginfo(f"Map read \n(First row = {cls.grid[0]})\n(Row 40 = {cls.grid[39]})")
         if cls.inflate_enable:
+            rospy.loginfo_once('Inflating...')
             for x,y in cls.grid_parser:
                 cls.inflate(x,y)
             if cls.write_map_enable:
@@ -102,9 +103,11 @@ class Costmap():
         return inflation
     @classmethod
     def interpolateGrid(cls):
+        new_grid = np.array([[0]*101 for _ in range(151)])
+        rospy.loginfo_once('Interpolating...')
         interpolation_list = []
-        for i in range(cls.interpolation_radius):
-            for j in range(cls.interpolation_radius):
+        for i in range(cls.interpolation_radius+1):
+            for j in range(cls.interpolation_radius+1):
                 if not (i==0 and j==0):
                     interpolation_list.append((i,j))
         new_grid = cls.grid
@@ -114,11 +117,13 @@ class Costmap():
             for dx, dy in interpolation_list:
                 rospy.loginfo_once('Interpolation working...')
                 new_x,new_y = x+dx,y+dy
-                if new_x < cls.height and new_x >= 1 and new_y  < cls.width and new_y  >= 1:
+                if new_x <= cls.height-cls.interpolation_radius and new_x >= cls.interpolation_radius and new_y  <= cls.width-cls.interpolation_radius and new_y  >= cls.interpolation_radius:
                     sum += cls.grid[new_x][new_y]
                     num += 1
-            new_grid[x][y] = int(round(sum/num))
+            if num:
+                new_grid[x][y] = int(round(sum/num))
         cls.grid = new_grid
+        #new_grid.clear()
     @classmethod
     def inflate(cls,x,y):
         if cls.pixels[x][y] > 50:
