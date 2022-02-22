@@ -47,19 +47,21 @@ def costmapUpdateCallback(update):
     
 
 class Global(): ##Полная жопа
+    
     #Params
+    rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
     costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_update')
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
+    maximum_cost = rospy.get_param('global_planer/maximum_cost',80)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
-    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
+    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',0)
     stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',10)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
     update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',400)
-    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
+    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',2)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     debug = rospy.get_param('global_planer/debug',1)
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',4) #in cells
@@ -68,6 +70,8 @@ class Global(): ##Полная жопа
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     #/Params
+    
+
     #Topics
     path_broadcaster = tf.TransformBroadcaster()
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
@@ -75,9 +79,11 @@ class Global(): ##Полная жопа
     robot_pos_subscriber = rospy.Subscriber(robot_pos_topic, Odometry, robotPosCallback)
     target_subscriber = rospy.Subscriber(pose_subscribe_topic, PoseStamped, targetCallback)
     path_publisher = rospy.Publisher(path_publish_topic, Path, queue_size=10)
+    rviz_publisher = rospy.Publisher(rviz_topic, Path, queue_size=5)
     ###
     rospy.loginfo("Topics init")
     #/Topics
+
     ################################################ global values
     goal_reached = 1
     start_pos = np.array([0,0,0])
@@ -97,6 +103,8 @@ class Global(): ##Полная жопа
     num_jumps = 0
     consecutive_jumps = 0
     poses = dCoordsOnCircle(step, step_circle_resolution)
+    if debug:
+        rospy.loginfo(f"Poses = {poses}")
     lock_dir = False
     lock_dirs = [0, 'right', 'left', 'top' , 'bot']
     lock_dir_num = 0
@@ -110,7 +118,7 @@ class Global(): ##Полная жопа
     def setNew(new_Global = [0,0,0]): #new_Global is a list [x,y,th] where x and y are cells on costmap
         Global.list.clear()
         if Global.debug:
-            rospy.loginfo(f"List after clearing {Global.list}")
+            rospy.loginfo(f"Start from {Global.robot_pos}")
         Global.goal_reached = 0
         Global.target = np.array(new_Global)
         #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
@@ -227,9 +235,10 @@ class Global(): ##Полная жопа
     @staticmethod
     def publish():
         msg = Path()
-        msg.header.frame_id = "/map" ###????????
+        msg.header.frame_id = "/costmap" ###????????
         msg.header.stamp = rospy.Time.now()
         target = Global.list.pop()[0]
+        
         for goal,_ in Global.list:
                 pose = PoseStamped()
                 pose.pose.position.x = goal[0]
@@ -251,9 +260,40 @@ class Global(): ##Полная жопа
             rospy.loginfo(f"Last point {target}") 
         msg.poses.append(target_pos)
         Global.path_publisher.publish(msg)
+        
         rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
-
+    @staticmethod
+    def publishRviz():
+        msg = Path()
+        msg.header.frame_id = "/costmap" ###????????
+        msg.header.stamp = rospy.Time.now()
+        target = Global.list.pop()[0]
+        target[0], target[1], target[2] = target[0]/ 50, target[1]/ 50, target[2]/ 50
+        for goal,_ in Global.list:
+                pose = PoseStamped()
+                pose.pose.position.x = goal[0] / 50
+                pose.pose.position.y = goal[1] / 50
+                Global.sendTransfrom(goal[0],goal[1],0)
+                if Global.debug:
+                    rospy.loginfo(f"New point {goal}") 
+                msg.poses.append(pose) 
+        target_pos = PoseStamped()
+        quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
+        target_pos.pose.orientation.x = quaternion[0]
+        target_pos.pose.orientation.y = quaternion[1]
+        target_pos.pose.orientation.z = quaternion[2]
+        target_pos.pose.orientation.w = quaternion[3]
+        target_pos.pose.position.x = target[0]
+        target_pos.pose.position.y = target[1]
+        Global.sendTransfrom(target[0],target[1],target[2])
+        if Global.debug:
+            rospy.loginfo(f"Last point {target}") 
+        msg.poses.append(target_pos)
+        Global.path_publisher.publish(msg)
+        
+        rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 if __name__=="__main__":
+    
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
 

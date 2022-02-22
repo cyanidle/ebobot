@@ -35,9 +35,11 @@ class Costmap():
     #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
     ##
     #Topics
-    #costmap_broadcaster = tf.TransformBroadcaster()
+    
+    costmap_broadcaster = tf.TransformBroadcaster()
     costmap_publish_topic = rospy.get_param('costmap_server/costmap_publish_topic','/costmap')
     costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_update')
+    
     grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=5)
     grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=5)
     #/Topics
@@ -169,14 +171,14 @@ class Costmap():
         for x in range(cls.height):
             for y in range(cls.width):
                 msg.data.append(int(cls.grid[x,y]))
-        # zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
-        # cls.costmap_broadcaster.sendTransform(
-        #     (0, 0, 0),
-        #     zero_quat,
-        #     curr_time ,
-        #     "costmap",
-        #     "costmap" ##???
-        #     )
+        zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
+        cls.costmap_broadcaster.sendTransform(
+            (0, 0, 0),
+            zero_quat,
+            curr_time ,
+            "costmap",
+            "costmap" ##???
+            )
         cls.grid_publisher.publish(msg)
 
 
