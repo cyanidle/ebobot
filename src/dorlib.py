@@ -37,7 +37,7 @@ def dCoordsOnCircle(rad,resolution = 3):
     maxes= []
     list = []
     for num in range(round(radians(180)/step) + 1):
-        maxes.append((rad*sin(num*step),rad*cos(num*step)))
+        maxes.append((    round(rad*sin(num*step)),round(rad*cos(num*step))    ))
     for x,y in maxes:
         list.append((x,y))
         list.append((x,-y))

@@ -32,16 +32,16 @@ def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
     Global.costmap_width = costmap.info.width
     Global.costmap_height = costmap.info.height
-    for y in range(costmap.info.width+1):
-        for x in range(costmap.info.height+1):
+    for y in range(costmap.info.width):
+        for x in range(costmap.info.height):
             Global.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
 def costmapUpdateCallback(update):
     rospy.loginfo("Got new map update")
     origin_x = update.x
     origin_y = update.y
-    for x in range (update.height+1):
-        for y in range (update.width+1):
+    for x in range (update.height):
+        for y in range (update.width):
             Global.costmap[origin_x + x][origin_y + y] = update.data[x+y]
 
     
@@ -49,6 +49,7 @@ def costmapUpdateCallback(update):
 class Global(): ##Полная жопа
     #Params
     costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_update')
+    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
     maximum_cost = rospy.get_param('global_planer/maximum_cost',30)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
@@ -89,7 +90,7 @@ class Global(): ##Полная жопа
             for y in range (0,80):
                 default_costmap_list[x][y] = 60
     costmap = np.array(default_costmap_list) 
-    costmap_resolution = 0.02 #meters per cell (default param comes from costmap server)
+    #costmap_resolution = 0.02 #meters per cell (default param comes from costmap server)
     costmap_height = 151
     costmap_width = 101
     target = np.array([0,0,0])

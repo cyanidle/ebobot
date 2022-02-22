@@ -29,15 +29,15 @@ def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_width = costmap.info.width
     Local.costmap_height = costmap.info.height
-    for y in range(costmap.info.width+1):
-        for x in range(costmap.info.height+1):
+    for y in range(costmap.info.width):
+        for x in range(costmap.info.height):
             Local.costmap[x][y] = costmap.data[x+y]
     pass #Dodelai
 def costmapUpdateCallback(update):
     origin_x = update.x
     origin_y = update.y
-    for x in range (update.height+1):
-        for y in range (update.width+1):
+    for x in range (update.height):
+        for y in range (update.width):
             Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
 ######/Callbacks
 #Field :   204x304 cm
@@ -66,7 +66,7 @@ class Local():
     #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
     base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
-    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', safe_footprint_radius/1.5) #number of vectors for footprint
+    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', 5) #number of vectors for footprint
     #### /Params for footprint cost calc
     #/Params
 
@@ -90,11 +90,11 @@ class Local():
     costmap = np.array(default_costmap_list)
     costmap_height = 151
     costmap_width = 101
-    cost_coords_list = dCoordsOnCircle(safe_footprint_radius/costmap_resolution,footprint_calc_step_radians_resolution)
+    cost_coords_list = dCoordsInRad(safe_footprint_radius//costmap_resolution,footprint_calc_step_radians_resolution)
     targets = []
     current_target = 0
     cost_check_poses = []
-    for n in range(num_of_circles):
+    for n in range(1,num_of_circles+1):
         for x,y in dCoordsOnCircle(n*circles_dist,circles_step_radians_resolution):
             cost_check_poses.append((x,y))
     #/global values

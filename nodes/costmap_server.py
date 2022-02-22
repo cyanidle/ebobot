@@ -17,11 +17,11 @@ import os
 
 class Costmap():
     #Params
-    interpolation_radius = rospy.get_param('costmap_server/enable_interpolation',1) #in cells
-    interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
+    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',0) #in cells
+    interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',0)
     base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.015)
     super_debug = rospy.get_param('costmap_server/super_debug',0)
-    inflate_enable = rospy.get_param('costmap_server/inflate_enable',1)
+    inflate_enable = rospy.get_param('costmap_server/inflate_enable',0)
     debug = rospy.get_param('costmap_server/debug',1)
     write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1 )
     inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
@@ -30,12 +30,12 @@ class Costmap():
     inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.4)
     inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
     resolution = rospy.get_param('costmap_server/resolution',0.02)
-    file = rospy.get_param('costmap_server/file','/home/alexej/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
-    file_dir = rospy.get_param('costmap_server/file_dir','/home/alexej/catkin_ws/src/ebobot/nodes/costmap/')
+    file = rospy.get_param('costmap_server/file','~/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
+    file_dir = rospy.get_param('costmap_server/file_dir','~/catkin_ws/src/ebobot/nodes/costmap/')
     #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
     ##
     #Topics
-    costmap_broadcaster = tf.TransformBroadcaster()
+    #costmap_broadcaster = tf.TransformBroadcaster()
     costmap_publish_topic = rospy.get_param('costmap_server/costmap_publish_topic','/costmap')
     costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_update')
     grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=5)
@@ -163,14 +163,14 @@ class Costmap():
         for x in range(cls.height):
             for y in range(cls.width):
                 msg.data.append(int(cls.grid[x,y]))
-        zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
-        cls.costmap_broadcaster.sendTransform(
-            (0, 0, 0),
-            zero_quat,
-            curr_time ,
-            "costmap",
-            "costmap" ##???
-            )
+        # zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
+        # cls.costmap_broadcaster.sendTransform(
+        #     (0, 0, 0),
+        #     zero_quat,
+        #     curr_time ,
+        #     "costmap",
+        #     "costmap" ##???
+        #     )
         cls.grid_publisher.publish(msg)
 
 
