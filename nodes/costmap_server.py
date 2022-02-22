@@ -116,7 +116,7 @@ class Costmap():
                 if new_x <= cls.height- cls.interpolation_radius and new_x >= cls.interpolation_radius-1 and new_y  <= cls.width - cls.interpolation_radius and new_y  >= cls.interpolation_radius-1:
                     sum += cls.grid[new_x][new_y]
                     num += 1
-            new_grid[x][y] = sum/num
+            new_grid[x][y] = int(round(sum/num))
         cls.grid = new_grid
     @classmethod
     def inflate(cls,x,y):
