@@ -5,7 +5,7 @@ import rospy
 #import math
 import tf
 import numpy as np
-rospy.init_node('global_planer')
+
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
@@ -293,7 +293,7 @@ class Global(): ##Полная жопа
         
         rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 if __name__=="__main__":
-    
+    rospy.init_node('global_planer')
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
 
@@ -307,6 +307,7 @@ if __name__=="__main__":
                 Global.cleanupDeadEnds()
                 rospy.loginfo("Dead Ends cleaned up!")
             Global.publish()
+            Global.publishRviz()
             end_time = rospy.Time.now() ### end time
             rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
 

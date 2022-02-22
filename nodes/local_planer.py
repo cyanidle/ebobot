@@ -20,7 +20,7 @@ def pathCallback(path):################Доделать
     Local.clearTargets()
     for pose in path:
         quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
-        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.euler_from_quarternion(quat)[2]])
+        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.euler_from_quaternion(quat)[2]])
         Local.new_targets.append(target)
     Local.parseTargets()
     Local.goal_reached = 0
@@ -42,7 +42,7 @@ def costmapUpdateCallback(update):
 ######/Callbacks
 #Field :   204x304 cm
 class Local():
-    rospy.init_node('local_planer')
+    
     roslib.load_manifest('ebobot')
     #Params
     delta_thetas_enable =  rospy.get_param('local_planer/min_speed_coeff', 0)
@@ -213,6 +213,7 @@ class Local():
 
 
 def main():
+    rospy.init_node('local_planer')
     rate = rospy.Rate(Local.update_rate)
     #Local.precalcCostCoordsFromRadius()
     if Local.debug:

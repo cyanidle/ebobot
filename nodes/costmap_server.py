@@ -5,7 +5,7 @@ import rospy
 import numpy as np
 import tf
 
-rospy.init_node('costmap_server')
+
 ##########
 from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
@@ -21,7 +21,7 @@ class Costmap():
     interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
     base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.0016) #VERY DANGEROUS
     super_debug = rospy.get_param('costmap_server/super_debug',0)
-    inflate_enable = rospy.get_param('costmap_server/inflate_enable',1)
+    inflate_enable = rospy.get_param('costmap_server/inflate_enable',0)
     debug = rospy.get_param('costmap_server/debug',1)
     write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1 )
     inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
@@ -177,7 +177,7 @@ class Costmap():
             zero_quat,
             curr_time ,
             "costmap",
-            "costmap" ##???
+            "map" ##???
             )
         cls.grid_publisher.publish(msg)
 
@@ -211,6 +211,7 @@ class Obstacle:
 
 
 def main():
+    rospy.init_node('costmap_server')
     rate = rospy.Rate(Costmap.update_rate)
     rospy.sleep(1)
     Costmap.initCostmap()
