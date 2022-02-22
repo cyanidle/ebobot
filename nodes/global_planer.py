@@ -71,11 +71,11 @@ class Global(): ##Полная жопа
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
     update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
-    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',400)
+    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',120)
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',2)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',4) #in cells
-    step = rospy.get_param('global_planer/step',4) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
+    step = rospy.get_param('global_planer/step',2) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 12)  #number of points on circle to try
     
     #/Params
@@ -155,6 +155,8 @@ class Global(): ##Полная жопа
     @staticmethod
     def appendNextPos(): #uses only x and y, the needed orientations should be set after the goal list is complete
         current_pos = Global.list.pop()[0]  #this is the last and current position
+        if Global.debug:
+            rospy.loginfo(f"Popped {current_pos}") 
         target_vect = np.array(Global.target[:2]) - current_pos
         delta_vect = target_vect/np.linalg.norm(target_vect) * Global.step
         next_pos = current_pos + delta_vect 
@@ -188,27 +190,33 @@ class Global(): ##Полная жопа
                 next_pos_x,next_pos_y = round(float(next_pos[0])),round(float(next_pos[1]))
                 ####################################################
                 if Global.debug:
-                    rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
+                    #rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
                     rospy.loginfo(f"num = {num}, cons_jumps = {Global.consecutive_jumps} ")
+                    pass
                 ####################################################
-                current_dist = np.linalg.norm(current_pos - Global.start_pos[:2])
-                next_dist = np.linalg.norm(next_pos - Global.start_pos[:2]) #get current dist to starting point
-                if Global.num_jumps > Global.maximum_jumps:                                               #check for jumps overflow
+                current_dist = np.linalg.norm(current_pos - Global.start_pos[:2]) #get current dist to starting point
+                next_dist = np.linalg.norm(next_pos - Global.start_pos[:2])       #and for next point
+                ######################################################
+                if Global.num_jumps > Global.maximum_jumps:                       #check for jumps overflow
                     rospy.logerr(f"Jumps > maximum({Global.maximum_jumps})")
                     Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
                     return
                 ##################################################
-                if abs(next_pos_x) > Global.costmap_height:
+                if next_pos_x >= Global.costmap_width or next_pos_x < 0:
                     continue
-                if abs(next_pos_y) >  Global.costmap_height:
+                if next_pos_y >=  Global.costmap_height or next_pos_y < 0 :
                     continue
+                else:
+                    if Global.debug:
+                        rospy.loginfo(f"next cost = {Global.costmap[next_pos_x][next_pos_y]} ")
                 ##################################################
                 if Global.num_jumps == 1:
                     Global.list.append((current_pos,0))
                     if Global.debug:
                         rospy.loginfo(f"appended {Global.list[-1]}") 
+                
                 if Global.costmap[next_pos_x][next_pos_y] < Global.maximum_cost:   #if next cell is acceptable then
                     #rospy.loginfo(f"{Global.target[:2]}")        
                     #rospy.loginfo(f"{current_pos}")               
@@ -223,8 +231,8 @@ class Global(): ##Полная жопа
                         Global.list.append((current_pos,current_dist))  
                         Global.list.append((next_pos,next_dist))  
                         if Global.debug:
-                            rospy.loginfo(f"appended {Global.list[-1]}")
                             rospy.loginfo(f"appended {Global.list[-2]}")
+                            rospy.loginfo(f"appended {Global.list[-1]}")
                         Global.consecutive_jumps = 0                                                      #consecutive jumps counter reset
                         return
                     elif num > 1:      
