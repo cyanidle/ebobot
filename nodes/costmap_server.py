@@ -52,14 +52,16 @@ class Costmap():
     
     #Global
     inflation_radius_in_cells = inflation_radius/resolution
-    height= int(len(pixels))
-    width = int(len(pixels[0]))
+    width = 151
+    width = int(len(pixels))
+    height = int(len(pixels[0]))
+    grid = np.array([[0 for _ in range(Costmap.width)]  for _ in range(height)])
     grid_parser = []
-    for x in range(height):
-        for y in range(width):
+    for x in range(width):
+        for y in range(height):
             grid_parser.append((x,y))
     inflation_coords_list = dCoordsInRad(inflation_radius//resolution,inflation_step_radians_resolution)
-    grid = np.array([[0 for _ in range(151)]  for _ in range(101)])
+    
     #/Global
    
     @classmethod
