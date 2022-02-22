@@ -15,7 +15,7 @@ from dorlib import dCoordsInRad,dCoordsOnCircle
 ######Callbacks
 def robotPosCallback(pose):
     quat = [pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w]
-    Local.robot_pos = np.array([pose.pose.pose.x,pose.pose.pose.y,tf.transformations.euler_from_quarternion(quat)[2]]) / Local.costmap_resolution
+    Local.robot_pos = np.array([pose.pose.pose.position.x,pose.pose.pose.position.y,tf.transformations.euler_from_quarternion(quat)[2]]) / Local.costmap_resolution
 def pathCallback(path):################Доделать
     Local.clearTargets()
     for pose in path:

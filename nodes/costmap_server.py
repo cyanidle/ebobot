@@ -52,7 +52,7 @@ class Costmap():
     
     #Global
     inflation_radius_in_cells = inflation_radius/resolution
-    width,height = int(len(pixels[0])), int(len(pixels))
+    width,height = int(len(pixels)), int(len(pixels[0]))
     grid_parser = []
     for x in range(height):
         for y in range(width):
