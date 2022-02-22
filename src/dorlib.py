@@ -36,10 +36,10 @@ def dCoordsOnCircle(rad,resolution = 3): #in cells
     #step = radians(180)/resolution
     #maxes= []
     list = []
-    for num in range(round(radians(-180)),round(radians(180))):
+    for num in range(round(radians(-360)),round(radians(360))):
         #print(f"appending for {num}")
         for res in range(1,resolution+1):
-            list.append((  round(rad*cos(num*res)),  round(rad*sin(num*res))    ))
+            list.append((  round(rad*cos(num + num/res)),  round(rad*sin(num+ num/res))    ))
    
     print(f"Got coords on circle! {list}")
     return list
