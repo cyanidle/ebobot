@@ -32,16 +32,24 @@ def dCoordsInRad(rad,resolution = 3):
 
 
  
-def dCoordsOnCircle(rad,resolution = 3): #in cells
-    #step = radians(180)/resolution
+def dCoordsOnCircle(rad,resolution = 5): #in cells
+    step = int(radians(180)//resolution)
+    print(f"Fetching coords on circle for rad = {rad}, res = {resolution}")
     #maxes= []
     list = []
-    for num in range(round(radians(-360)),round(radians(360))):
+    for num in range(0,round(radians(180))+1,step):
         #print(f"appending for {num}")
-        for res in range(1,resolution+1):
-            list.append((  round(rad*cos(num + num/res)),  round(rad*sin(num+ num/res))    ))
+        x,y =  round(rad*cos(num)),  round(rad*sin(num))   
+        list.append((x,y))
+        if y > 0:  
+            list.append((x,-y))
+        if x > 0:
+            list.append((-x,y))
+            if y > 0: 
+                list.append((-x,-y))
    
     print(f"Got coords on circle! {list}")
     return list
 
 #dCoordsInRad(5)
+dCoordsOnCircle(5)

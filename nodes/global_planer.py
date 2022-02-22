@@ -204,7 +204,11 @@ class Global(): ##Полная жопа
             else:
                 next_pos = current_pos + np.array([x,y])
                 if Global.debug:
-                    rospy.loginfo(f"nextpos = {next_pos}")
+                    rospy.logwarn(f"Position failed (cost)!")
+        if len(Global.list) == 0:
+            rospy.logerr ("All points failed! Goal ignored")
+            Global.goal_reached = 1
+        
     @staticmethod 
     def cleanupDeadEnds():
         list_to_remove = []
@@ -305,8 +309,9 @@ if __name__=="__main__":
             if Global.cleanup_feature:
                 Global.cleanupDeadEnds()
                 rospy.loginfo("Dead Ends cleaned up!")
-            Global.publish()
-            Global.publishRviz()
+            if len(Global.list):
+                Global.publish()
+                Global.publishRviz()
             end_time = rospy.Time.now() ### end time
             rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
 
