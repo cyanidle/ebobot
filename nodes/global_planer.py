@@ -137,7 +137,8 @@ class Global(): ##Полная жопа
         num = num//2
         turn = cos(dir * step * num) + 1j * sin(dir * step * num)
         next_pos = imag * turn
-        rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
+        if cls.debug:
+            rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
         yield (next_pos.real,next_pos.imag)
     @staticmethod
     def checkIfStuck(num):

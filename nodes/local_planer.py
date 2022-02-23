@@ -83,8 +83,7 @@ class Local():
 
     #global values
     actual_target = []
-    current_max_subtargets = 0
-    subtarget = 0
+    
     skipped = 0
     goal_reached = 1
     new_targets = []
@@ -163,59 +162,39 @@ class Local():
     @classmethod
     def fetchPoint(cls):     #dist to target should be checked in updateDist()
         current = cls.robot_pos 
-        target = cls.targets[cls.current_target]
+        if cls.current_target== len(cls.targets):
+            rospy.loginfo(f"Goal failed! Sending Stop!")
+            return current 
+        target = cls.targets[cls.current_target+cls.skipped]
         if cls.debug:
             rospy.loginfo(f"Fetching point with curr = {current}, target = {target}")
-            rospy.loginfo(f"Skipped = {cls.skipped}, subtarget = {cls.subtarget}, target = {cls.current_target}")
-        cls.current_max_subtargets = cls.num_of_steps_between_globals*(cls.skipped+1)
-        cls.subtarget += 1
-        if cls.subtarget:
-            curr_targ = (target - current) / (cls.current_max_subtargets * cls.subtarget)
-        
-        min_cost = 0
-        if cls.current_target == len(cls.targets):
-            point = curr_targ
-            point_cost = 0
-            rospy.loginfo("Last point!")
-        else:
-            point = curr_targ
-            point_cost = cls.getCost(curr_targ)
-            rospy.loginfo_once(f"Cost list = {cls.cost_check_poses}")
-            for x,y in cls.cost_check_poses:
-                pose = np.array([curr_targ[0] + x, curr_targ[1] + y, curr_targ[2]])
-                curr_cost = cls.getCost(pose)
-                if curr_cost < min_cost:
-                    point = pose
-                    point_cost = curr_cost
-                    min_cost = curr_cost
-            if cls.debug:
-                rospy.loginfo(f"Best subpoint = {point}")
+            #rospy.loginfo(f"Skipped = {cls.skipped}, subtarget = {cls.subtarget}, target = {cls.current_target}") 
+        point = target
+        min_cost = cls.getCost(target)
+        rospy.loginfo_once(f"Cost list = {cls.cost_check_poses}")
+        for x,y in cls.cost_check_poses:
+            pose = np.array([target[0] + x, target[1] + y, target[2]])
+            curr_cost = cls.getCost(pose)
+            if curr_cost < min_cost:
+                point = pose
+                point_cost = curr_cost 
+                min_cost = curr_cost
+        if cls.debug:
+            rospy.loginfo(f"Best subpoint = {point}")
         if point_cost > cls.cost_threshhold: 
             if cls.debug:
                 rospy.loginfo(f"Point failed cost check! Recursing...")
-            if cls.current_target== len(cls.targets):
-                rospy.loginfo(f"Goal failed! Sending Stop!")
-                cls.actual_target =  current
-                return -1
-            cls.subtarget = 0
             cls.skipped += 1
             #cls.current_target += 1
             #cls.fetchPoint(current, target)
-            return 0
-        elif cls.subtarget == cls.current_max_subtargets:
-            if cls.debug:
-                rospy.loginfo(f"Fetching full target")
-            cls.skipped = 0
-            cls.subtarget = 0
-            cls.current_target += 1
-            cls.actual_target = point 
-            return 1
+            return cls.fetchPoint()
         else:
             if cls.debug:
-                rospy.loginfo(f"Fetching subtarget")
-            cls.subtarget += 1
-            cls.actual_target = point
-            return 1
+                rospy.loginfo(f"Fetching target")
+            cls.skipped = 0 
+            cls.current_target += 1
+            return point 
+       
            
     @classmethod
     def updateTarget(cls):
