@@ -62,7 +62,7 @@ class Local():
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
     debug = rospy.get_param('local_planer/debug', 1)
-    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/cls_path')
+    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/global_path')
     num_of_circles = rospy.get_param('local_planer/num_of_circles', 2)
     circles_dist = rospy.get_param('local_planer/circles_dist', 1) #in cells
     circles_step_radians_resolution = rospy.get_param('local_planer/circles_step_radians_resolution', 6) #number of points on each circle
@@ -211,7 +211,7 @@ class Local():
         rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
         target = cls.targets[cls.current_target]
         cls.actual_target =  cls.fetchPoint()
-        cls.pubPath()
+        #cls.pubPath()
         rospy.loginfo(f'Riding to {cls.actual_target}')
         while np.linalg.norm(cls.robot_pos - cls.actual_target) > cls.threshhold and not rospy.is_shutdown():
             cost_speed_coeff = cls.cost_speed_coeff*cls.getCost(target)
@@ -223,16 +223,21 @@ class Local():
         msg = Path()
         rviz_coeff = (1/cls.costmap_resolution)
         targ = PoseStamped()
+        curr = PoseStamped()
+        curr.pose.position.x = cls.robot_pos[0] / rviz_coeff
+        curr.pose.position.y = cls.robot_pos[1]/rviz_coeff
         targ.pose.position.x = cls.actual_target[0] / rviz_coeff
         targ.pose.position.y = cls.actual_target[1]/rviz_coeff
-        rviz_quat = tf.transformations.quaternion_from_euler(0, 0, cls.actual_target[2]/ rviz_coeff)
-        targ.pose.orientation.x = rviz_quat[0]
-        targ.pose.orientation.y = rviz_quat[1]
-        targ.pose.orientation.z = rviz_quat[2]
-        targ.pose.orientation.w = rviz_quat[3]
+        #rviz_quat = tf.transformations.quaternion_from_euler(0, 0, cls.actual_target[2]/ rviz_coeff)
+        targ.pose.orientation.x,curr.pose.orientation.x = 0
+        targ.pose.orientation.y,curr.pose.orientation.y = 0
+        targ.pose.orientation.z ,curr.pose.orientation.z= 0
+        targ.pose.orientation.w,curr.pose.orientation.w = 1
+        msg.poses.append(curr)
         msg.poses.append(targ)
-        cls.tfBroadcast(targ.pose.position.x,targ.pose.position.y,0)
-        cls.sendTransfrom(cls.actual_target[0]/ rviz_coeff,cls.actual_target[1]/ rviz_coeff,cls.actual_target[2])
+        cls.tfBroadcast(cls.robot_pos[0] / rviz_coeff,   cls.robot_pos[1]/rviz_coeff,     0)
+        cls.tfBroadcast(cls.actual_target[0] / rviz_coeff,     cls.actual_target[1]/rviz_coeff,    0)
+        #cls.sendTransfrom(cls.actual_target[0]/ rviz_coeff,cls.actual_target[1]/ rviz_coeff,cls.actual_target[2])
         cls.rviz_publisher.publish(msg)
     @classmethod
     def tfBroadcast(cls,x,y,th):
@@ -253,7 +258,7 @@ def main():
     #if Local.debug:
         #rospy.loginfo(f"Cost coords = {Local.cost_coords_list}")
     while not rospy.is_shutdown():
-      
+        #rospy.loginfo(f'Goal reached! Robot_pos = {Local.robot_pos}')
         if not Local.goal_reached:
             #rospy.loginfo(f'Target = {Local.targets[-1]}')
             #current_target = Local.targets[Local.current_target]
@@ -264,10 +269,10 @@ def main():
             else: #np.linalg.norm(Local.robot_pos-current_target) > Local.threshhold: #make param
                 Local.updateTarget()
 
-    os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-    cv2.imwrite("recieved_map.png", Local.costmap)
-    rospy.sleep(5)
-    rate.sleep()
+    # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
+    # cv2.imwrite("recieved_map.png", Local.costmap)
+    # rospy.sleep(5)
+    # rate.sleep()
 
 if __name__=="__main__":
     main()
