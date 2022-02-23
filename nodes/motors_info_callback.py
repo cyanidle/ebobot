@@ -8,7 +8,9 @@ import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-rospy.init_node('motors_info_callback', anonymous=True)
+
+
+rospy.init_node('motors_info_callback')
 
 def estimateCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.pose.orientation.x,target.pose.pose.orientation.y,target.pose.pose.orientation.z,target.pose.pose.orientation.w])
@@ -108,11 +110,11 @@ if __name__=="__main__":
                 report_count = 0
                 rospy.loginfo("__________________")
                 rospy.loginfo(f"x = {Motors.x},y = {Motors.y},th = {Motors.theta}")
-                for mot in Motors.list:
-                    
+                for mot in Motors.list:    
                     rospy.loginfo(f"motor {mot.num}: {mot.curr}, {mot.targ},{mot.dist},{mot.ddist}")
-        
-        
+     
+       
+
         current_time = rospy.Time.now()
         odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
         odom_broadcaster.sendTransform(
@@ -130,4 +132,5 @@ if __name__=="__main__":
         odom.twist.twist = Twist(Vector3(Motors.spd_x, Motors.spd_y, 0), Vector3(0, 0, Motors.spd_turn))
         odom_pub.publish(odom)
         last_time = current_time
+            
         rate.sleep()

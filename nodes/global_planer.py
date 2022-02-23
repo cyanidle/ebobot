@@ -43,7 +43,7 @@ def costmapCallback(costmap):
     Global.costmap_height = costmap.info.height
     Global.costmap_width= costmap.info.width
     rospy.loginfo_once(f"Got new map, height = {Global.costmap_height}, width= {Global.costmap_width}")
-    Global.costmap= np.rot90(np.reshape(costmap.data,(Global.costmap_height, Global.costmap_width))   ,3)
+    Global.costmap= np.rot90(np.reshape(costmap.data,(Global.costmap_height, Global.costmap_width))   ,1)
     
     
 def costmapUpdateCallback(update):
@@ -62,21 +62,21 @@ class Global(): ##Полная жопа
     #Features
     rviz_enable = rospy.get_param('costmap_server/rviz_enable',1)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',0)
-    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',0)
+    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
     debug = rospy.get_param('global_planer/debug',1)
     #/Features      
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)  
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',80)  
+    maximum_cost = rospy.get_param('global_planer/maximum_cost',40)  
     stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',10)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
     update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
-    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',120)
+    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',300)
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',2)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',4) #in cells
-    step = rospy.get_param('global_planer/step',2) #in cm, depends on cells (with resolution 2x2 step of 1 = 2cm)
-    step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 12)  #number of points on circle to try
+    step = rospy.get_param('global_planer/step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
+    step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 30)  #number of points on circle to try
     
     #/Params
     
@@ -121,6 +121,18 @@ class Global(): ##Полная жопа
     lock_dir = False
     lock_dirs = [0, 'right', 'left', 'top' , 'bot']
     lock_dir_num = 0
+    #################### Rotors list
+    rotors_list = []
+    for num in range(step_radians_resolution//2 * 2):
+        step = radians(360)/step_radians_resolution
+        if num%2:
+            dir = 1
+        else:
+            dir = -1
+        num = num//2 
+        rotors_list.append(cos(dir * step * num) + 1j * sin(dir * step * num))
+    ####################
+
     #Debug
     if debug:
         rospy.loginfo(f"costmap = {costmap}")
@@ -128,14 +140,8 @@ class Global(): ##Полная жопа
 
     @classmethod
     def dirGenerator(cls,delta_vect,num):
-        step = radians(360)/cls.step_radians_resolution
-        if num%2:
-            dir = 1
-        else:
-            dir = -1
+        turn = cls.rotors_list[num]
         imag = delta_vect[0] + 1j * delta_vect[1]
-        num = num//2
-        turn = cos(dir * step * num) + 1j * sin(dir * step * num)
         next_pos = imag * turn
         if cls.debug:
             rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
@@ -166,7 +172,7 @@ class Global(): ##Полная жопа
             rospy.loginfo(f"\nnext_pos = {next_pos}\ncurrent_pos = {current_pos}\ntarget_vect = {target_vect}")
             rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
             #rospy.loginfo(f"next_pos = {next_pos[0]}")
-        for num in range(Global.step_radians_resolution//2 * 2):
+        for num in range(len(Global.rotors_list)):
             for coords in Global.dirGenerator(delta_vect,num):
                 x,y = coords
 
@@ -283,8 +289,8 @@ class Global(): ##Полная жопа
             (x, y, 0),
             tf.transformations.quaternion_from_euler(0,0,th),
             rospy.Time.now(),
-            "odom",
-            "path"
+            "rviz_path",
+            "odom"
             )
     @staticmethod
     def publish():
@@ -362,9 +368,5 @@ if __name__=="__main__":
         
 
 
-        ##
-        os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-        cv2.imwrite("recieved_map.png", Global.costmap)
-        rospy.sleep(5)
-        ##
+       
         rate.sleep()
