@@ -308,9 +308,9 @@ class Global(): ##Полная жопа
                 msg.poses.append(pose)
                 if Global.rviz_enable:
                     r = PoseStamped()
-                    r.pose.position.x = int( goal[0] / rviz_coeff)
-                    r.pose.position.y = int( goal[1] / rviz_coeff)
-                    #Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
+                    r.pose.position.x = goal[0] / rviz_coeff
+                    r.pose.position.y = goal[1] / rviz_coeff
+                    Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
                     rviz.poses.append(r)
         target_pos = PoseStamped()
         quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
@@ -362,9 +362,9 @@ if __name__=="__main__":
         
 
 
-        ###
-        # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-        # cv2.imwrite("recieved_map.png", Global.costmap)
-        # rospy.sleep(5)
-        # ##
+        ##
+        os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
+        cv2.imwrite("recieved_map.png", Global.costmap)
+        rospy.sleep(5)
+        ##
         rate.sleep()

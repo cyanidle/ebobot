@@ -183,7 +183,7 @@ class Local():
             rospy.loginfo(f"Best subpoint = {point}")
         if point_cost > cls.cost_threshhold: 
             if cls.debug:
-                rospy.loginfo(f"Point failed cost check! Recursing...")
+                rospy.loginfo(f"Point failed cost check(point_cost)! Recursing...")
             cls.skipped += 1
             #cls.current_target += 1
             #cls.fetchPoint(current, target)
@@ -213,7 +213,8 @@ class Local():
         
  
 
-
+import os
+import cv2
 def main():
     rospy.init_node('local_planer')
     rate = rospy.Rate(Local.update_rate)
@@ -231,6 +232,10 @@ def main():
                 Local.goal_reached = 1
             else: #np.linalg.norm(Local.robot_pos-current_target) > Local.threshhold: #make param
                 Local.updateTarget()
+
+    os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
+    cv2.imwrite("recieved_map.png", Local.costmap)
+    rospy.sleep(5)
     rate.sleep()
 
 if __name__=="__main__":
