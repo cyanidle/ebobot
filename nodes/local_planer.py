@@ -245,8 +245,8 @@ class Local():
             (x, y, 0),
             tf.transformations.quaternion_from_euler(0,0,th),
             rospy.Time.now(),
-            "rviz_local_path",
-            "odom"
+            "odom",
+            "rviz_local_path"
         )
 
 import os

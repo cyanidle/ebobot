@@ -62,7 +62,7 @@ class Global(): ##Полная жопа
     #Features
     rviz_enable = rospy.get_param('costmap_server/rviz_enable',1)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',0)
-    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
+    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',0)
     debug = rospy.get_param('global_planer/debug',1)
     #/Features      
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)  
@@ -72,9 +72,9 @@ class Global(): ##Полная жопа
     update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',300)
-    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',2)
+    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
-    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',4) #in cells
+    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('global_planer/step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 30)  #number of points on circle to try
     
@@ -144,11 +144,12 @@ class Global(): ##Полная жопа
         imag = delta_vect[0] + 1j * delta_vect[1]
         next_pos = imag * turn
         if cls.debug:
-            rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
-        yield (next_pos.real,next_pos.imag)
+            rospy.loginfo(f"Returningg x {next_pos.real}, y {next_pos.imag}")
+        return (next_pos.real,next_pos.imag)
     @staticmethod
     def checkIfStuck(num):
         if num%Global.stuck_check_jumps - Global.stuck_check_jumps == 0:
+            rospy.loginfo(f"Robot is stuck locking path direction (if false debug stuck feature)")
             if np.linalg.norm(Global.list[-1][0] - Global.list[-1*Global.stuck_check_jumps][0]) < Global.stuck_dist_threshhold:
                 Global.lock_dir_num += 1
             else:
@@ -179,7 +180,7 @@ class Global(): ##Полная жопа
 
                 ##################################
                 if Global.stuck_check_feature:
-                    Global.checkIfStuck(num)
+                    Global.checkIfStuck(Global.num_jumps)
                 if Global.lock_dir == 'top':
                     x = abs(x)
                     #y = abs(y)
@@ -289,8 +290,8 @@ class Global(): ##Полная жопа
             (x, y, 0),
             tf.transformations.quaternion_from_euler(0,0,th),
             rospy.Time.now(),
-            "rviz_path",
-            "odom"
+            "odom",
+            "rviz_path"
             )
     @staticmethod
     def publish():
