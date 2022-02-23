@@ -324,7 +324,7 @@ class Global(): ##Полная жопа
             rviz_targ.pose.orientation.z = rviz_quat[2]
             rviz_targ.pose.orientation.w = rviz_quat[3]
             rviz.poses.append(rviz_targ)
-            #Global.sendTransfrom(target[0]/ rviz_coeff,target[1]/ rviz_coeff,target[2])
+            Global.sendTransfrom(target[0]/ rviz_coeff,target[1]/ rviz_coeff,target[2])
             Global.rviz_publisher.publish(rviz)
         target_pos.pose.orientation.x = quaternion[0]
         target_pos.pose.orientation.y = quaternion[1]
