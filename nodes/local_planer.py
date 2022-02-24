@@ -22,7 +22,7 @@ def shutdownHook():
     Local.cmd_vel_publisher.publish(twist)
 def robotPosCallback(pose):
     quat = [pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w]
-    Local.robot_pos = np.array([pose.pose.pose.position.x/ Local.costmap_resolution, pose.pose.pose.position.y/Local.costmap_resolution,tf.transformations.euler_from_quaternion(quat)[2]])
+    Local.robot_pos = np.array([pose.pose.pose.position.y/ Local.costmap_resolution, pose.pose.pose.position.x/Local.costmap_resolution,tf.transformations.euler_from_quaternion(quat)[2]])
     #rospy.loginfo(f"robot pos {Local.robot_pos}")
 
 def pathCallback(path):################Доделать
@@ -32,7 +32,7 @@ def pathCallback(path):################Доделать
     #rospy.loginfo_once(f"Got path, poses = {path.poses}")
     for pose in path.poses:
         quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
-        target = np.array([pose.pose.position.x,pose.pose.position.y,tf.transformations.euler_from_quaternion(quat)[2]])
+        target = np.array([pose.pose.position.y,pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]])
         Local.new_targets.append(target)
     Local.parseTargets()
     Local.goal_reached = 0
@@ -42,13 +42,13 @@ def costmapCallback(costmap):
     Local.costmap_height = costmap.info.height
     Local.costmap_width = costmap.info.width
     rospy.loginfo_once(f"Got new map, height = {Local.costmap_height}, width= {Local.costmap_width}")
-    Local.costmap= np.rot90(np.reshape(costmap.data,(Local.costmap_height, Local.costmap_width))   ,3)
+    Local.costmap= np.reshape(costmap.data,(Local.costmap_height, Local.costmap_width))
 def costmapUpdateCallback(update):
     origin_x = update.x
     origin_y = update.y
-    for x in range (update.width):
-        for y in range (update.height):
-            Local.costmap[origin_x + x][origin_y + y] = update.data[x+y]
+    for y in range (update.height):
+        for x in range (update.width):
+            Local.costmap[origin_y + y][origin_x + x] = update.data[x+y]
 ######/Callbacks
 #Field :   204x304 cm
 class Local():
@@ -176,13 +176,13 @@ class Local():
         Local.cmd_vel_publisher.publish(twist)
     ###############################
     @staticmethod
-    def turnVect(vect,turn):
+    def turnVect(vect,turn,debug = 1):
         vect_imag = vect[0] + vect[1]*1j
         rotor = cos(turn) + 1j* sin(turn)
         result = vect_imag * rotor
         result = [result.real, result.imag, vect[2]]
-        if Local.debug:
-            rospy.loginfo(f"Turning vector {vect} by {round(vect[2],3)} into {result}")
+        if debug:
+            rospy.loginfo(f"Turning vector {vect} by {round(turn,3)} into {result}")
         return result
 
     #########################

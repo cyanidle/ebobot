@@ -137,6 +137,8 @@ class Costmap():
                     num += 1
             if num:
                 new_grid[y][x] = int(round(sum/num))
+                if new_grid[y][x] > 100:
+                   new_grid[y][x] = 100
         cls.grid = new_grid
         #new_grid.clear()
     @classmethod
@@ -167,7 +169,7 @@ class Costmap():
         data_list = []
         for x in range(cls.width):
             for y in range(cls.height):
-                data_list.append(cls.grid[x][y])
+                data_list.append(cls.grid[y][x])
         msg.data = data_list
         cls.grid_update_publisher.publish(msg)
     @classmethod
