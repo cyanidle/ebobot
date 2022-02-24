@@ -11,6 +11,7 @@ import numpy as np
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
+from visualization_msgs.msg import Marker
 ######
 from dorlib import dCoordsOnCircle
 ######
@@ -75,19 +76,21 @@ class Global(): ##Полная жопа
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',3) #in cells
-    step = rospy.get_param('global_planer/step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
+    step = rospy.get_param('global_planer/step',4) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 30)  #number of points on circle to try
     
     #/Params
     
 
     #Topics
+    rviz_point_topic = rospy.get_param('global_planer/rviz_point_topic', 'global_points')
     rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
     costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_updates')
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     ####
+    point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
@@ -283,7 +286,33 @@ class Global(): ##Полная жопа
                         list_to_remove.append(subnum)
                 for done,num in enumerate(list_to_remove):
                     rospy.loginfo(f"Removing {Global.list.pop(num-done)}")
-  
+    @classmethod
+    def pubPoint(cls,point,num):
+        if cls.debug:
+            rospy.loginfo(f"Pubbing marker {point}")
+        mark = Marker()
+        mark.header.frame_id = "costmap"
+        mark.header.stamp = rospy.Time.now()
+        mark.lifetime = rospy.Duration(5)
+        mark.pose.position.y = point[0]
+        mark.pose.position.x = point[1]
+        mark.pose.orientation.x = 0
+        mark.pose.orientation.y = 0
+        mark.pose.orientation.z = 0.05
+        mark.pose.orientation.z = 0
+        mark.pose.orientation.w = 1
+        mark.scale.x = 0.05
+        mark.scale.y = 0.05
+        mark.scale.z = 0.05
+        mark.color.a = 1.0 ##Don't forget to set the alpha!
+        mark.color.r = 0.0
+        mark.color.g = 0.0
+        mark.color.b = 1.0
+        mark.ns = "Globals"
+        mark.id = num
+        mark.type = Marker.CUBE
+        mark.action = Marker.ADD
+        cls.point_publisher.publish(mark)
     @staticmethod
     def sendTransfrom(x , y, th):      
         Global.path_broadcaster.sendTransform(
@@ -355,6 +384,7 @@ if __name__=="__main__":
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
+                #Global.pubPoint(Global.list[-1][0], Global.num_jumps)
             Global.num_jumps = 0 
             if Global.cleanup_feature:
                 Global.cleanupDeadEnds()

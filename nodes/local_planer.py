@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import roslib
 import rospy
-from cmath import sin, cos
+from math import sin, cos
 import tf
 import numpy as np
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
@@ -10,9 +10,16 @@ import numpy as np
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
+from visualization_msgs.msg import Marker
 ######
 from dorlib import dCoordsInRad,dCoordsOnCircle
 ######Callbacks
+def shutdownHook():
+    twist = Twist()
+    twist.linear.x = 0
+    twist.linear.y = 0
+    twist.angular.z = 0 #make slower at last point
+    Local.cmd_vel_publisher.publish(twist)
 def robotPosCallback(pose):
     quat = [pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w]
     Local.robot_pos = np.array([pose.pose.pose.position.x/ Local.costmap_resolution, pose.pose.pose.position.y/Local.costmap_resolution,tf.transformations.euler_from_quaternion(quat)[2]])
@@ -48,15 +55,20 @@ class Local():
     
     roslib.load_manifest('ebobot')
     #Params
+    #Features
+    cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
+    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
+    #/Features
+    rviz_point_topic = rospy.get_param('local_planer/rviz_topic', 'local_points')
     rviz_topic = rospy.get_param('local_planer/rviz_topic', 'rviz_local_path')
     delta_thetas_enable =  rospy.get_param('local_planer/min_speed_coeff', 0)
     min_speed_coeff = rospy.get_param('local_planer/min_speed_coeff', 0.3)
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
-    cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 7500) #100 are walls, then there is inflation
+    cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
     num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
     update_rate = rospy.get_param('local_planer/update_rate', 10) # in Hz
     cost_speed_coeff = rospy.get_param('local_planer/cost_speed_coeff', 0.0002)
-    threshhold = rospy.get_param('local_planer/threshhold', 2) #in cells
+    threshhold = rospy.get_param('local_planer/threshhold', 3) #in cells
     costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
     costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_updates')
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
@@ -75,7 +87,7 @@ class Local():
     #/Params
 
     #Topics
-    
+    point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     rviz_broadcaster = tf.TransformBroadcaster()
     rviz_publisher = rospy.Publisher(rviz_topic, Path, queue_size = 10)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
@@ -152,17 +164,21 @@ class Local():
         if cls.debug:
             rospy.loginfo(f"Updating /cmd_vel to {move}, speed_coeff = {speed_coeff}")
         twist.linear.x = move[0]
-        twist.angular.y = move[1]
+        twist.linear.y = move[1]
         twist.angular.z = move[2] #make slower at last point
         Local.cmd_vel_publisher.publish(twist)
+    ###############################
     @staticmethod
     def turnVect(vect,turn):
         vect_imag = vect[0] + vect[1]*1j
         rotor = cos(turn) + 1j* sin(turn)
         result = vect_imag * rotor
-        return [result.imag, result.real, vect[2]]
+        result = [result.real, result.imag, vect[2]]
+        if Local.debug:
+            rospy.loginfo(f"Turning vector {vect} by {round(vect[2],3)} into {result}")
+        return result
 
-
+    #########################
     @staticmethod
     def getPathSpdCoeff():
         max_targets = len(Local.targets)
@@ -172,11 +188,16 @@ class Local():
             final_coeff = Local.min_speed_coeff
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
+
+
     @classmethod
     def fetchPoint(cls):     #dist to target should be checked in updateDist()
         current = cls.robot_pos 
-        if cls.skipped + cls.current_target== len(cls.targets):
+        if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
+            cls.goal_reached = 1
+            cls.skipped = 0
+            cls.current = len(cls.targets)
             return current 
         target = cls.targets[cls.current_target+cls.skipped]
         if cls.debug:
@@ -209,77 +230,54 @@ class Local():
             cls.current_target += 1
             return point 
        
-           
+    ####################################################################       
     @classmethod
     def updateTarget(cls):
         cls.current_target +=1
         current_pos = cls.robot_pos
         rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
         #target = cls.targets[cls.current_target]
-        cls.actual_target =  cls.fetchPoint()
-        cls.pubPath()
+        if cls.current_target < len(cls.targets):
+            cls.actual_target =  cls.fetchPoint()
+        elif cls.current_target == len(cls.targets):
+            cls.actual_target = cls.targets[cls.current_target]
+        else:
+            cls.actual_target = cls.robot_pos
+        #cls.pubPath()
         rospy.loginfo(f'Riding to {cls.actual_target}')
-        while np.linalg.norm(cls.robot_pos - cls.actual_target) > cls.threshhold and not rospy.is_shutdown():
-            cost_speed_coeff = cls.cost_speed_coeff*cls.getCost(cls.actual_target)
-            cmd_target = Local.turnVect(cls.actual_target, cls.robot_pos[2]) ###ADJUST GLOBAL COMAND TO LOCAL
-            cls.cmdVel(cmd_target, cost_speed_coeff * cls.getPathSpdCoeff())
+        while np.linalg.norm(cls.robot_pos - cls.actual_target) > cls.threshhold and not rospy.is_shutdown() and not cls.goal_reached:
+            speed_coeff = 1
+            if cls.cost_coeff_enable:
+                speed_coeff = cls.cost_speed_coeff*cls.getCost(cls.actual_target)
+            if cls.path_coeff_enable:
+                speed_coeff = speed_coeff * cls.getPathSpdCoeff()
+            #cmd_target = cls.actual_target - cls.robot_pos
+            cmd_target = cls.turnVect(cls.actual_target-cls.robot_pos, cls.robot_pos[2]) ###ADJUST GLOBAL COMAND TO LOCAL
+            cls.cmdVel(cmd_target, cost_speed_coeff)
             rospy.sleep(1/cls.update_rate)
         return
-    @classmethod
-    def pubPath(cls):
-        msg = Path()
-        rviz_coeff = (1/cls.costmap_resolution)
-        targ = PoseStamped()
-        curr = PoseStamped()
-        curr.pose.position.x = cls.robot_pos[0] / rviz_coeff
-        curr.pose.position.y = cls.robot_pos[1]/rviz_coeff
-        targ.pose.position.x = cls.actual_target[0] / rviz_coeff
-        targ.pose.position.y = cls.actual_target[1]/rviz_coeff
-        #rviz_quat = tf.transformations.quaternion_from_euler(0, 0, cls.actual_target[2]/ rviz_coeff)
-        targ.pose.orientation.x,curr.pose.orientation.x = 0,0
-        targ.pose.orientation.y,curr.pose.orientation.y = 0,0
-        targ.pose.orientation.z ,curr.pose.orientation.z= 0,0
-        targ.pose.orientation.w,curr.pose.orientation.w = 1,1
-        msg.poses.append(curr)
-        msg.poses.append(targ)
-        cls.tfBroadcast(cls.robot_pos[0] / rviz_coeff,   cls.robot_pos[1]/rviz_coeff,     0)
-        cls.tfBroadcast(cls.actual_target[0] / rviz_coeff,     cls.actual_target[1]/rviz_coeff,    0)
-        #cls.sendTransfrom(cls.actual_target[0]/ rviz_coeff,cls.actual_target[1]/ rviz_coeff,cls.actual_target[2])
-        cls.rviz_publisher.publish(msg)
-    @classmethod
-    def tfBroadcast(cls,x,y,th):
-        cls.rviz_broadcaster.sendTransform(
-            (x, y, 0),
-            tf.transformations.quaternion_from_euler(0,0,th),
-            rospy.Time.now(),
-            "odom",
-            "rviz_local_path"
-        )
+    ####################################################
+   
+    
 
-import os
-import cv2
+# import os
+# import cv2
 def main():
     rospy.init_node('local_planer')
+    rospy.on_shutdown(shutdownHook)
     rate = rospy.Rate(Local.update_rate)
-    #Local.precalcCostCoordsFromRadius()
-    #if Local.debug:
-        #rospy.loginfo(f"Cost coords = {Local.cost_coords_list}")
     while not rospy.is_shutdown():
-        #rospy.loginfo(f'Goal reached! Robot_pos = {Local.robot_pos}')
         if not Local.goal_reached:
-            #rospy.loginfo(f'Target = {Local.targets[-1]}')
-            #current_target = Local.targets[Local.current_target]
-                #if current_target == len(Local.targets):
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
                 rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
-            else: #np.linalg.norm(Local.robot_pos-current_target) > Local.threshhold: #make param
+            else: 
                 Local.updateTarget()
+        rate.sleep()
 
     # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
     # cv2.imwrite("recieved_map.png", Local.costmap)
     # rospy.sleep(5)
-    # rate.sleep()
 
 if __name__=="__main__":
     main()
