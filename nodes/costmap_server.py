@@ -41,7 +41,7 @@ class Costmap():
     
     costmap_broadcaster = tf.TransformBroadcaster()
     costmap_publish_topic = rospy.get_param('costmap_server/costmap_publish_topic','/costmap')
-    costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_update')
+    costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_updates')
     
     grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=5)
     grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=5)

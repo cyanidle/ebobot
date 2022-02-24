@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import roslib
 import rospy
-import cmath
+from cmath import sin, cos
 import tf
 import numpy as np
 #The planer should try planing the path using radius of the robot and avoiding obstacles, but if the next point is unreachable, skip it and reroute
@@ -58,7 +58,7 @@ class Local():
     cost_speed_coeff = rospy.get_param('local_planer/cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('local_planer/threshhold', 2) #in cells
     costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
-    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_update')
+    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_updates')
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
     debug = rospy.get_param('local_planer/debug', 1)
@@ -155,7 +155,12 @@ class Local():
         twist.angular.y = move[1]
         twist.angular.z = move[2] #make slower at last point
         Local.cmd_vel_publisher.publish(twist)
-
+    @staticmethod
+    def turnVect(vect,turn):
+        vect_imag = vect[0] + vect[1]*1j
+        rotor = cos(turn) + 1j* sin(turn)
+        result = vect_imag * rotor
+        return [result.imag, result.real, vect[2]]
 
 
     @staticmethod
@@ -210,13 +215,14 @@ class Local():
         cls.current_target +=1
         current_pos = cls.robot_pos
         rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
-        target = cls.targets[cls.current_target]
+        #target = cls.targets[cls.current_target]
         cls.actual_target =  cls.fetchPoint()
-        #cls.pubPath()
+        cls.pubPath()
         rospy.loginfo(f'Riding to {cls.actual_target}')
         while np.linalg.norm(cls.robot_pos - cls.actual_target) > cls.threshhold and not rospy.is_shutdown():
-            cost_speed_coeff = cls.cost_speed_coeff*cls.getCost(target)
-            cls.cmdVel(target, cost_speed_coeff * cls.getPathSpdCoeff())
+            cost_speed_coeff = cls.cost_speed_coeff*cls.getCost(cls.actual_target)
+            cmd_target = Local.turnVect(cls.actual_target, cls.robot_pos[2]) ###ADJUST GLOBAL COMAND TO LOCAL
+            cls.cmdVel(cmd_target, cost_speed_coeff * cls.getPathSpdCoeff())
             rospy.sleep(1/cls.update_rate)
         return
     @classmethod
@@ -230,10 +236,10 @@ class Local():
         targ.pose.position.x = cls.actual_target[0] / rviz_coeff
         targ.pose.position.y = cls.actual_target[1]/rviz_coeff
         #rviz_quat = tf.transformations.quaternion_from_euler(0, 0, cls.actual_target[2]/ rviz_coeff)
-        targ.pose.orientation.x,curr.pose.orientation.x = 0
-        targ.pose.orientation.y,curr.pose.orientation.y = 0
-        targ.pose.orientation.z ,curr.pose.orientation.z= 0
-        targ.pose.orientation.w,curr.pose.orientation.w = 1
+        targ.pose.orientation.x,curr.pose.orientation.x = 0,0
+        targ.pose.orientation.y,curr.pose.orientation.y = 0,0
+        targ.pose.orientation.z ,curr.pose.orientation.z= 0,0
+        targ.pose.orientation.w,curr.pose.orientation.w = 1,1
         msg.poses.append(curr)
         msg.poses.append(targ)
         cls.tfBroadcast(cls.robot_pos[0] / rviz_coeff,   cls.robot_pos[1]/rviz_coeff,     0)

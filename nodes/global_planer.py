@@ -66,7 +66,7 @@ class Global(): ##Полная жопа
     debug = rospy.get_param('global_planer/debug',1)
     #/Features      
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)  
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',40)  
+    maximum_cost = rospy.get_param('global_planer/maximum_cost',20)  
     stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',10)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
     update_rate = rospy.get_param('global_planer/update_rate',2)
@@ -84,7 +84,7 @@ class Global(): ##Полная жопа
     #Topics
     rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
     costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
-    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_update')
+    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_updates')
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     ####
@@ -144,8 +144,8 @@ class Global(): ##Полная жопа
         imag = delta_vect[0] + 1j * delta_vect[1]
         next_pos = imag * turn
         if cls.debug:
-            rospy.loginfo(f"Returningg x {next_pos.real}, y {next_pos.imag}")
-        return (next_pos.real,next_pos.imag)
+            rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
+        yield (next_pos.imag,next_pos.real)
     @staticmethod
     def checkIfStuck(num):
         if num%Global.stuck_check_jumps - Global.stuck_check_jumps == 0:
@@ -175,7 +175,7 @@ class Global(): ##Полная жопа
             #rospy.loginfo(f"next_pos = {next_pos[0]}")
         for num in range(len(Global.rotors_list)):
             for coords in Global.dirGenerator(delta_vect,num):
-                x,y = coords
+                y,x = coords
 
 
                 ##################################
@@ -195,7 +195,7 @@ class Global(): ##Полная жопа
                     #y = abs(y)
                 ####################################
 
-                next_pos_x,next_pos_y = round(float(next_pos[0])),round(float(next_pos[1]))
+                next_pos_y,next_pos_x = round(float(next_pos[0])),round(float(next_pos[1]))
                 ####################################################
                 if Global.debug:
                     #rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
@@ -260,7 +260,7 @@ class Global(): ##Полная жопа
                             rospy.loginfo(f"appended {Global.list[-1]}")
                         return
                 else:
-                    next_pos = current_pos + np.array([x,y])
+                    next_pos = current_pos + np.array([y,x])
                     if Global.debug:
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:

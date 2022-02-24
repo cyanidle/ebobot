@@ -1,6 +1,6 @@
 <launch>
-    <arg name="safe_footpring_radius" default="0.40"/>
-    <arg name="debug" default="1"/>
+    <arg name="inflation_rad" default="0.40"/>
+    <arg name="debug" default="0"/>
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "file_dir" value = "$(find ebobot)/nodes/costmap"/>
