@@ -143,7 +143,7 @@ class Local():
             rospy.loginfo(f"Parsed targets = {cls.targets}")
     @staticmethod
     def getCost(pose):
-        curr_x,curr_y = pose[0], pose[1]
+        curr_y,curr_x = pose[0], pose[1]
         cost = 0
         #rospy.loginfo_once(f"Cost coords list{Local.cost_coords_list}")
         for x,y in Local.cost_coords_list:
