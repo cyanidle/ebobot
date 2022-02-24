@@ -145,7 +145,8 @@ class Local():
     
     @classmethod
     def cmdVel(cls,target,speed_coeff):       #speed ranges from 0 to 1
-        
+        if speed_coeff > 1:
+            speed_coeff = 1
         twist = Twist()
         move =  target/np.linalg.norm(target)*speed_coeff#make param
         if cls.debug:
