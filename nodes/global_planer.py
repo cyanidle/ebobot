@@ -9,11 +9,11 @@ import numpy as np
 
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
-from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
+from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from visualization_msgs.msg import Marker
 ######
-from dorlib import dCoordsOnCircle
+#from dorlib import dCoordsOnCircle
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
@@ -29,12 +29,13 @@ def targetCallback(target):
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.x/Global.costmap_resolution,target.pose.position.y/Global.costmap_resolution,euler[2]%(3.1415*2)]
     rospy.loginfo(f"\n####################################################\n GOT NEW TARGET: {goal}\n####################################################\nStart from {Global.robot_pos}\n####################################################")
+    rospy.loginfo(f"Using rotors list - {Global.rotors_list}")
     Global.list.clear()
     Global.goal_reached = 0
     Global.target = np.array(goal)
     #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
     #!!!!!!!!!!!!!!
-    Global.list.append((Global.robot_pos[:2],0)) #Здесь нужно получить по ебалу от негров, потому объявление войны было ошибкой!
+    Global.list.append((Global.robot_pos[:2],0)) #Здесь нужно получить по ебалу от негров!
     Global.start_pos = Global.robot_pos
     Global.consecutive_jumps = 0
     #!!!!!!!!!!!!!!
@@ -45,7 +46,7 @@ def costmapCallback(costmap):
     Global.costmap_width= costmap.info.width
     rospy.loginfo_once(f"Got new map, height = {Global.costmap_height}, width= {Global.costmap_width}")
     Global.costmap= np.rot90(np.reshape(costmap.data,(Global.costmap_height, Global.costmap_width))   ,1)
-    
+    Global.debug_map = Global.costmap
     
 def costmapUpdateCallback(update):
     rospy.loginfo("Got new map update")
@@ -53,7 +54,7 @@ def costmapUpdateCallback(update):
     origin_y = update.y
     for x in range (update.width):
         for y in range (update.height):
-            Global.costmap[origin_x + x][origin_y + y] = update.data[x+y]
+            Global.costmap[origin_y + y][origin_x + x] = update.data[x+y]
 
     
 
@@ -72,7 +73,7 @@ class Global(): ##Полная жопа
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',5) #in cells (if havent move in the alast stuck check jumps)
     update_rate = rospy.get_param('global_planer/update_rate',2)
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
-    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',300)
+    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',400)
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
     robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',3) #in cells
@@ -103,6 +104,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    debug_map = []
     error = 0
     goal_reached = 1
     start_pos = np.array([0,0,0])
@@ -124,6 +126,12 @@ class Global(): ##Полная жопа
     lock_dir = False
     lock_dirs = [0, 'right', 'left', 'top' , 'bot']
     lock_dir_num = 0
+    
+
+    #Debug
+    if debug:
+        rospy.loginfo(f"costmap = {costmap}")
+    #/Debug
     #################### Rotors list
     rotors_list = []
     for num in range(step_radians_resolution//2 * 2):
@@ -134,13 +142,8 @@ class Global(): ##Полная жопа
             dir = -1
         num = num//2 
         rotors_list.append(cos(dir * step * num) + 1j * sin(dir * step * num))
+    
     ####################
-
-    #Debug
-    if debug:
-        rospy.loginfo(f"costmap = {costmap}")
-    #/Debug
-
     @classmethod
     def dirGenerator(cls,delta_vect,num):
         turn = cls.rotors_list[num]
@@ -267,8 +270,10 @@ class Global(): ##Полная жопа
                     if Global.debug:
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:
-            rospy.logerr ("All points failed! Goal ignored")
+            rospy.logerr ("All start points failed! Goal ignored")
             Global.goal_reached = 1
+        else:
+            rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
         
     @staticmethod 
     def cleanupDeadEnds():
@@ -384,6 +389,8 @@ if __name__=="__main__":
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
+                if Global.debug and len(Global.list):
+                    Global.debug_map[int(Global.list[-1][0][0])][int(Global.list[-1][0][1])] = 255
                 #Global.pubPoint(Global.list[-1][0], Global.num_jumps)
             Global.num_jumps = 0 
             if Global.cleanup_feature:
@@ -391,6 +398,9 @@ if __name__=="__main__":
                 rospy.loginfo("Dead Ends cleaned up!")
             if len(Global.list) and not Global.error:
                 Global.publish()
+                os.chdir("/home/aa/catkin_ws/src/ebobot/nodes/costmap")
+                cv2.imwrite("global_debug_map.png", Global.debug_map)
+                rospy.sleep(5)
 
             Global.error = 0
             end_time = rospy.Time.now() ### end time

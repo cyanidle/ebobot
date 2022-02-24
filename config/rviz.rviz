@@ -10,7 +10,6 @@ Panels:
         - /TF1
         - /LocalPath1
         - /Marker1
-        - /Marker1/Status1
       Splitter Ratio: 0.5058823823928833
     Tree Height: 407
   - Class: rviz/Selection
@@ -102,8 +101,6 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
-        rviz_local_path:
-          Value: true
         rviz_path:
           Value: true
       Marker Alpha: 1
@@ -148,8 +145,7 @@ Visualization Manager:
       Marker Topic: /global_points
       Name: Marker
       Namespaces:
-        "": true
-        Globals: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -179,7 +175,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.03500001132488251
+      Angle: -0.019999999552965164
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -189,10 +185,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 292.1029052734375
+      Scale: 75.80919647216797
       Target Frame: <Fixed Frame>
-      X: 0.8243975639343262
-      Y: 0.2617643177509308
+      X: 1.109510898590088
+      Y: 0.028624773025512695
     Saved: ~
 Window Geometry:
   Displays:
