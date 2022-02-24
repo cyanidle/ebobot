@@ -237,9 +237,9 @@ class Local():
         current_pos = cls.robot_pos
         rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
         #target = cls.targets[cls.current_target]
-        if cls.current_target < len(cls.targets):
+        if cls.current_target < len(cls.targets)-1:
             cls.actual_target =  cls.fetchPoint()
-        elif cls.current_target == len(cls.targets):
+        elif cls.current_target == len(cls.targets)-1:
             cls.actual_target = cls.targets[cls.current_target]
         else:
             cls.actual_target = cls.robot_pos
@@ -253,7 +253,7 @@ class Local():
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             #cmd_target = cls.actual_target - cls.robot_pos
             cmd_target = cls.turnVect(cls.actual_target-cls.robot_pos, cls.robot_pos[2]) ###ADJUST GLOBAL COMAND TO LOCAL
-            cls.cmdVel(cmd_target, cost_speed_coeff)
+            cls.cmdVel(cmd_target, speed_coeff)
             rospy.sleep(1/cls.update_rate)
         return
     ####################################################
