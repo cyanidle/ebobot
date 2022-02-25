@@ -175,14 +175,11 @@ class Local():
         twist.angular.z = move[2] 
         Local.cmd_vel_publisher.publish(twist)
     ###############################
-    @staticmethod
-    def turnVect(vect,turn,debug = 1):
-        vect_imag = vect[0] + vect[1]*1j
-        rotor = cos(turn) + 1j* sin(turn)
-        result = vect_imag * rotor
-        result = [result.real, result.imag, vect[2]]
-        if debug:
-            rospy.loginfo(f"Turning vector {vect} by {round(turn,3)} into {result}")
+    @classmethod
+    def remapToLocal(cls,vect):
+        norm = np.linalg.norm(vect[:2])
+        curr_ang = cls.robot_pos[2]
+        result = (norm * cos(curr_ang),norm * sin(curr_ang),vect[2]-curr_ang)
         return result
 
     #########################
@@ -199,6 +196,7 @@ class Local():
 
     @classmethod
     def fetchPoint(cls):     #dist to target should be checked in updateDist()
+        
         current = cls.robot_pos 
         if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
@@ -240,7 +238,6 @@ class Local():
     ####################################################################       
     @classmethod
     def updateTarget(cls):
-        cls.current_target +=1
         current_pos = cls.robot_pos
         rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
         #target = cls.targets[cls.current_target]
@@ -259,9 +256,10 @@ class Local():
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             #cmd_target = cls.actual_target - cls.robot_pos
-            cmd_target = cls.turnVect(actual_target-current_pos, -current_pos[2]) ###ADJUSTS GLOBAL COMAND TO LOCAL
+            cmd_target = cls.remapToLocal(actual_target-current_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
+        cls.current_target +=1
         return
     ####################################################
    
@@ -278,6 +276,7 @@ def main():
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
                 rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
+                Local.current_target = 0
             else: 
                 Local.updateTarget()
         rate.sleep()
