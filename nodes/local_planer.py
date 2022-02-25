@@ -61,10 +61,14 @@ class Local():
     path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
     debug = rospy.get_param('local_planer/debug', 1)
     #/Features
+    
+
+
     rviz_point_topic = rospy.get_param('local_planer/rviz_topic', 'local_points')
     rviz_topic = rospy.get_param('local_planer/rviz_topic', 'rviz_local_path')
     
-    min_speed_coeff = rospy.get_param('local_planer/min_speed_coeff', 0.3)
+    static_coeff = rospy.get_param('local_planer/static_coeff', 0.6)
+    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.3)
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
     num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
@@ -188,8 +192,8 @@ class Local():
         max_targets = len(Local.targets)
         coeff = abs(Local.current_target - max_targets/2) / (max_targets/2)
         final_coeff = coeff * Local.path_speed_coeff
-        if final_coeff < Local.min_speed_coeff:
-            final_coeff = Local.min_speed_coeff
+        if final_coeff < Local.min_path_coeff:
+            final_coeff = Local.min_path_coeff
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
 
@@ -257,7 +261,7 @@ class Local():
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             #cmd_target = cls.actual_target - cls.robot_pos
             cmd_target = cls.remapToLocal(actual_target-current_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
-            cls.cmdVel(cmd_target, speed_coeff)#make slower at last point
+            cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
         cls.current_target +=1
         return
