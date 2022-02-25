@@ -259,7 +259,7 @@ class Local():
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             #cmd_target = cls.actual_target - cls.robot_pos
-            cmd_target = cls.turnVect(actual_target-current_pos, current_pos[2]) ###ADJUSTS GLOBAL COMAND TO LOCAL
+            cmd_target = cls.turnVect(actual_target-current_pos, -current_pos[2]) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
         return
