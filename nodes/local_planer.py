@@ -140,7 +140,7 @@ class Local():
         if cls.delta_thetas_enable:
             delta_theta = (final_target[2] - current_theta) / (len(cls.targets) + 1)
         else:
-            delta_theta = 0
+            delta_theta = current_theta
         
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
