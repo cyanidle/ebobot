@@ -86,7 +86,7 @@ class Local():
     #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
     base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
-    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
+    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
     #/Params
 
@@ -280,7 +280,7 @@ def main():
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
                 rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
-                Local.current_target = 0
+                #Local.current_target = len(Local.targets)-1
             else: 
                 Local.updateTarget()
         rate.sleep()
