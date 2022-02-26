@@ -195,25 +195,6 @@ class Costmap():
         cls.grid_publisher.publish(msg)
 
 
-
-class Beacons:
-    #Beacon params
-    dist_threshhold = rospy.get_param('costmap_server/beacons/dist_threshhold',2) #in cells
-    dist_between_double = rospy.get_param('costmap_server/beacons/dist_between_double',80) #in cells
-    dist_from_double = rospy.get_param('costmap_server/beacons/dist_from_double', 155) #in cells (median of base of the triangle)
-    #/Beacon params
-    new_coords = []
-    list = []
-    pose = (0,0)
-    def __init__(self,pos:tuple):
-        self.pose = pos
-        Beacons.list.append(self)
-    @classmethod
-    def recieve(cls):
-        Beacons.list.clear()
-        for pose in cls.new_coords:
-            beacon = Beacons(pose)
-
 class Obstacle:
     #Obstacle params
     #/Obstacle params

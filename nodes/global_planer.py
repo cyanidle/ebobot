@@ -42,7 +42,6 @@ def targetCallback(target):
         Global.debug_map[int(goal[0])][int(goal[1])] = 255
     #!!!!!!!!!!!!!!
 def costmapCallback(costmap):
-    
     Global.costmap_resolution = costmap.info.resolution
     Global.costmap_height = costmap.info.height
     Global.costmap_width= costmap.info.width
