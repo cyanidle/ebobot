@@ -12,7 +12,7 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
 ######
-from dorlib import dCoordsInRad, dCoordsOnCircle
+from dorlib import turnVect, dCoordsOnCircle
 ######Callbacks
 def shutdownHook():
     twist = Twist()
@@ -58,7 +58,7 @@ class Local():
     #Features
     delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
     cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
-    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
+    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 1)
     debug = rospy.get_param('local_planer/debug', 1)
     #/Features
     
@@ -110,7 +110,7 @@ class Local():
 
     #cls values
     actual_target = []
-    
+    max_dist = 0
     skipped = 0
     goal_reached = 1
     new_targets = []
@@ -150,6 +150,7 @@ class Local():
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
         new_parsed_targets.append(final_target)
         cls.targets = new_parsed_targets
+        cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
     @staticmethod
@@ -171,29 +172,32 @@ class Local():
         if speed_coeff > 1:
             speed_coeff = 1
         twist = Twist()
-        move =  target/np.linalg.norm(target)*speed_coeff#make param
+        #move =  target/np.linalg.norm(target)*speed_coeff#make param
         if cls.debug:
-            rospy.loginfo(f"Updating /cmd_vel to {move}, speed_coeff = {speed_coeff}")
-        twist.linear.y = move[0]
-        twist.linear.x = move[1]
-        twist.angular.z = move[2] 
+            rospy.loginfo(f"Updating /cmd_vel to {target}, speed_coeff = {speed_coeff}")
+        twist.linear.x = target[1] #forward (x)
+        twist.linear.y = target[0] #left (y)
+        twist.angular.z = target[2] #counterclockwise
         Local.cmd_vel_publisher.publish(twist)
     ###############################
     @classmethod
     def remapToLocal(cls,vect):
         #norm = np.linalg.norm(vect[:2])
+        #curr_y,curr_x = cls.robot_pos[0],cls.robot_pos[1]
         curr_ang = cls.robot_pos[2]
-        result = (vect[0]  * cos(curr_ang),vect[1]  * sin(curr_ang),vect[2]-curr_ang)
-        return result
+        new_vect = turnVect((vect[0],vect[1]),-vect[2])
+        result = np.array([new_vect[0] ,  new_vect[1],   vect[2]-curr_ang])
+        result = result/np.linalg.norm(result)  
+        return (result[0],result[1],result[2])
 
     #########################
-    @staticmethod
-    def getPathSpdCoeff():
-        max_targets = len(Local.targets)
-        coeff = abs(Local.current_target - max_targets/2) / (max_targets/2)
-        final_coeff = coeff * Local.path_speed_coeff
-        if final_coeff < Local.min_path_coeff:
-            final_coeff = Local.min_path_coeff
+    @classmethod
+    def getPathSpdCoeff(cls):    
+        final_coeff = cls.max_dist - np.linalg.norm(cls.targets[-1] - cls.robot_pos)/cls.max_dist * cls.path_speed_coeff
+        if final_coeff < cls.min_path_coeff:
+            final_coeff = cls.min_path_coeff
+        elif final_coeff > 1:
+            final_coeff = 1
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
 
