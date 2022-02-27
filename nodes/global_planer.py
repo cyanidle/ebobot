@@ -127,7 +127,7 @@ class Global(): ##Полная жопа
     consecutive_jumps = 0
     #####################################
     lock_dir = False
-    lock_dirs = [0, 'top', 'left',  'right', 'bot']
+    lock_dirs = [0,  'left',  'right', 'top', 'bot'] #these directions decide in which order robot tries different lock directions
     lock_dir_num = 0
     
 
@@ -212,19 +212,19 @@ class Global(): ##Полная жопа
                 next_pos_y,next_pos_x = round(float(next_pos[0])),round(float(next_pos[1])) #updated later
 
                 ##################################
-                
-                if Global.lock_dir == 'top':
-                    y = abs(y)
-                    #y = abs(y)
-                elif Global.lock_dir == 'right':
-                    #x = -abs(x)
-                    x = abs(x)
-                elif Global.lock_dir == 'left':
-                    #x = abs(x)
-                    x = -abs(x)
-                elif Global.lock_dir == 'bot':
-                    y = -abs(y)
-                    #y = abs(y)
+                if Global.lock_dir:
+                    if Global.lock_dir == 'top':
+                        y = abs(y)
+                        #y = abs(y)
+                    elif Global.lock_dir == 'right':
+                        #x = -abs(x)
+                        x = abs(x)
+                    elif Global.lock_dir == 'left':
+                        #x = abs(x)
+                        x = -abs(x)
+                    elif Global.lock_dir == 'bot':
+                        y = -abs(y)
+                        #y = abs(y)
                 ####################################
                 
                 ####################################################

@@ -174,8 +174,8 @@ class Local():
         move =  target/np.linalg.norm(target)*speed_coeff#make param
         if cls.debug:
             rospy.loginfo(f"Updating /cmd_vel to {move}, speed_coeff = {speed_coeff}")
-        twist.linear.x = move[0]
-        twist.linear.y = move[1]
+        twist.linear.y = move[0]
+        twist.linear.x = move[1]
         twist.angular.z = move[2] 
         Local.cmd_vel_publisher.publish(twist)
     ###############################

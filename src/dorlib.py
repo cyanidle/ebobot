@@ -47,7 +47,7 @@ def turnVect(vect: tuple,turn: float, dims = 2):
 def dCoordsOnCircle(rad: int,resolution:int = 16): #in cells (res = number of point equally spaced)
     "Returns delta coords in list (x,y) on radius (rad) for vectors number (resolution)"
     step = (radians(180)/(resolution/2))
-    print(f"Fetching coords on circle for rad = {rad}, res = {resolution}")
+    print(f"Fetching coords on circle for {rad = }, {resolution = }")
     #maxes= []
     list = []
     for num in range(round(radians(180)/step)+1):
