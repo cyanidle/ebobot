@@ -250,7 +250,8 @@ class Local():
         elif cls.current_target == len(cls.targets)-1:
             actual_target = cls.targets[cls.current_target]
         else:
-            actual_target = cls.robot_pos
+            Local.goal_reached = 1
+            shutdownHook()
         #cls.pubPath()
         rospy.loginfo(f'Riding to {actual_target}')
         while np.linalg.norm(cls.robot_pos - actual_target) > cls.threshhold and not rospy.is_shutdown() and not cls.goal_reached:
