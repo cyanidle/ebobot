@@ -171,7 +171,7 @@ class Global(): ##Полная жопа
         next_pos = next_normalized * norm
         if cls.debug:
             rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
-        yield (next_pos.imag,next_pos.real)
+        yield (next_pos.real,next_pos.imag) #needs testing
   
     @staticmethod
     def checkIfStuck(num):

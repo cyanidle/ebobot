@@ -5,7 +5,8 @@ import numpy as np
 from math import cos,sin
 import rospy
 import tf
-from dorlib import dCoordsInRad
+#####################
+from dorlib import dCoordsInRad, turnVect
 ######################
 from nav_masgs.msg import Odometry, OccupancyGrid
 from sensor_msgs.msg import LaserScan
@@ -81,8 +82,11 @@ class Laser:
     def update(cls):
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
             y_coeff, x_coeff = coeffs
-            meters_pos = np.array((range * y_coeff, range * x_coeff))
-            pixel_pos = meters_pos/cls.costmap_resolution
+            if range < cls.range_max and range > cls.range_min:
+                meters_pos = np.array((range * y_coeff, range * x_coeff))
+                abs_pixel_pos = meters_pos/cls.costmap_resolution
+                prob_pixel_pos = np.array(turnVect(abs_pixel_pos - cls.robot_pos[:2],  cls.robot_pos[2]))
+
 
 
 class Beacons:

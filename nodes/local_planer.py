@@ -12,7 +12,7 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
 ######
-from dorlib import dCoordsInRad,dCoordsOnCircle
+from dorlib import dCoordsInRad, dCoordsOnCircle
 ######Callbacks
 def shutdownHook():
     twist = Twist()

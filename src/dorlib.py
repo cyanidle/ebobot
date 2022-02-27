@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 #from numpy import linalg, array
-
+#from operator import ne
+import numpy as np
 from math import sin, cos, radians,ceil           
-def dCoordsInRad(rad,resolution = 3):  
+def dCoordsInRad(rad: int,resolution:int = 3):  
     step = radians(90)/resolution                     
     maxes_list = []
     list = []
@@ -30,9 +31,21 @@ def dCoordsInRad(rad,resolution = 3):
     #print (list)
     return list
 
-
+def turnVect(vect: tuple,turn: float, dims = 2):
+    "Turn vector using complex rotor by (turn) rads"
+    rotor = cos(turn) + 1j*sin(turn)
+    if dims == 2:
+        comp = rotor * (vect[0] + 1j * vect[1])
+        new_vect = (comp.real , comp.imag)
+    elif dims == 3:
+        comp = rotor * (vect[0] + 1j * vect[1])
+        new_vect = (comp.real , comp.imag, vect[2])
+    else: 
+        return "error"
+    return new_vect
  
-def dCoordsOnCircle(rad,resolution = 16): #in cells (res = number of point equally spaced)
+def dCoordsOnCircle(rad: int,resolution:int = 16): #in cells (res = number of point equally spaced)
+    "Returns delta coords in list (x,y) on radius (rad) for vectors number (resolution)"
     step = (radians(180)/(resolution/2))
     print(f"Fetching coords on circle for rad = {rad}, res = {resolution}")
     #maxes= []
