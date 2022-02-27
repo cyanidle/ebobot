@@ -183,7 +183,7 @@ class Local():
     def remapToLocal(cls,vect):
         norm = np.linalg.norm(vect[:2])
         curr_ang = cls.robot_pos[2]
-        result = (norm + norm * cos(curr_ang),norm + norm * sin(curr_ang),vect[2]-curr_ang)
+        result = (vect[0] +norm * cos(curr_ang),vect[1] + norm * sin(curr_ang),vect[2]-curr_ang)
         return result
 
     #########################
