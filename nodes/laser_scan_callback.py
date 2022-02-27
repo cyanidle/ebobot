@@ -12,6 +12,11 @@ from nav_masgs.msg import Odometry, OccupancyGrid
 from sensor_msgs.msg import LaserScan
 ######################
 
+
+
+
+
+###############
 rospy.init_node('laser_scan_callback')
 
 def robotPosCallback(odom):
@@ -37,6 +42,8 @@ def laserScanCallback(scan):
     if not Laser.angles_done:
         Laser.precalcCoeffs()
     Laser.update()
+
+
 class Laser:
     #Features
     debug = rospy.get_param("~/debug",1)
@@ -125,25 +132,58 @@ class Beacons:
     raw_list.append(rospy.get_param('~/beacons/beacon2',[-3,50])) #in cells
     raw_list.append(rospy.get_param('~/beacons/beacon3',[154,99])) #in cells
     #############
-    
+    cost_check_radius = rospy.get_param('~/beacons/cost_check_radius', 8)
+    cost_check_resolution = rospy.get_param('~/beacons/cost_check_resolution', 4)
     #/Beacon params
-    new_coords = []
-    list = []
+
+    #Globals
+    real_list = []
+    prob_list = []
+    cost_coords_list = dCoordsInRad(cost_check_radius,cost_check_resolution)
+    #new_list =  []
     pose = (0,0)
-    def __init__(self,pos:list):
+    #/Globals
+
+    def __init__(self,pos:list,real:int = 0):
         self.pose = (pos[0], pos[1])
-        Beacons.list.append(self)
+        if real:
+            Beacons.real_list.append(self)
+        else:
+            Beacons.prob_list.append(self)
+
+
     @classmethod
-    def reInit(cls):
-        cls.list.clear()
+    def initReal(cls):
         for pose in cls.raw_list:
-            beacon = cls(pose) #initialisation auto-appends objects
+            beacon = cls(pose,real = 1)
+    @classmethod
+    def initRelative(cls, new_list: list):
+        cls.prob_list.clear()
+        for pose in new_list:
+            beacon = cls(pose) #initialisation auto-appends objects to their list
+    @classmethod
+    def findRelative(cls):
+        list = []
+        
+
+        
+        return list
+        #pass
+    @classmethod
+    def update(cls):
+        rel_list = cls.findRelative()
+        cls.initRelative(rel_list)
+        
+        pass
+    
+
+
 
 def main():
     rate = rospy.Rate(Laser.update_rate)
-    Beacons.reInit()
+    Beacons.initReal()
     while not rospy.is_shutdown():
-
+        Beacons.update()
 
 
 

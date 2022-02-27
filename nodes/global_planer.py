@@ -11,14 +11,27 @@ import numpy as np
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
-from visualization_msgs.msg import Marker
+#from visualization_msgs.msg import Marker
 ######
 #from dorlib import dCoordsOnCircle
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
-#В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_Global
+#В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_goal
 
+
+
+
+
+
+################
+
+
+
+#TO DO: Add experimental "make shortcuts" feature - if dist doesnt grow fast enough - remove intermediate points
+
+
+##############
 import cv2
 import os
 def robotPosCallback(odom):
@@ -61,6 +74,8 @@ def costmapUpdateCallback(update):
 
 class Global(): ##Полная жопа
     
+    #__slots__ = ()##PLS TEST IF FAILS - DELETE THIS LINE
+
     #Params
     #Features
     
@@ -95,7 +110,7 @@ class Global(): ##Полная жопа
     path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     ####
-    point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
+    #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
