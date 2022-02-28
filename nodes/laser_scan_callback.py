@@ -167,7 +167,7 @@ class Beacons:
             rel_poses.append(rel_pos)  
         return rel_poses
     @classmethod
-    def findRelative(cls):
+    def findRelative(cls): #todo: move to laser, check cost
         list = []
         curr_obst = []
         curr_obst.append(Laser.list[0][0])
