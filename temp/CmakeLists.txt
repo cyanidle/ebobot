@@ -158,7 +158,7 @@ CATKIN_DEPENDS python-numpy pypng map_msgs geometry_msgs nav_msgs roscpp rospy r
 # )
 
 #############
-## Install ##
+## Install ## 
 #############
 
 # all install targets should use catkin DESTINATION variables
