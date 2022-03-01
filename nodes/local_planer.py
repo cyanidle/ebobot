@@ -60,26 +60,28 @@ def costmapUpdateCallback(update):
 #Field :   204x304 cm
 class Local():
     
-    roslib.load_manifest('ebobot')
+    
     #Params
     #Features
     rotate_at_end = rospy.get_param('local_planer/rotate_at_end', 1)
     get_lowest_cost = rospy.get_param('local_planer/get_lowest_cost', 0)
-    delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
+    #delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
     cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
     path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 1)
     debug = rospy.get_param('local_planer/debug', 1)
     #/Features
     #Turn params
-    turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.2)
+    pause_before_turn = rospy.get_param('local_planer/pause_before_turn', 0.2) #seconds
+    turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.1) 
     cells_per_radian = rospy.get_param('local_planer/cells_per_radian', 5)
     turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.5)
     #
    
-    
-    static_coeff = rospy.get_param('local_planer/static_coeff', 0.2)
+    #speed coeffs
+    static_coeff = rospy.get_param('local_planer/static_coeff', 0.8)
     min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.1)
-    path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
+    path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 0.5)
+    #planer
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
     num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
     update_rate = rospy.get_param('local_planer/update_rate', 20) # in Hz
@@ -152,9 +154,9 @@ class Local():
             rospy.loginfo(f"Parsing targets...")
         current_theta = cls.robot_pos[2]
         final_target = cls.new_targets.pop()
-        if cls.delta_thetas_enable:
+        if not cls.rotate_at_end:
             delta_theta = (final_target[2] - current_theta) / (len(cls.targets) + 1)
-        elif cls.rotate_at_end:
+        else:
             delta_theta = current_theta
         # else:
         #     delta_theta = final_target[2]
@@ -181,15 +183,14 @@ class Local():
         return cost
     
     @classmethod
-    def cmdVel(cls,target,speed_coeff):       #speed ranges from 0 to 1
+    def cmdVel(cls,target,speed_coeff = 1):       #speed ranges from 0 to 1
         if speed_coeff > 1:
             speed_coeff = 1
         twist = Twist()
         #move =  target/np.linalg.norm(target)*speed_coeff#make param
-        
-        twist.linear.x = target[1] #forward (x)
-        twist.linear.y = target[0] #left (y)
-        twist.angular.z = target[2] #counterclockwise
+        twist.linear.x = target[1]*speed_coeff #forward (x)
+        twist.linear.y = target[0]*speed_coeff #left (y)
+        twist.angular.z = target[2]*speed_coeff #counterclockwise
         Local.cmd_vel_publisher.publish(twist)
     ###############################
     @classmethod
@@ -200,9 +201,6 @@ class Local():
         new_vect = turnVect((vect[0],vect[1]),curr_ang)
         dist = np.linalg.norm(new_vect[:2])  
         if cls.rotate_at_end:
-            if cls.current_target == len(cls.targets)-1:
-                diff =  (vect[2]-curr_ang)
-                turn = diff/abs(diff)*  cls.turn_coeff
             turn = 0
         else:
             turn = (vect[2]-curr_ang)/dist * cls.cells_per_radian *  cls.turn_coeff
@@ -222,8 +220,22 @@ class Local():
             final_coeff = 1
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
-
-
+    @classmethod
+    def checkTurn(cls): 
+        return abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold
+    @classmethod
+    def rotateAtEnd(cls):
+        if cls.debug:
+            rospy.loginfo(f"Rotating...")
+        shutdownHook()
+        rospy.sleep(cls.pause_before_turn)
+        while cls.checkTurn() and not rospy.is_shutdown(): 
+            #if cls.debug:
+                #rospy.loginfo(f"Turn checked {cls.robot_pos[2] - cls.actual_target[2]}\n{abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold}")
+            diff =  (cls.targets[-1][2] - cls.robot_pos[2])
+            turn = diff/abs(diff) *  cls.turn_coeff
+            cls.cmdVel([0,0,turn])
+            rospy.sleep(1/cls.update_rate)
     @classmethod
     def fetchPoint(cls,current_pos):     #dist to target should be checked in updateDist()
         
@@ -270,14 +282,10 @@ class Local():
     #     Local.robot_pos = Local.new_pos
     @classmethod
     def checkPos(cls):
-        return np.linalg.norm(cls.robot_pos[:2] - cls.actual_target[:2]) > cls.threshhold
-    @classmethod
-    def checkTurn(cls):
-        return (cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold
+        return np.linalg.norm(cls.robot_pos[:2]-cls.actual_target[:2]) > cls.threshhold
+    
     @classmethod
     def updateTarget(cls):
-        #Local.updatePos()
-        #current_pos = cls.robot_pos
         if Local.debug:
             rospy.loginfo(f"robot pos {cls.robot_pos}")
         if cls.debug:
@@ -285,10 +293,12 @@ class Local():
         if cls.current_target < len(cls.targets)-1:
             cls.actual_target =  cls.fetchPoint(cls.robot_pos)
         elif cls.current_target == len(cls.targets)-1:
-            cls.actual_target = cls.targets[cls.current_target]
+            cls.actual_target = cls.targets[-1]
         else:
+            rospy.logerr(f"Current target overflow!")
             Local.goal_reached = 1
             shutdownHook()
+            
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         
@@ -302,7 +312,6 @@ class Local():
             cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
-
         return
     ####################################################
    
@@ -311,19 +320,20 @@ class Local():
 # import os
 # import cv2
 def main():
+    roslib.load_manifest('ebobot')
     rospy.init_node('local_planer')
     rospy.on_shutdown(shutdownHook)
     rate = rospy.Rate(Local.update_rate)
     while not rospy.is_shutdown():
         if not Local.goal_reached:
-            if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
+            Local.updateTarget()
+            if np.linalg.norm(Local.robot_pos[:2] - Local.targets[-1][:2]) < Local.threshhold:
+                if Local.rotate_at_end:
+                    Local.rotateAtEnd()
                 rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
                 shutdownHook()
                 #Local.current_target = len(Local.targets)-1
-            else:
-                #Local.updatePos()
-                Local.updateTarget()
         rate.sleep()
 
     # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
