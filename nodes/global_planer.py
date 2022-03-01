@@ -87,7 +87,7 @@ class Global(): ##Полная жопа
     accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0)
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)   #cm/cell (default)
     maximum_cost = rospy.get_param('global_planer/maximum_cost',30)  
-    stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',6)
+    stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
     update_rate = rospy.get_param('global_planer/update_rate',2)
     cleanup_power = rospy.get_param('global_planer/cleanup_power',2)
