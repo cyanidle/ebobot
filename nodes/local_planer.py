@@ -78,9 +78,9 @@ class Local():
     #
    
     #speed coeffs
-    static_coeff = rospy.get_param('local_planer/static_coeff', 0.8)
-    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.1)
-    path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 0.5)
+    static_coeff = rospy.get_param('local_planer/static_coeff', 0.6)
+    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.2) #Final!!
+    path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 0.3) #В тугриках
     #planer
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
     num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
@@ -213,10 +213,11 @@ class Local():
     #########################
     @classmethod
     def getPathSpdCoeff(cls):    
-        final_coeff = cls.max_dist - np.linalg.norm(cls.targets[-1] - cls.robot_pos)/cls.max_dist * cls.path_speed_coeff
+        final_coeff = (cls.max_dist/(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])+0.1)) *cls.path_speed_coeff
+        #rospy.loginfo(f"{final_coeff = }, {cls.max_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
         if final_coeff < cls.min_path_coeff:
             final_coeff = cls.min_path_coeff
-        elif final_coeff > 1:
+        if final_coeff > 1:
             final_coeff = 1
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
         return final_coeff
@@ -306,7 +307,7 @@ class Local():
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:
-                speed_coeff = speed_coeff * cls.getCost(cls.actual_target)
+                speed_coeff = speed_coeff * cls.cost_speed_coeff* cls.getCost(cls.actual_target)
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
