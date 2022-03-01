@@ -397,8 +397,8 @@ if __name__=="__main__":
                 Global.appendNextPos()
                 
                 #Global.pubPoint(Global.list[-1][0], Global.num_jumps)
-            os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-            cv2.imwrite("global_debug_map.png", Global.debug_map)
+            #os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
+            #cv2.imwrite("global_debug_map.png", Global.debug_map)
             Global.num_jumps = 0 
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):

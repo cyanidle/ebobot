@@ -20,10 +20,15 @@ def shutdownHook():
     twist.linear.y = 0
     twist.angular.z = 0 #make slower at last point
     Local.cmd_vel_publisher.publish(twist)
-def robotPosCallback(pose):
-    quat = [pose.pose.pose.orientation.x,pose.pose.pose.orientation.y,pose.pose.pose.orientation.z,pose.pose.pose.orientation.w]
-    Local.robot_pos = np.array([pose.pose.pose.position.y/ Local.costmap_resolution, pose.pose.pose.position.x/Local.costmap_resolution,tf.transformations.euler_from_quaternion(quat)[2]])
-    #rospy.loginfo(f"robot pos {Local.robot_pos}")
+def robotPosCallback(robot):
+    quat = [robot.pose.pose.orientation.x,robot.pose.pose.orientation.y,
+    robot.pose.pose.orientation.z,robot.pose.pose.orientation.w]
+
+    Local.robot_pos = np.array(
+        [robot.pose.pose.position.y/ Local.costmap_resolution, 
+        robot.pose.pose.position.x/Local.costmap_resolution,
+        tf.transformations.euler_from_quaternion(quat)[2]])
+    
 
 def pathCallback(path):################Доделать
     Local.targets.clear()
@@ -58,7 +63,7 @@ class Local():
     #Features
     delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
     cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
-    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 1)
+    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
     debug = rospy.get_param('local_planer/debug', 1)
     #/Features
     
@@ -67,14 +72,14 @@ class Local():
     rviz_point_topic = rospy.get_param('local_planer/rviz_topic', 'local_points')
     rviz_topic = rospy.get_param('local_planer/rviz_topic', 'rviz_local_path')
     
-    static_coeff = rospy.get_param('local_planer/static_coeff', 0.6)
-    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.3)
+    static_coeff = rospy.get_param('local_planer/static_coeff', 0.2)
+    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.1)
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 1)
     cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
     num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
     update_rate = rospy.get_param('local_planer/update_rate', 10) # in Hz
     cost_speed_coeff = rospy.get_param('local_planer/cost_speed_coeff', 0.0002)
-    threshhold = rospy.get_param('local_planer/threshhold', 3) #in cells
+    threshhold = rospy.get_param('local_planer/threshhold', 2) #in cells
     
     
     
@@ -153,16 +158,17 @@ class Local():
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
-    @staticmethod
-    def getCost(pose):
+    @classmethod
+    def getCost(cls,pose):
         curr_y,curr_x = pose[0], pose[1]
         cost = 0
         #rospy.loginfo_once(f"Cost coords list{Local.cost_coords_list}")
-        for x,y in Local.cost_coords_list:
+        for y,x in cls.cost_coords_list:
             new_x, new_y = curr_x+x, curr_y+y
-            rospy.loginfo_once(f"getting cost from x = {new_x}, y = {new_y}")
-            if new_x < Local.costmap_width and new_x>=0 and  new_y < Local.costmap_height and new_y>=0:
-                cost += Local.costmap[int(round(new_x))][int(round(new_y))]
+            if cls.debug:
+                rospy.loginfo_once(f"getting cost from x = {new_x}, y = {new_y}, w-h = {cls.costmap_width,cls.costmap_height}")
+            if 0<= new_x < Local.costmap_width and 0<= new_y < Local.costmap_height:
+                cost += Local.costmap[int(new_y)][int(new_x)]
             else:
                 cost += 100
         return cost
@@ -173,8 +179,7 @@ class Local():
             speed_coeff = 1
         twist = Twist()
         #move =  target/np.linalg.norm(target)*speed_coeff#make param
-        if cls.debug:
-            rospy.loginfo(f"Updating /cmd_vel to {target}, speed_coeff = {speed_coeff}")
+        
         twist.linear.x = target[1] #forward (x)
         twist.linear.y = target[0] #left (y)
         twist.angular.z = target[2] #counterclockwise
@@ -185,9 +190,11 @@ class Local():
         #norm = np.linalg.norm(vect[:2])
         #curr_y,curr_x = cls.robot_pos[0],cls.robot_pos[1]
         curr_ang = cls.robot_pos[2]
-        new_vect = turnVect((vect[0],vect[1]),-vect[2])
+        new_vect = turnVect((vect[0],vect[1]),-curr_ang)
         result = np.array([new_vect[0] ,  new_vect[1],   vect[2]-curr_ang])
         result = result/np.linalg.norm(result)  
+        if cls.debug:
+            rospy.loginfo(f"Remapping... {vect=},{result=}")
         return (result[0],result[1],result[2])
 
     #########################
@@ -203,23 +210,21 @@ class Local():
 
 
     @classmethod
-    def fetchPoint(cls):     #dist to target should be checked in updateDist()
+    def fetchPoint(cls,current_pos):     #dist to target should be checked in updateDist()
         
-        current = cls.robot_pos 
+        #current = cls.robot_pos 
         if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
             cls.goal_reached = 1
             cls.skipped = 0
-            cls.current = len(cls.targets)
-            return current 
+            cls.current_target = len(cls.targets)
+            return current_pos
         target = cls.targets[cls.current_target+cls.skipped]
         if cls.debug:
-            rospy.loginfo(f"Fetching point with curr = {current}, target = {target}")
-            #rospy.loginfo(f"Skipped = {cls.skipped}, subtarget = {cls.subtarget}, target = {cls.current_target}") 
+            rospy.loginfo(f"Fetching point with curr = {current_pos}, target = {target}")
         point = target
         min_cost = cls.getCost(target)
         point_cost = min_cost
-        rospy.loginfo_once(f"Cost list = {cls.cost_check_poses}")
         for y,x in cls.cost_check_poses:
             pose = np.array([target[0] + y, target[1] + x, target[2]])
             curr_cost = cls.getCost(pose)
@@ -238,7 +243,7 @@ class Local():
             return cls.fetchPoint()
         else:
             if cls.debug:
-                rospy.loginfo(f"Fetching target")
+                rospy.loginfo(f"Fetching target {point =}\ncurr = {current_pos}")
             cls.skipped = 0 
             cls.current_target += 1
             return point 
@@ -247,28 +252,30 @@ class Local():
     @classmethod
     def updateTarget(cls):
         current_pos = cls.robot_pos
-        rospy.loginfo(f'Updating target {cls.current_target}, current = {current_pos} (max targs = {len(cls.targets)})')
-        #target = cls.targets[cls.current_target]
+        if Local.debug:
+            rospy.loginfo(f"robot pos {current_pos}")
+        if cls.debug:
+            rospy.loginfo(f'Updating target {cls.current_target},\n current = {current_pos} (max targs = {len(cls.targets)})')
         if cls.current_target < len(cls.targets)-1:
-            actual_target =  cls.fetchPoint()
+            cls.actual_target =  cls.fetchPoint(current_pos)
         elif cls.current_target == len(cls.targets)-1:
-            actual_target = cls.targets[cls.current_target]
+            cls.actual_target = cls.targets[cls.current_target]
         else:
             Local.goal_reached = 1
             shutdownHook()
-        #cls.pubPath()
-        rospy.loginfo(f'Riding to {actual_target}')
-        while np.linalg.norm(cls.robot_pos - actual_target) > cls.threshhold and not rospy.is_shutdown() and not cls.goal_reached:
+        if cls.debug:
+            rospy.loginfo(f'Riding to {cls.actual_target}')
+        while np.linalg.norm(cls.robot_pos - cls.actual_target) > cls.threshhold and not rospy.is_shutdown():
             speed_coeff = 1
             if cls.cost_coeff_enable:
                 speed_coeff = speed_coeff * cls.getCost(cls.actual_target)
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
-            #cmd_target = cls.actual_target - cls.robot_pos
-            cmd_target = cls.remapToLocal(actual_target-current_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
+            
+            cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
-        cls.current_target +=1
+
         return
     ####################################################
    
@@ -285,6 +292,7 @@ def main():
             if np.linalg.norm(Local.robot_pos - Local.targets[-1]) < Local.threshhold:
                 rospy.loginfo(f'Goal reached!')
                 Local.goal_reached = 1
+                shutdownHook()
                 #Local.current_target = len(Local.targets)-1
             else: 
                 Local.updateTarget()
