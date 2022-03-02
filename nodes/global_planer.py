@@ -84,9 +84,10 @@ class Global(): ##Полная жопа
     stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
     debug = rospy.get_param('global_planer/debug',0)
     #/Features    
-    
-    update_stop_thresh = rospy.get_param('global_planer/update_stop_thresh', 6) #in cells
-    update_rate = rospy.get_param('global_planer/update_rate',2) #per second
+    #
+    resend = rospy.get_param('global_planer/update_stop_thresh', 1)
+    update_stop_thresh = rospy.get_param('global_planer/update_stop_thresh', 8) #in cells
+    update_rate = rospy.get_param('global_planer/update_rate',1) #per second
     #
     accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
     if experimental_cleanup_enable:
@@ -283,6 +284,8 @@ class Global(): ##Полная жопа
                     if np.linalg.norm(Global.target[:2] - current_pos) < Global.dist_to_target_threshhold:#its checked to be close enough to the goal
                         Global.num_jumps = 0                                                              #if too close - ignored, last target added
                         Global.goal_reached = 1
+                        if not Global.resend:
+                            Global.target_set = 0
                         Global.appendToList(Global.target,np.linalg.norm(Global.target - Global.start_pos))
                         return
                     elif Global.consecutive_jumps > Global.consecutive_jumps_threshhold:                  #additional point is added in case of long straight jump
@@ -340,7 +343,7 @@ class Global(): ##Полная жопа
         max_num = len(Global.list)-1
         check_for = Global.cleanup_repeats_len
         for num in range(len(Global.list)):
-            if num > check_for and (num - ignore_list[-1]) > check_for and (max_num-num) > check_for:
+            if num > check_for and (max_num-num) > check_for:
                 #rospy.loginfo(f"{num =}")
                 if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) > Global.cleanup_repeats_threshhold:
                     #rospy.loginfo(f"added for remove, len is {max_num}")
@@ -390,6 +393,7 @@ class Global(): ##Полная жопа
                     Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
                     rviz.poses.append(r)
         target_pos = PoseStamped()
+        rospy.loginfo(f"Last point {target}")
         quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
         if Global.rviz_enable:
             rviz_targ = PoseStamped()
@@ -416,36 +420,47 @@ class Global(): ##Полная жопа
         Global.path_publisher.publish(msg)    
         rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
-if __name__=="__main__":
+
+
+def main():
     rospy.init_node('global_planer')
     Global.initRotors()
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
         ####
-        Global.goal_reached = 0
-        Global.list.clear()
-        #Global.list.append(Global.target)
-        Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
-        Global.start_pos = Global.robot_pos
-        Global.consecutive_jumps = 0
+        if Global.resend:
+            Global.goal_reached = 0
+            Global.list.clear()
+            #Global.list.append(Global.target)
+            Global.list.append((np.array(Global.robot_pos[:2]),0))
+            Global.start_pos = Global.robot_pos #Здесь нужно получить по ебалу от негров!s
+            Global.consecutive_jumps = 0
         ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
+            rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
+            ######
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
                     Global.cleanupDeadEnds()
                     if Global.experimental_cleanup_enable:
                         Global.cleanupRepeats()
                 rospy.loginfo("Dead Ends cleaned up!")
+            #######
             if len(Global.list) and not Global.error:
                 Global.publish()
+            #######
             Global.error = 0
             end_time = rospy.Time.now() ### end time
             rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
-            if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
-                Global.target_set = 0
+            if Global.resend:
+                if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
+                    Global.target_set = 0
+                #Global.goal_reached = 1
 
         rate.sleep()
+if __name__=="__main__":
+    main()

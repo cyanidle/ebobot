@@ -38,7 +38,7 @@ TimerMs main_loop(loop_delay, 1, 0);
 
 volatile long X[3];
 float coeff = 1;
-float rad = 0.1847; //m
+float rad = 0.28; //m
 float ticks_per_rotation = 360;
 long dX[3];
 long lastX[3];

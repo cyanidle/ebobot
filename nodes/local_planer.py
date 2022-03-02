@@ -33,16 +33,17 @@ def robotPosCallback(robot):
         #rospy.loginfo(f"New pos = {Local.new_pos}")
 
 def pathCallback(path):################Доделать
-    Local.targets.clear()
+    #Local.targets.clear()
     Local.new_targets.clear()
+    Local.goal_reached = 1
     Local.current_target = 0 
     #rospy.loginfo_once(f"Got path, poses = {path.poses}")
     for pose in path.poses:
         quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
         target = np.array([pose.pose.position.y,pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]])
         Local.new_targets.append(target)
+    Local.last_target = target
     Local.parseTargets()
-    Local.goal_reached = 0
     rospy.loginfo(f'Goal Set!')
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
@@ -67,12 +68,12 @@ class Local():
     get_lowest_cost = rospy.get_param('local_planer/get_lowest_cost', 0)
     #delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
     cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
-    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 1)
+    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
     debug = rospy.get_param('local_planer/debug', 1)
     #/Features
     #Turn params
     pause_before_turn = rospy.get_param('local_planer/pause_before_turn', 0.2) #seconds
-    turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.1) 
+    turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.05) 
     cells_per_radian = rospy.get_param('local_planer/cells_per_radian', 5)
     turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.5)
     #
@@ -121,6 +122,7 @@ class Local():
     #/Topics
 
     #cls values
+    last_target = []
     actual_target = []
     max_dist = 0
     skipped = 0
@@ -163,10 +165,11 @@ class Local():
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
         new_parsed_targets.append(final_target)
-        cls.targets = new_parsed_targets
+        cls.targets = new_parsed_targets #IMPORTANT
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
+        cls.goal_reached = 0
     @classmethod
     def getCost(cls,pose):
         curr_y,curr_x = pose[0], pose[1]
@@ -212,8 +215,11 @@ class Local():
 
     #########################
     @classmethod
-    def getPathSpdCoeff(cls):    
-        final_coeff = (cls.max_dist/(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])+0.1)) *cls.path_speed_coeff
+    def getPathSpdCoeff(cls): 
+        if len(cls.targets):
+            final_coeff = (cls.max_dist/(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])+0.1)) *cls.path_speed_coeff
+        else:
+            final_coeff = 1
         #rospy.loginfo(f"{final_coeff = }, {cls.max_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
         if final_coeff < cls.min_path_coeff:
             final_coeff = cls.min_path_coeff
@@ -223,7 +229,8 @@ class Local():
         return final_coeff
     @classmethod
     def checkTurn(cls): 
-        return abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold
+        #rospy.loginfo(f"Checking turn {cls.robot_pos[2]=}{cls.last_target[2]=}...")
+        return abs(cls.robot_pos[2] - cls.last_target[2]) > cls.turn_threshhold
     @classmethod
     def rotateAtEnd(cls):
         if cls.debug:
@@ -233,7 +240,7 @@ class Local():
         while cls.checkTurn() and not rospy.is_shutdown(): 
             #if cls.debug:
                 #rospy.loginfo(f"Turn checked {cls.robot_pos[2] - cls.actual_target[2]}\n{abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold}")
-            diff =  (cls.targets[-1][2] - cls.robot_pos[2])
+            diff =  (cls.last_target[2] - cls.robot_pos[2])
             turn = diff/abs(diff) *  cls.turn_coeff
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
@@ -303,7 +310,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         
-        while cls.checkPos() and not rospy.is_shutdown():
+        while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:

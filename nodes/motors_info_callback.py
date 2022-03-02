@@ -25,7 +25,7 @@ class Motors():
     theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
     y_coeff = rospy.get_param('motors_info_callback/y_coeff',1)
     x_coeff = rospy.get_param('motors_info_callback/x_coeff',1)
-    wheels_footprint_rad = rospy.get_param('motors_info_callback/wheels_footprint_radius',0.15) #in meters
+    wheels_footprint_rad = rospy.get_param('motors_info_callback/wheels_footprint_radius',0.10) #in meters
     #/Params
     num = 3
     theta = 0
