@@ -13,6 +13,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
 ######
 from dorlib import turnVect, dCoordsOnCircle
+import markers
 ######Callbacks
 def shutdownHook():
     Local.goal_reached = 1
@@ -163,8 +164,13 @@ class Local():
             delta_theta = current_theta
         # else:
         #     delta_theta = final_target[2]
+        min_dist = 100
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
+            dist = np.linalg.norm(target[:2] - cls.robot_pos[:2])
+            if dist < min_dist:
+                min_dist = dist
+                cls.current_target = num
         new_parsed_targets.append(final_target)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
@@ -315,7 +321,8 @@ class Local():
             
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        
+        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
+        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=1)
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
