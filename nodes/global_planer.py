@@ -85,7 +85,7 @@ class Global(): ##Полная жопа
     debug = rospy.get_param('global_planer/debug',0)
     #/Features    
     #
-    resend = rospy.get_param('global_planer/update_stop_thresh', 1)
+    resend = rospy.get_param('global_planer/resend', 0)
     update_stop_thresh = rospy.get_param('global_planer/update_stop_thresh', 8) #in cells
     update_rate = rospy.get_param('global_planer/update_rate',1) #per second
     #

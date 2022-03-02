@@ -75,11 +75,12 @@ class Local():
     pause_before_turn = rospy.get_param('local_planer/pause_before_turn', 0.2) #seconds
     turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.05) 
     cells_per_radian = rospy.get_param('local_planer/cells_per_radian', 5)
-    turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.5)
+    turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.25)
+    min_turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.28) #final!
     #
    
     #speed coeffs
-    static_coeff = rospy.get_param('local_planer/static_coeff', 0.6)
+    static_coeff = rospy.get_param('local_planer/static_coeff', 0.4)
     min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.2) #Final!!
     path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 0.3) #В тугриках
     #planer
@@ -219,7 +220,7 @@ class Local():
         if len(cls.targets):
             final_coeff = (cls.max_dist/(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])+0.1)) *cls.path_speed_coeff
         else:
-            final_coeff = 1
+            final_coeff = 0
         #rospy.loginfo(f"{final_coeff = }, {cls.max_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
         if final_coeff < cls.min_path_coeff:
             final_coeff = cls.min_path_coeff
@@ -241,7 +242,12 @@ class Local():
             #if cls.debug:
                 #rospy.loginfo(f"Turn checked {cls.robot_pos[2] - cls.actual_target[2]}\n{abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold}")
             diff =  (cls.last_target[2] - cls.robot_pos[2])
-            turn = diff/abs(diff) *  cls.turn_coeff
+            coeff = cls.turn_coeff * abs(diff)
+            if coeff > 1:
+                coeff = 1
+            elif coeff < cls.min_turn_coeff:
+                coeff = cls.min_turn_coeff
+            turn = diff/abs(diff) *  coeff      
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
     @classmethod
