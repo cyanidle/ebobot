@@ -14,6 +14,7 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 #from visualization_msgs.msg import Marker
 ######
 #from dorlib import dCoordsOnCircle
+import markers
 ######
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
@@ -51,8 +52,11 @@ def targetCallback(target):
     Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
     Global.start_pos = Global.robot_pos
     Global.consecutive_jumps = 0
-    if Global.debug:
-        Global.debug_map[int(goal[0])][int(goal[1])] = 255
+    # if Global.debug:
+    #     Global.debug_map[int(goal[0])][int(goal[1])] = 255
+    if Global.rviz_enable:
+        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target')
+        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target')
     #!!!!!!!!!!!!!!
 def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
@@ -78,15 +82,19 @@ class Global(): ##Полная жопа
 
     #Params
     #Features
-    
     rviz_enable = rospy.get_param('global_planer/rviz_enable',1)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
+    experimental_cleanup_enable = rospy.get_param('global_planer/experimental_cleanup_feature',0)
     stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
     debug = rospy.get_param('global_planer/debug',0)
-    #/Features      
-    accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0)
+    #/Features    
+    cleanup_repeats_len = rospy.get_param('global_planer/cleanup_repeats_len',6) #jumps (if doenst exeed thr in (len) jumps - deleted)
+    cleanup_repeats_threshhold = rospy.get_param('global_planer/cleanup_repeats_threshhold',4) #cells
+    accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
+    if experimental_cleanup_enable:
+        accelerate_coeff = 0
     costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)   #cm/cell (default)
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',30)  
+    maximum_cost = rospy.get_param('global_planer/maximum_cost',40)  
     stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
     update_rate = rospy.get_param('global_planer/update_rate',2)
@@ -319,9 +327,13 @@ class Global(): ##Полная жопа
                             rospy.loginfo(f"Scheduling point {point} for removal")
                         list_to_remove.append(subnum)
                 for done,num in enumerate(list_to_remove):
-                    rospy.loginfo(f"Removing {Global.list.pop(num-done)}")
+                    popped = Global.list.pop(num-done)
+                    if Global.debug:
+                        rospy.loginfo(f"Removing {popped}")
                 list_to_remove = []
-                
+    @staticmethod
+    def cleanupRepeats():
+        pass
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      

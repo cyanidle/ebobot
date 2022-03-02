@@ -26,7 +26,7 @@ class Costmap():
     #/Features 
     inflation_threshhold = rospy.get_param('costmap_server/inflation_threshhold',80) #from 0 to 100
     interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',2) #in cells
-    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.002) #VERY DANGEROUS
+    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.003) #VERY DANGEROUS
     inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
     inflation_nonlinear_power = rospy.get_param('costmap_server/inflation_nonlinear_power',1)
     update_rate = rospy.get_param('costmap_server/update_rate',0.55)
