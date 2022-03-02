@@ -43,20 +43,16 @@ def targetCallback(target):
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.y/Global.costmap_resolution,target.pose.position.x/Global.costmap_resolution,euler[2]%(3.1415*2)]
     rospy.loginfo(f"\n####################################################\nGOT NEW TARGET: {goal}\n####################################################\nStart from {Global.robot_pos}\n####################################################")
-    #rospy.loginfo(f"Using rotors list - {Global.rotors_list}")
     Global.list.clear()
     Global.goal_reached = 0
     Global.target = np.array(goal)
-    #Global.costmap = [[]] #here we shoudl retrieve global_costmap from server
-    #!!!!!!!!!!!!!!
     Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
     Global.start_pos = Global.robot_pos
     Global.consecutive_jumps = 0
-    # if Global.debug:
-    #     Global.debug_map[int(goal[0])][int(goal[1])] = 255
+    Global.target_set = 1
     if Global.rviz_enable:
-        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target')
-        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target')
+        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target',debug=Global.debug)
+        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target',debug=Global.debug)
     #!!!!!!!!!!!!!!
 def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
@@ -84,12 +80,14 @@ class Global(): ##Полная жопа
     #Features
     rviz_enable = rospy.get_param('global_planer/rviz_enable',1)
     cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
-    experimental_cleanup_enable = rospy.get_param('global_planer/experimental_cleanup_feature',0)
+    experimental_cleanup_enable = rospy.get_param('global_planer/experimental_cleanup_feature',1)
     stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
     debug = rospy.get_param('global_planer/debug',0)
     #/Features    
-    cleanup_repeats_len = rospy.get_param('global_planer/cleanup_repeats_len',6) #jumps (if doenst exeed thr in (len) jumps - deleted)
-    cleanup_repeats_threshhold = rospy.get_param('global_planer/cleanup_repeats_threshhold',4) #cells
+    
+    update_stop_thresh = rospy.get_param('global_planer/update_stop_thresh', 6) #in cells
+    update_rate = rospy.get_param('global_planer/update_rate',2) #per second
+    #
     accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
     if experimental_cleanup_enable:
         accelerate_coeff = 0
@@ -97,8 +95,8 @@ class Global(): ##Полная жопа
     maximum_cost = rospy.get_param('global_planer/maximum_cost',40)  
     stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
-    update_rate = rospy.get_param('global_planer/update_rate',2)
-    cleanup_power = rospy.get_param('global_planer/cleanup_power',2)
+    
+    
     dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('global_planer/maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
@@ -106,7 +104,10 @@ class Global(): ##Полная жопа
     dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('global_planer/step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 36)  #number of points on circle to try (even)
-    
+    #Cleanup params
+    cleanup_repeats_len = rospy.get_param('global_planer/cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
+    cleanup_power = rospy.get_param('global_planer/cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)
+    cleanup_repeats_threshhold = rospy.get_param('global_planer/cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.4 ) #cells CHANGE CAREFULLY!!
     #/Params
     
 
@@ -131,6 +132,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    target_set = 0
     last_stuck = np.array([0,0])
     debug_map = []
     error = 0
@@ -150,7 +152,7 @@ class Global(): ##Полная жопа
     consecutive_jumps = 0
     #####################################
     lock_dir = False
-    lock_dirs = [0,  'left',  'right', 'top', 'bot'] #these directions decide in which order robot tries different lock directions
+    lock_dirs = [0,  'left','left', 'right',  'right', 'top', 'bot'] #these directions decide in which order robot tries different lock directions
     lock_dir_num = 0
     
 
@@ -200,7 +202,7 @@ class Global(): ##Полная жопа
     def checkIfStuck(num):
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
-                rospy.logwarn(f"Robot is stuck locking path direction")
+                rospy.logwarn_once(f"Planer stuck, using recovery!")
                 Global.lock_dir_num += 1
                 Global.lock_dir_num  = Global.lock_dir_num%len(Global.lock_dirs)
             else:
@@ -333,7 +335,24 @@ class Global(): ##Полная жопа
                 list_to_remove = []
     @staticmethod
     def cleanupRepeats():
-        pass
+        list_to_remove = []
+        ignore_list = []
+        max_num = len(Global.list)-1
+        check_for = Global.cleanup_repeats_len
+        for num in range(len(Global.list)):
+            if num > check_for and max_num-num > check_for:
+                #rospy.loginfo(f"{num =}")
+                if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) > Global.cleanup_repeats_threshhold:
+                    #rospy.loginfo(f"added for remove, len is {max_num}")
+                    for i in range(num - check_for,num):
+                        if not i in list_to_remove:
+                            list_to_remove.append(i)
+                            ignore_list.append(num)
+        for done,num in enumerate(list_to_remove):
+            if not num in ignore_list:
+                popped = Global.list.pop(num-done)
+                if Global.debug:
+                    rospy.loginfo(f"Removing repeats {popped}")
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      
@@ -402,30 +421,31 @@ if __name__=="__main__":
     Global.initRotors()
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
-
-        if not Global.goal_reached:
+        ####
+        Global.goal_reached = 0
+        Global.list.clear()
+        #Global.list.append(Global.target)
+        Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
+        Global.start_pos = Global.robot_pos
+        Global.consecutive_jumps = 0
+        ####
+        if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
-                
-                #Global.pubPoint(Global.list[-1][0], Global.num_jumps)
-            #os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-            #cv2.imwrite("global_debug_map.png", Global.debug_map)
             Global.num_jumps = 0 
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
                     Global.cleanupDeadEnds()
+                    if Global.experimental_cleanup_enable:
+                        Global.cleanupRepeats()
                 rospy.loginfo("Dead Ends cleaned up!")
             if len(Global.list) and not Global.error:
                 Global.publish()
-                
-
             Global.error = 0
             end_time = rospy.Time.now() ### end time
             rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
+            if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
+                Global.target_set = 0
 
-        
-
-
-       
         rate.sleep()
