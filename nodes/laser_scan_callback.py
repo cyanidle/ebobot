@@ -50,6 +50,10 @@ class Laser:
     #/Features
 
     #Params
+    
+    
+    dist_dots_threshhold = rospy.get_param('~/dist_dots_threshhold', 0.1) #in meters
+    #
     update_rate = rospy.get_param("~/update_rate",5) #updates/sec
     rads_offset = rospy.get_param("~/rads_offset",1.5) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     costmap_resolution = rospy.get_param("~/costmap_resolution",0.02) #meters/cell
@@ -118,28 +122,43 @@ class Laser:
                 prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  -cls.robot_pos[2]))
                 #cls.abs_list.append((meters_pos,intensity))
                 cls.list.append((prob_meters_pos,intensity))
+    @classmethod
+    def findRelative(cls): #todo: move to laser, check cost
+        curr_obst = []
+        curr_obst.append(Laser.list[0][0])
+        Beacons.clearRelative()
+        Obstacles.clear()
+        for prev_num, scan in enumerate(Laser.list[1:]):
+            pose, intencity = scan
+            #x,y = pose
+            dist = np.linalg.norm(pose - Laser.list[prev_num])
+            if dist<cls.dist_dots_threshhold:
+                curr_obst.append(pose)
+            else:
+                if len(curr_obst) < Beacons.dots_thresh:
+                    Beacons.initRelative(curr_obst)
+                elif len(curr_obst) < Obstacles.dots_thresh:
+                    Obstacles(curr_obst)
+                curr_obst.clear()
+    def getPosition(self,poses:list):
+        pass
 
-
-
-class Beacons:
+class Beacons(Laser):
     #Beacon params
-    
+    dots_thresh = rospy.get_param('~/beacons/dots_thresh', 4) #num
     #############
     raw_list = []
     raw_list.append(rospy.get_param('~/beacons/beacon1',[154*2,2*2])) #in meters, first beacon is top-left, then - counterclockwise
     raw_list.append(rospy.get_param('~/beacons/beacon2',[-3*2,50*2])) #in meters
     raw_list.append(rospy.get_param('~/beacons/beacon3',[154*2,99*2])) #in meters
     #############
-    dist_dots_threshhold = rospy.get_param('~/beacons/cost_check_radius', 8) #in meters
+    
     
     #/Beacon params
 
     #Globals
     expected_list = []
-    list = []
-    #cost_coords_list = dCoordsInRad(cost_check_radius,cost_check_resolution)
-    #new_list =  []
-    #pose = (0,0)
+    rel_list = []
     #/Globals
 
     def __init__(self,pos:list,expected:int = 0):
@@ -147,16 +166,15 @@ class Beacons:
         if expected:
             Beacons.expected_list.append(self)
         else:
-            Beacons.list.append(self)
+            Beacons.rel_list.append(self)
 
 
     @classmethod
-    def initExpected(cls):
-        for pose in cls.raw_list:
-            beacon = cls(pose,expected = 1)
+    def initExpected(cls,dots_list):
+        new_beacon = cls.getPosition(dots_list)
+        cls.rel_list.append(new_beacon)
     @classmethod
     def initRelative(cls, new_list:list):
-        cls.list.clear()
         for pose in new_list:
             beacon = cls(pose) #initialisation auto-appends objects to their list
     @classmethod
@@ -167,24 +185,8 @@ class Beacons:
             rel_poses.append(rel_pos)  
         return rel_poses
     @classmethod
-    def findRelative(cls): #todo: move to laser, check cost
-        list = []
-        curr_obst = []
-        curr_obst.append(Laser.list[0][0])
-        for prev_num, scan in enumerate(Laser.list[1:]):
-            pose, intencity = scan
-            #x,y = pose
-            dist = np.linalg.norm(pose - Laser.list[prev_num])
-            if dist<cls.dist_dots_threshhold:
-                curr_obst.append(pose)
-            else:
-                Obstacles(curr_obst)
-                curr_obst.clear()
-
-
-        
-        return list
-        #pass
+    def clearRelative(cls):
+        cls.rel_list.clear()
     @classmethod
     def update(cls):
         cls.initRelative(cls.findRelative())
@@ -192,10 +194,10 @@ class Beacons:
         
         pass
     
-class Obstacles:
+class Obstacles(Laser):
 
     #Params
-
+    dots_thresh = rospy.get_param('~/obstacles/dots_thresh', 10) #num
     #/Params
 
     #Topics
@@ -205,11 +207,10 @@ class Obstacles:
     #/Topics
 
     list = []
-    def __init__(self, poses_list:list):
-        self.pose = Obstacles.getPosition(poses_list)
+    def __init__(self, dots_list:list):
+        self.pose = Obstacles.getPosition(dots_list)
         Obstacles.list.append(self)
-    def getPosition(self,poses:list):
-        pass
+    
     @classmethod
     def send(cls):
         msg = Path()
@@ -227,7 +228,9 @@ class Obstacles:
             obstacle.pose.orientation.w = obst_quat[3]
             msg.poses.append(obstacle)
         cls.list_pub.publish(msg)
-
+    @classmethod
+    def clear(cls):
+        cls.list.clear()
 
 
 def main():
