@@ -340,7 +340,7 @@ class Global(): ##Полная жопа
         max_num = len(Global.list)-1
         check_for = Global.cleanup_repeats_len
         for num in range(len(Global.list)):
-            if num > check_for and max_num-num > check_for:
+            if num > check_for and (num - ignore_list[-1]) > check_for and (max_num-num) > check_for:
                 #rospy.loginfo(f"{num =}")
                 if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) > Global.cleanup_repeats_threshhold:
                     #rospy.loginfo(f"added for remove, len is {max_num}")
