@@ -2,7 +2,7 @@
 import roslib
 roslib.load_manifest('ebobot')
 import numpy as np
-from math import cos,sin
+from math import cos,sin,atan#,atan2
 import rospy
 import tf
 #####################
@@ -169,11 +169,14 @@ class Beacons(Laser):
     #/Beacon params
 
     #Globals
+    delta_th = 0
+    delta_pos = (0,0)
+    pose = (0,0)
     expected_list = []
     rel_list = []
     #/Globals
 
-    def __init__(self,pos:list,expected:int = 0):
+    def __init__(self,pos:tuple,expected:int = 0):
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
@@ -199,16 +202,45 @@ class Beacons(Laser):
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
+    @staticmethod
+    def rearrangeExpList(exp_list, rel_list):
+        "ITS IMPORTANT to pass relative list second"
+        new_exp_list = ['empty' for _ in range(len(exp_list))]
+        for rel_beacon in rel_list:
+            min_dist = 100 #should be more than any dist
+            min_num = 0
+            for num,exp_beacon in enumerate(exp_list):
+                dist = np.linalg.norm(rel_beacon.pose - exp_beacon.pose)
+                if dist < min_dist:
+                    min_num = num
+                    min_dist = dist
+            new_exp_list[min_num] = rel_beacon
+        new_exp_list[:] = [pos for pos in new_exp_list if pos != 'empty']
+        return new_exp_list
     @classmethod
     def update(cls):
         "The most importatnt func in localisation"
         exp_list = np.array(cls.getExpected())
         rel_list = np.array(cls.rel_list)
+        exp_list = cls.rearrangeExpList(exp_list, rel_list)
         if len(rel_list) < 2:
+            rospy.logwarn("Less than 2 beacons found")
             return
         else:
-            
-            pass
+            exp, rel =exp_list[:2],rel_list[:2] #cuts off the first two beacons
+            rel_line = np.array(     (rel[0][0]-rel[1][0],    rel[0][1]-rel[1][1])   )
+            exp_line = np.array(     (exp[0][0]-exp[1][0],    exp[0][1]-exp[1][1])   )
+            cls.delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[0]-exp_line[0])  ) #try changing the order of division and sign if fails
+            rel = map(turnVect, rel, [cls.delta_th]*2) #turn both beacons
+            # get d_x adn d_y
+            d_x = d_y = 0
+            for i in range(2):
+                d_y += rel[i][0] - exp[i][0]
+                d_x += rel[i][1] - exp[i][1]
+            d_y = d_y/2
+            d_x = d_x/2
+            #
+            cls.delta_pos = (d_y,d_x)
 #################################################################        
     
 
