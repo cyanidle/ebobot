@@ -6,8 +6,8 @@ from math import cos,sin,atan#,atan2
 import rospy
 import tf
 #####################
-from dorlib import dCoordsInRad, turnVect
-from markers import pubMarker, transform
+from dorlib import turnVect
+from markers import pubMarker#, transform
 ######################
 from nav_masgs.msg import Odometry, OccupancyGrid, Path, PoseStamped
 from sensor_msgs.msg import LaserScan
@@ -64,8 +64,10 @@ class Laser:
     costmap_topic = rospy.get_param('~/costmap_topic','/costmap')
     laser_scan_topic = rospy.get_param("~/laser_scan_topic", "/laser_scan")
     robot_pos_topic = rospy.get_param("~/robot_pos_topic", "/odom")
+    robot_pos_adj_topic = rospy.get_param("~/robot_pos_adj_topic", "/initialpose")
     #
-    laser_broadcaster = tf.TransformBroadcaster()
+    broadcaster = tf.TransformBroadcaster()
+    adjust_publisher = rospy.Publisher(robot_pos_adj_topic, Odometry, queue_size = 5)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
     laser_scan_subscriber = rospy.Subsrciber(laser_scan_topic,LaserScan,laserScanCallback)
     robot_pos_subscriber = rospy.Subsrciber(robot_pos_topic,Odometry,robotPosCallback)
@@ -119,7 +121,7 @@ class Laser:
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
                 meters_pos = np.array((range * y_coeff, range * x_coeff))
-                prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  -cls.robot_pos[2]))
+                prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  -cls.robot_pos[2] + cls.rads_offset))
                 cls.new_list.append((prob_meters_pos,intensity))
         cls.list = cls.new_list
         cls.findRelative()
@@ -160,9 +162,9 @@ class Beacons(Laser):
     dots_thresh = rospy.get_param('~/beacons/dots_thresh', 4) #num
     #############
     raw_list = []
-    raw_list.append(rospy.get_param('~/beacons/beacon1',[154*2,2*2])) #in meters, first beacon is top-left, then - counterclockwise
-    raw_list.append(rospy.get_param('~/beacons/beacon2',[-3*2,50*2])) #in meters
-    raw_list.append(rospy.get_param('~/beacons/beacon3',[154*2,99*2])) #in meters
+    raw_list.append(rospy.get_param('~/beacons/beacon1',[154*0.02,2*0.02])) #in meters, first beacon is top-left, then - counterclockwise
+    raw_list.append(rospy.get_param('~/beacons/beacon2',[-3*0.02,50*0.02])) #in meters
+    raw_list.append(rospy.get_param('~/beacons/beacon3',[154*0.02,99*0.02])) #in meters
     #############
     
     
@@ -180,24 +182,31 @@ class Beacons(Laser):
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
+            
         else:
             Beacons.rel_list.append(self)
 
 
     @classmethod
-    def initExpected(cls,dots_list):
-        new_beacon = cls(cls.getPosition(dots_list),1)
-        cls.rel_list.append(new_beacon)
+    def initExpected(cls,raw_list):
+        for num,coord in enumerate(raw_list):
+            pos = cls.getPosition(coord)
+            new_beacon = cls(pos,1)
+            pubMarker(pos,num,0,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=1,debug=Laser.debug,add=1)
+        #cls.rel_list.append(new_beacon)
     @classmethod
     def initRelative(cls, new_list:list):
         for pose in new_list:
             beacon = cls(pose) #initialisation auto-appends objects to their list
+            
     @classmethod
     def getExpected(cls):
         rel_poses = []
-        for beacon in cls.expected_list:
+        pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,deletall=1)
+        for num,beacon in enumerate(cls.expected_list):
             rel_pos = turnVect((beacon.pose[0]- Laser.robot_pos[0], beacon.pose[1] - Laser.robot_pos[1]), - Laser.robot_pos[2])
             rel_poses.append(rel_pos)  
+            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,add=1)
         return rel_poses
     @classmethod
     def clearRelative(cls):
@@ -241,6 +250,22 @@ class Beacons(Laser):
             d_x = d_x/2
             #
             cls.delta_pos = (d_y,d_x)
+            cls.publishAdjust()
+    @classmethod
+    def publishAdjust(cls):
+        new = PoseStamped()
+        new.header.stamp = rospy.Time.now()
+        new.header.frame_id = "odom"
+        new_quat = tf.transformations.quaternion_from_euler(0, 0, cls.robot_pos[2] + cls.delta_th)
+        new.pose.position.x = cls.robot_pos[1] + cls.delta_pos[1]
+        new.pose.position.y = cls.robot_pos[0] + cls.delta_pos[0]
+        new.pose.orientation.x = new_quat[0]
+        new.pose.orientation.y = new_quat[1]
+        new.pose.orientation.z = new_quat[2]
+        new.pose.orientation.w = new_quat[3]
+        cls.adjust_publisher.publish(new)
+
+       
 #################################################################        
     
 
@@ -288,9 +313,8 @@ class Obstacles(Laser):
 
 def main():
     rate = rospy.Rate(Laser.update_rate)
-    Beacons.initExpected()
+    #Beacons.initExpected()
     while not rospy.is_shutdown():
-        #Beacons.update()
 
 
 
