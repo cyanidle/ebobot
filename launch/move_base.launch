@@ -1,17 +1,22 @@
-<arg name="inflation_rad" default="0.40"/>
-<arg name="debug" default="0"/>
-<arg name="port" default="/dev/ttyACM0"/>
-<arg name="arduino_baud" default="57600"/>
-<arg name="footprint_radius" default="0.15"/>
-<arg name="safe_footpring_radius" default="0.40"/>
 <launch>
 
   <group name="move_base">
-    <include file="$(find ebobot)/launch/arduino_odom.launch" />
-    <include file="$(find ebobot)/launch/costmap.launch" />
-    <include file="$(find ebobot)/launch/planers.launch" />
+    <include file="$(find ebobot)/launch/arduino_odom.launch">
+      <arg name="port" default="/dev/ttyACM0"/>
+      <arg name="arduino_baud" default="57600"/>
+      <arg name="debug" default="0"/>
+      <arg name="footprint_radius" default="0.10"/>
+    <include/>
 
-    <!-- The navigation stack and associated parameters -->
+    <include file="$(find ebobot)/launch/costmap.launch">
+      <arg name="inflation_rad" default="0.40"/>
+      <arg name="debug" default="0"/>
+    <include/>
+
+    <include file="$(find ebobot)/launch/planers.launch">
+      <arg name="safe_footpring_radius" default="0.40"/>
+      <arg name="debug" default = "0"/>
+    <include/>
     
   </group>
 </launch>

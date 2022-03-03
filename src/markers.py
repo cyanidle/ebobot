@@ -48,4 +48,16 @@ def pubMarker(point:tuple,num:int,duration = 10,size=0.08,frame_name = "default"
         f"costmap"
     )
 
+class transform:
+    @staticmethod
+    def send(point:tuple,child_frame:str,frame:str):
+        "Sends specified transform, while keeping main code tidy"
+        broadcaster.sendTransform(
+        (point[1], point[0], 0), #pasha loh
+        tf.transformations.quaternion_from_euler(0,0,point[2]),
+        rospy.Time.now(),
+        frame,
+        child_frame
+    )
+
  
