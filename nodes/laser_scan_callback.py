@@ -103,9 +103,9 @@ class Laser:
     #####################
     @classmethod
     def updateTF(cls):
-        quat = tf.transformations.quaternion_from_euler(0,0,-cls.robot_pos[2])
+        quat = tf.transformations.quaternion_from_euler(0,0,-cls.robot_pos[2]-cls.rads_offset)
         cls.laser_broadcaster.sendTransform(
-            (cls.robot_pos[1]*cls.costmap_resolution, cls.robot_pos[0]*cls.costmap_resolution, 0),
+            (cls.robot_pos[1], cls.robot_pos[0], 0),
             quat,
             rospy.Time.now(),
             "laser",
