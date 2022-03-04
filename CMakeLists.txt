@@ -18,7 +18,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ebobot
-CATKIN_DEPENDS python-numpy map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs
+CATKIN_DEPENDS python-numpy map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -33,3 +33,13 @@ catkin_install_python(PROGRAMS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+generate_messages(
+  DEPENDENCIES
+  std_msgs nav_msgs sensor_msgs std_msgs
+)
+# Generate messages in the 'msg' folder
+ add_message_files(
+   FILES
+   obstacle.msg
+   obstacles.msg
+)
