@@ -33,8 +33,8 @@ class Costmap():
     inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.45)
     inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
     resolution = rospy.get_param('costmap_server/resolution',0.02)
-    file = rospy.get_param('costmap_server/file','/home/alexej/catkin_ws/src/ebobot/nodes/costmap/costmap.png')
-    file_dir = rospy.get_param('costmap_server/file_dir','/home/alexej/catkin_ws/src/ebobot/nodes/costmap/')
+    file = rospy.get_param('costmap_server/file','/config/costmap/costmap.png')
+    file_dir = rospy.get_param('costmap_server/file_dir','/config/costmap/')
     #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
     ##
     #Topics

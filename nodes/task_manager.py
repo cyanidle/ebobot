@@ -8,7 +8,7 @@ import yaml
 class Manager:
     rospy.init_node("task_manager")
     #Params
-    file = rospy.get_param("~/file", "nodes/routes/route1.yaml")
+    file = rospy.get_param("~/file", "/config/routes/route1.yaml")
 
     #/Params
 
