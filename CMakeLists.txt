@@ -21,7 +21,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ebobot
-CATKIN_DEPENDS python-numpy map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs message_runtime
+CATKIN_DEPENDS python3-numpy map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs message_runtime python3-pyyaml 
 #  DEPENDS system_lib
 )
 
@@ -32,7 +32,7 @@ catkin_install_python(PROGRAMS
   nodes/global_planer.py 
   nodes/local_planer.py
   nodes/laser_scan_callback.py
-
+  nodes/task_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
