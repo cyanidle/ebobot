@@ -20,7 +20,7 @@ import markers
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
 #В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_goal
-
+rospy.init_node('global_planer')
 
 
 
@@ -82,48 +82,48 @@ class Global(): ##Полная жопа
 
     #Params
     #Features
-    rviz_enable = rospy.get_param('global_planer/rviz_enable',1)
-    cleanup_feature = rospy.get_param('global_planer/cleanup_feature',1)
-    experimental_cleanup_enable = rospy.get_param('global_planer/experimental_cleanup_feature',1)
-    stuck_check_feature = rospy.get_param('global_planer/stuck_check_feature',1)
-    debug = rospy.get_param('global_planer/debug',0)
+    rviz_enable = rospy.get_param('~rviz_enable',1)
+    cleanup_feature = rospy.get_param('~cleanup_feature',1)
+    experimental_cleanup_enable = rospy.get_param('~experimental_cleanup_feature',1)
+    stuck_check_feature = rospy.get_param('~stuck_check_feature',1)
+    debug = rospy.get_param('~debug',0)
     #/Features    
     #
-    resend = rospy.get_param('global_planer/resend', 0)
-    update_stop_thresh = rospy.get_param('global_planer/update_stop_thresh', 8) #in cells
-    update_rate = rospy.get_param('global_planer/update_rate',1) #per second
+    resend = rospy.get_param('~resend', 0)
+    update_stop_thresh = rospy.get_param('~update_stop_thresh', 8) #in cells
+    update_rate = rospy.get_param('~update_rate',1) #per second
     #
-    accelerate_coeff = rospy.get_param('global_planer/accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
+    accelerate_coeff = rospy.get_param('~accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
     if experimental_cleanup_enable:
         accelerate_coeff = 0
-    costmap_resolution = rospy.get_param('global_planer/costmap_resolution',0.02)   #cm/cell (default)
-    maximum_cost = rospy.get_param('global_planer/maximum_cost',40)  
-    stuck_check_jumps = rospy.get_param('global_planer/jumps_till_stuck_check',15)
-    stuck_dist_threshhold = rospy.get_param('global_planer/stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
+    costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
+    maximum_cost = rospy.get_param('~maximum_cost',40)  
+    stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
+    stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
     
     
-    dead_end_dist_diff_threshhold = rospy.get_param('global_planer/dead_end_dist_diff_threshhold',2) #in cells
-    maximum_jumps = rospy.get_param('global_planer/maximum_jumps',600)
-    consecutive_jumps_threshhold = rospy.get_param('global_planer/consecutive_jumps_threshhold',4)
-    robot_pos_topic =  rospy.get_param('global_planer/robot_pos_topic',"/odom")
-    dist_to_target_threshhold =  rospy.get_param('global_planer/global_dist_to_target_threshhold',3) #in cells
-    step = rospy.get_param('global_planer/step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
-    step_radians_resolution = rospy.get_param('global_planer/step_radians_resolution', 36)  #number of points on circle to try (even)
+    dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
+    maximum_jumps = rospy.get_param('~maximum_jumps',600)
+    consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',4)
+    robot_pos_topic =  rospy.get_param('~robot_pos_topic',"/odom")
+    dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
+    step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
+    step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
     #Cleanup params
-    cleanup_repeats_len = rospy.get_param('global_planer/cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
-    cleanup_power = rospy.get_param('global_planer/cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)
-    cleanup_repeats_threshhold = rospy.get_param('global_planer/cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.4 ) #cells CHANGE CAREFULLY!!
+    cleanup_repeats_len = rospy.get_param('~cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
+    cleanup_power = rospy.get_param('~cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)
+    cleanup_repeats_threshhold = rospy.get_param('~cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.4 ) #cells CHANGE CAREFULLY!!
     #/Params
     
 
     #Topics
-    local_status_topic = rospy.get_param('global_planer/local_status_topic', '/planers/local/status')
-    rviz_point_topic = rospy.get_param('global_planer/rviz_point_topic', '/global_points')
+    local_status_topic = rospy.get_param('~local_status_topic', '/planers/local/status')
+    rviz_point_topic = rospy.get_param('~rviz_point_topic', '/global_points')
     rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
-    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap_server/costmap')
-    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_server/updates')
-    path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', '/planers/global/path')
-    pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
+    costmap_topic = rospy.get_param('~costmap_topic','/costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('~costmap_update_topic','/costmap_server/updates')
+    path_publish_topic =  rospy.get_param('~path_publish_topic', '/planers/global/path')
+    pose_subscribe_topic =  rospy.get_param('~pose_subscribe_topic', 'move_base_simple/goal')
     ####
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
@@ -430,7 +430,7 @@ class Global(): ##Полная жопа
 
 
 def main():
-    rospy.init_node('global_planer')
+    
     move_server = MoveServer()
     Global.initRotors()
     rate = rospy.Rate(Global.update_rate)

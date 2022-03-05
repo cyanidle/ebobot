@@ -13,13 +13,13 @@ from ebobot.msg import Obstacles as, Obstacle
 from nav_masgs.msg import Odometry, OccupancyGrid, Path, PoseStamped
 from sensor_msgs.msg import LaserScan
 ######################
-
+rospy.init_node('laser_scan_callback')
 
 
 
 
 ###############
-rospy.init_node('laser_scan_callback')
+
 
 def robotPosCallback(odom):
     quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
@@ -54,18 +54,18 @@ class Laser:
     #Params
     
     
-    dist_dots_threshhold = rospy.get_param('~/dist_dots_threshhold', 0.1) #in meters
+    dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.1) #in meters
     #
-    update_rate = rospy.get_param("~/update_rate",5) #updates/sec
-    rads_offset = rospy.get_param("~/rads_offset",1.5) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
-    costmap_resolution = rospy.get_param("~/costmap_resolution",0.02) #meters/cell
+    update_rate = rospy.get_param("~update_rate",5) #updates/sec
+    rads_offset = rospy.get_param("~rads_offset",1.5) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
+    costmap_resolution = rospy.get_param("~costmap_resolution",0.02) #meters/cell
     #/Params
 
     #Topics
-    costmap_topic = rospy.get_param('~/costmap_topic','/costmap')
-    laser_scan_topic = rospy.get_param("~/laser_scan_topic", "/laser_scan")
-    robot_pos_topic = rospy.get_param("~/robot_pos_topic", "/odom")
-    robot_pos_adj_topic = rospy.get_param("~/robot_pos_adj_topic", "/initialpose")
+    costmap_topic = rospy.get_param('~costmap_topic','/costmap')
+    laser_scan_topic = rospy.get_param("~laser_scan_topic", "/laser_scan")
+    robot_pos_topic = rospy.get_param("~robot_pos_topic", "/odom")
+    robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "/initialpose")
     #
     broadcaster = tf.TransformBroadcaster()
     adjust_publisher = rospy.Publisher(robot_pos_adj_topic, Odometry, queue_size = 5)

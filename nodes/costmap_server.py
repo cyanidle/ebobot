@@ -14,28 +14,30 @@ from dorlib import dCoordsInRad
 import numpy as np
 import cv2
 import os
-
+####
+rospy.init_node('costmap_server')
+#####
 class Costmap():
     #Params
     #Features
-    write_map_enable = rospy.get_param('costmap_server/write_map_enable', 1)
-    debug = rospy.get_param('costmap_server/debug',1)
-    interpolate_enable = rospy.get_param('costmap_server/interpolate_enable',1)
-    inflate_enable = rospy.get_param('costmap_server/inflate_enable',  1  )
-    super_debug = rospy.get_param('costmap_server/super_debug',0)
+    write_map_enable = rospy.get_param('~write_map_enable', 1)
+    debug = rospy.get_param('~debug',1)
+    interpolate_enable = rospy.get_param('~interpolate_enable',1)
+    inflate_enable = rospy.get_param('~inflate_enable',  1  )
+    super_debug = rospy.get_param('~super_debug',0)
     #/Features 
-    inflation_threshhold = rospy.get_param('costmap_server/inflation_threshhold',80) #from 0 to 100
-    interpolation_radius = rospy.get_param('costmap_server/interpolation_radius',2) #in cells
-    base_inflation_coeff = rospy.get_param('costmap_server/base_inflation_coeff',0.003) #VERY DANGEROUS
-    inflation_nonlinear_enable = rospy.get_param('costmap_server/inflation_nonlinear_enable',0) 
-    inflation_nonlinear_power = rospy.get_param('costmap_server/inflation_nonlinear_power',1)
-    update_rate = rospy.get_param('costmap_server/update_rate',0.55)
-    inflation_radius = rospy.get_param('costmap_server/inflation_radius',0.45)
-    inflation_step_radians_resolution = rospy.get_param('costmap_server/inflation_step_radians_resolution',5)
-    resolution = rospy.get_param('costmap_server/resolution',0.02)
-    file = rospy.get_param('costmap_server/file','/config/costmap/costmap.png')
-    file_dir = rospy.get_param('costmap_server/file_dir','/config/costmap/')
-    #safe_footprint_radius =  rospy.get_param('costmap_server/safe_footprint_radius',0.08)
+    inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
+    interpolation_radius = rospy.get_param('~interpolation_radius',2) #in cells
+    base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) #VERY DANGEROUS
+    inflation_nonlinear_enable = rospy.get_param('~inflation_nonlinear_enable',0) 
+    inflation_nonlinear_power = rospy.get_param('~inflation_nonlinear_power',1)
+    update_rate = rospy.get_param('~update_rate',0.55)
+    inflation_radius = rospy.get_param('~inflation_radius',0.45)
+    inflation_step_radians_resolution = rospy.get_param('~inflation_step_radians_resolution',5)
+    resolution = rospy.get_param('~resolution',0.02)
+    file = rospy.get_param('~file','/config/costmap/costmap.png')
+    file_dir = rospy.get_param('~file_dir','/config/costmap/')
+    #safe_footprint_radius =  rospy.get_param('~safe_footprint_radius',0.08)
     ##
     #Topics
     
@@ -43,8 +45,8 @@ class Costmap():
 
     ######################################
     costmap_broadcaster = tf.TransformBroadcaster()
-    costmap_publish_topic = rospy.get_param('costmap_server/costmap_publish_topic','/costmap_server/costmap')
-    costmap_update_publish_topic = rospy.get_param('costmap_server/costmap_update_publish_topic','/costmap_server/updates')
+    costmap_publish_topic = rospy.get_param('~costmap_publish_topic','/costmap_server/costmap')
+    costmap_update_publish_topic = rospy.get_param('~costmap_update_publish_topic','/costmap_server/updates')
     ######################################
     grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=5)
     grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=5)
@@ -208,7 +210,7 @@ class Obstacle:
 
 
 def main():
-    rospy.init_node('costmap_server')
+   
     if Costmap.debug:
         rospy.loginfo(f"Costmap shape is {Costmap.height,Costmap.width}(w,h)")
         rospy.loginfo(f"Costmap is\n{Costmap.pixels}")

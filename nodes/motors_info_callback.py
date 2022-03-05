@@ -19,16 +19,16 @@ def estimateCallback(target):
     Motors.x,Motors.y,Motors.theta = goal[0], goal[1], goal[2]
 class Motors():
     #Params
-    estimate_pos = rospy.get_param('motors_info_callback/estimate_pos',"initialpose")
+    estimate_pos = rospy.get_param('~estimate_pos',"initialpose")
 
 
 
-    debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
-    info_len = rospy.get_param('motors_info_callback/motors_info_len',12) 
-    theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
-    y_coeff = rospy.get_param('motors_info_callback/y_coeff',1)
-    x_coeff = rospy.get_param('motors_info_callback/x_coeff',1)
-    wheels_footprint_rad = rospy.get_param('motors_info_callback/wheels_footprint_radius',0.10) #in meters
+    debug = rospy.get_param('~debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
+    info_len = rospy.get_param('~motors_info_len',12) 
+    theta_coeff =rospy.get_param('~theta_coeff',1)
+    y_coeff = rospy.get_param('~y_coeff',1)
+    x_coeff = rospy.get_param('~x_coeff',1)
+    wheels_footprint_rad = rospy.get_param('~wheels_footprint_radius',0.10) #in meters
     #/Params
     num = 3
     theta = 0

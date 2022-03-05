@@ -15,6 +15,9 @@ from std_msgs.msg import String
 ######
 from dorlib import turnVect, dCoordsOnCircle
 import markers
+####
+roslib.load_manifest('ebobot')
+rospy.init_node('local_planer')
 ######Callbacks
 def shutdownHook():
     Local.goal_reached = 1
@@ -66,54 +69,54 @@ class Local():
     
     #Params
     #Features
-    rotate_at_end = rospy.get_param('local_planer/rotate_at_end', 1)
-    get_lowest_cost = rospy.get_param('local_planer/get_lowest_cost', 0)
-    #delta_thetas_enable =  rospy.get_param('local_planer/delta_thetas_enable', 0)
-    cost_coeff_enable = rospy.get_param('local_planer/cost_coeff_enable', 0)
-    path_coeff_enable = rospy.get_param('local_planer/path_coeff_enable', 0)
-    debug = rospy.get_param('local_planer/debug', 1)
+    rotate_at_end = rospy.get_param('~rotate_at_end', 1)
+    get_lowest_cost = rospy.get_param('~get_lowest_cost', 0)
+    #delta_thetas_enable =  rospy.get_param('~delta_thetas_enable', 0)
+    cost_coeff_enable = rospy.get_param('~cost_coeff_enable', 0)
+    path_coeff_enable = rospy.get_param('~path_coeff_enable', 0)
+    debug = rospy.get_param('~debug', 1)
     #/Features
     #Turn params
-    pause_before_turn = rospy.get_param('local_planer/pause_before_turn', 0.2) #seconds
-    turn_threshhold = rospy.get_param('local_planer/turn_threshhold', 0.05) 
-    cells_per_radian = rospy.get_param('local_planer/cells_per_radian', 5)
-    turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.25)
-    min_turn_coeff = rospy.get_param('local_planer/cells_per_radian', 0.28) #final!
+    pause_before_turn = rospy.get_param('~pause_before_turn', 0.2) #seconds
+    turn_threshhold = rospy.get_param('~turn_threshhold', 0.05) 
+    cells_per_radian = rospy.get_param('~cells_per_radian', 5)
+    turn_coeff = rospy.get_param('~cells_per_radian', 0.25)
+    min_turn_coeff = rospy.get_param('~cells_per_radian', 0.28) #final!
     #
    
     #speed coeffs
-    static_coeff = rospy.get_param('local_planer/static_coeff', 0.4)
-    min_path_coeff = rospy.get_param('local_planer/min_path_coeff', 0.2) #Final!!
-    path_speed_coeff = rospy.get_param('local_planer/path_speed_coeff', 0.3) #В тугриках
+    static_coeff = rospy.get_param('~static_coeff', 0.4)
+    min_path_coeff = rospy.get_param('~min_path_coeff', 0.2) #Final!!
+    path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
     #planer
-    cost_threshhold = rospy.get_param('local_planer/cost_threshhold', 10000) #100 are walls, then there is inflation
-    num_of_steps_between_clss = rospy.get_param('local_planer/num_of_steps_between_clss', 4)
-    update_rate = rospy.get_param('local_planer/update_rate', 20) # in Hz
-    cost_speed_coeff = rospy.get_param('local_planer/cost_speed_coeff', 0.0002)
-    threshhold = rospy.get_param('local_planer/threshhold', 2) #in cells
+    cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
+    num_of_steps_between_clss = rospy.get_param('~num_of_steps_between_clss', 4)
+    update_rate = rospy.get_param('~update_rate', 20) # in Hz
+    cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
+    threshhold = rospy.get_param('~threshhold', 2) #in cells
     
     
     
     
-    num_of_circles = rospy.get_param('local_planer/num_of_circles', 2)
-    circles_dist = rospy.get_param('local_planer/circles_dist', 1) #in cells
-    circles_step_radians_resolution = rospy.get_param('local_planer/circles_step_radians_resolution', 6) #number of points on each circle
+    num_of_circles = rospy.get_param('~num_of_circles', 2)
+    circles_dist = rospy.get_param('~circles_dist', 1) #in cells
+    circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
     #### Params for footprint cost calc
-    #calculate_base_cost = rospy.get_param('local_planer/calculate_base_cost', 1)
-    base_footprint_radius = rospy.get_param('local_planer/base_footprint_radius', 0.20) #optional
-    safe_footprint_radius = rospy.get_param('local_planer/safe_footprint_radius', 0.30)
-    footprint_calc_step_radians_resolution = rospy.get_param('local_planer/footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
+    #calculate_base_cost = rospy.get_param('~calculate_base_cost', 1)
+    base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
+    safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
+    footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
     #/Params
 
     #Topics
-    #rviz_point_topic = rospy.get_param('local_planer/rviz_topic', 'local_points')
-    status_publish_topic = rospy.get_param('local_planer/status_publish_topic', '/planers/local/status')
-    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/planers/global/path')
-    costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap_server/costmap')
-    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_server/updates')
-    robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
-    cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
+    #rviz_point_topic = rospy.get_param('~rviz_topic', 'local_points')
+    status_publish_topic = rospy.get_param('~status_publish_topic', '/planers/local/status')
+    path_subscribe_topic =  rospy.get_param('~path_subscribe_topic', '/planers/global/path')
+    costmap_topic = rospy.get_param('~costmap_topic', '/costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('~costmap_update_topic', '/costmap_server/updates')
+    robot_pos_topic = rospy.get_param('~robot_pos_topic', '/odom')
+    cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
 
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
@@ -346,8 +349,7 @@ class Local():
 # import os
 # import cv2
 def main():
-    roslib.load_manifest('ebobot')
-    rospy.init_node('local_planer')
+    
     rospy.on_shutdown(shutdownHook)
     rate = rospy.Rate(Local.update_rate)
     while not rospy.is_shutdown():
