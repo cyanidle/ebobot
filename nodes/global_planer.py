@@ -11,6 +11,7 @@ import numpy as np
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
+from std_msgs.msg import String
 #from visualization_msgs.msg import Marker
 ######
 #from dorlib import dCoordsOnCircle
@@ -39,6 +40,9 @@ def robotPosCallback(odom):
     euler = tf.transformations.euler_from_quaternion([odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w])
     Global.robot_pos = np.array([odom.pose.pose.position.y/Global.costmap_resolution,    odom.pose.pose.position.x/Global.costmap_resolution,    euler[2]%(3.1415*2)]) 
 
+def localStatusCallback(status):
+    MoveServer.feedback = status
+    MoveServer.server.update(local=1)
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.y/Global.costmap_resolution,target.pose.position.x/Global.costmap_resolution,euler[2]%(3.1415*2)]
@@ -113,15 +117,17 @@ class Global(): ##Полная жопа
     
 
     #Topics
-    rviz_point_topic = rospy.get_param('global_planer/rviz_point_topic', 'global_points')
+    local_status_topic = rospy.get_param('global_planer/local_status_topic', '/planers/local/status')
+    rviz_point_topic = rospy.get_param('global_planer/rviz_point_topic', '/global_points')
     rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
-    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap')
-    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_updates')
-    path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', 'global_path')
+    costmap_topic = rospy.get_param('global_planer/costmap_topic','/costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('global_planer/costmap_update_topic','/costmap_server/updates')
+    path_publish_topic =  rospy.get_param('global_planer/path_publish_topic', '/planers/global/path')
     pose_subscribe_topic =  rospy.get_param('global_planer/pose_subscribe_topic', 'move_base_simple/goal')
     ####
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
+    local_status_subscriber = rospy.Subscriber(local_status_topic, String, localStatusCallback)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
     robot_pos_subscriber = rospy.Subscriber(robot_pos_topic, Odometry, robotPosCallback)
@@ -204,6 +210,7 @@ class Global(): ##Полная жопа
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
                 rospy.logwarn_once(f"Planer stuck, using recovery!")
+                #MoveServer.server.feedback('stuck')
                 Global.lock_dir_num += 1
                 Global.lock_dir_num  = Global.lock_dir_num%len(Global.lock_dirs)
             else:
@@ -424,6 +431,7 @@ class Global(): ##Полная жопа
 
 def main():
     rospy.init_node('global_planer')
+    move_server = MoveServer()
     Global.initRotors()
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
@@ -436,10 +444,14 @@ def main():
             Global.start_pos = Global.robot_pos #Здесь нужно получить по ебалу от негров!s
             Global.consecutive_jumps = 0
         ####
+
+        ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
+            if Global.goal_reached and not Global.target_set:
+                move_server.done(1)
             rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
             ######
@@ -462,5 +474,47 @@ def main():
                 #Global.goal_reached = 1
 
         rate.sleep()
+
+import actionlib
+#
+from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
+#
+
+
+class MoveServer:
+    #set_aborted()
+    #set_preempted() - заменен
+    ###########
+    server = None
+    feedback = MoveFeedback('good')
+    #result = MoveResult()
+    def __init__(self):
+        self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
+        self.server.start()
+        MoveServer.server = self
+    # def feedback(self,status: str):
+    #     self.feedback = status
+    def execute(self,goal):
+        new_target = PoseStamped()
+        new_target.pose.position.x = goal.x
+        new_target.pose.position.x = goal.x
+        quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
+        new_target.pose.orientation.x = quat[0]
+        new_target.pose.orientation.y = quat[1]
+        new_target.pose.orientation.z = quat[2]
+        new_target.pose.orientation.w = quat[3]
+        targetCallback(new_target)
+    def update(self,local=0):
+        if local:
+            self.server.publish_feedback(f"local/{self.feedback}")
+        else:
+            self.server.publish_feedback(f"global/{self.feedback}")
+    #@staticmethod
+    def done(self,status:int):
+        if status:
+            self.server.set_succeeded(MoveResult("good"))
+        else:
+            self.server.set_aborted(MoveResult("bad"))
+
 if __name__=="__main__":
     main()

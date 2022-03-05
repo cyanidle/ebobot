@@ -9,6 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   rosserial_arduino
   sensor_msgs
   std_msgs
+  genmsg 
+  actionlib_msgs 
+  actionlib
 )
  
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -35,7 +38,7 @@ catkin_install_python(PROGRAMS
 
 generate_messages(
   DEPENDENCIES
-  std_msgs nav_msgs sensor_msgs std_msgs
+  std_msgs nav_msgs sensor_msgs 
 )
 # Generate messages in the 'msg' folder
  add_message_files(
@@ -43,3 +46,7 @@ generate_messages(
    obstacle.msg
    obstacles.msg
 )
+add_action_files(DIRECTORY action FILES Move.action)
+
+
+generate_messages(DEPENDENCIES actionlib_msgs)

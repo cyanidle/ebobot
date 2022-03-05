@@ -1,0 +1,10 @@
+# Определение цели (goal)
+float32 x
+float32 y
+float32 theta
+---
+# Определение результата (result)
+string result
+---
+# Определение обратной связи (feedback)
+string status

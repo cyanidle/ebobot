@@ -20,6 +20,9 @@ def estimateCallback(target):
 class Motors():
     #Params
     estimate_pos = rospy.get_param('motors_info_callback/estimate_pos',"initialpose")
+
+
+
     debug = rospy.get_param('motors_info_callback/debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
     info_len = rospy.get_param('motors_info_callback/motors_info_len',12) 
     theta_coeff =rospy.get_param('motors_info_callback/theta_coeff',1)
@@ -85,9 +88,10 @@ def callback(info):
 #######################################################
 if __name__=="__main__":
     motors_info_subscriber = rospy.Subscriber("motors_info", Float32MultiArray, callback)
-    odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
-    odom_broadcaster = tf.TransformBroadcaster()
+    odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
     estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
+    #
+    odom_broadcaster = tf.TransformBroadcaster()
     rate = rospy.Rate(Motors.Hz)
     report_count = 0
     

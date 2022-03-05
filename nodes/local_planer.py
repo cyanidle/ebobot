@@ -11,6 +11,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
+from std_msgs.msg import String
 ######
 from dorlib import turnVect, dCoordsOnCircle
 import markers
@@ -107,15 +108,17 @@ class Local():
 
     #Topics
     #rviz_point_topic = rospy.get_param('local_planer/rviz_topic', 'local_points')
-    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/global_path')
-    costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap')
-    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_updates')
+    status_publish_topic = rospy.get_param('local_planer/status_publish_topic', '/planers/local/status')
+    path_subscribe_topic =  rospy.get_param('local_planer/path_subscribe_topic', '/planers/global/path')
+    costmap_topic = rospy.get_param('local_planer/costmap_topic', '/costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('local_planer/costmap_update_topic', '/costmap_server/updates')
     robot_pos_topic = rospy.get_param('local_planer/robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('local_planer/cmd_vel_topic', '/cmd_vel')
 
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     rviz_broadcaster = tf.TransformBroadcaster()
+    status_publisher = rospy.Publisher(status_publish_topic, String, queue_size = 5)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
     path_subscriber = rospy.Subscriber(path_subscribe_topic, Path, pathCallback)
@@ -262,6 +265,7 @@ class Local():
         #current = cls.robot_pos 
         if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
+            cls.status_publisher.publish(String('error/goal'))
             cls.goal_reached = 1
             cls.skipped = 0
             shutdownHook()
@@ -283,6 +287,7 @@ class Local():
             if cls.debug:
                 rospy.loginfo(f"Best subpoint = {point}({point_cost})")
             if point_cost > cls.cost_threshhold: 
+                cls.status_publisher.publish(String('warn/cost'))
                 if cls.debug:
                     rospy.loginfo(f"Point failed cost check({point_cost})! Recursing...")
                 cls.skipped += 1
@@ -306,6 +311,7 @@ class Local():
     
     @classmethod
     def updateTarget(cls):
+        cls.status_publisher.publish(String('info/ok'))
         if Local.debug:
             rospy.loginfo(f"robot pos {cls.robot_pos}")
         if cls.debug:
@@ -318,7 +324,6 @@ class Local():
             rospy.logerr(f"Current target overflow!")
             Local.goal_reached = 1
             shutdownHook()
-            
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
