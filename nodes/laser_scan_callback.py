@@ -8,6 +8,7 @@ import tf
 #####################
 from dorlib import turnVect
 from markers import pubMarker#, transform
+from ebobot.msg import Obstacles as, Obstacle
 ######################
 from nav_masgs.msg import Odometry, OccupancyGrid, Path, PoseStamped
 from sensor_msgs.msg import LaserScan
@@ -130,7 +131,7 @@ class Laser:
         curr_obst = []
         curr_obst.append(Laser.list[0][0])
         Beacons.clearRelative()
-        Obstacles.clear()
+        Objects.clear()
         for prev_num, scan in enumerate(Laser.list[1:]):
             pose, intencity = scan
             #x,y = pose
@@ -141,8 +142,9 @@ class Laser:
                 if len(curr_obst) < Beacons.dots_thresh:
                     Beacons.initRelative(cls.getPosition(curr_obst))
                 elif len(curr_obst) < Obstacles.dots_thresh:
-                    Obstacles(cls.getPosition(curr_obst))
+                    Objects(cls.getPosition(curr_obst))
                 curr_obst.clear()
+        #Obstacles.send()
     @staticmethod
     def getPosition(poses):
         "Simply returns algebraic median from list of positions, may get an upgrade later"
@@ -251,6 +253,7 @@ class Beacons(Laser):
             #
             cls.delta_pos = (d_y,d_x)
             cls.publishAdjust()
+            
     @classmethod
     def publishAdjust(cls):
         new = PoseStamped()
@@ -272,14 +275,14 @@ class Beacons(Laser):
 
 
 #################################################################
-class Obstacles(Laser):
+class Objects(Laser):
 
     #Params
     dots_thresh = rospy.get_param('~/obstacles/dots_thresh', 10) #num
     #/Params
 
     #Topics
-    list_topic = rospy.get_param('~/obstacles/list_topic', Path ,'obstacles')
+    list_topic = rospy.get_param('~/obstacles/list_topic', Obstacles ,'obstacles')
     #
     list_pub = rospy.Publisher(list_topic,Path,queue_size = 2)
     #/Topics
@@ -291,20 +294,16 @@ class Obstacles(Laser):
     
     @classmethod
     def send(cls):
-        msg = Path()
-        msg.header.frame_id = "obstacles"
-        msg.header.stamp = rospy.Time.now()
+        msg = Obstacles()
+        #msg.header.frame_id = "obstacles"
+        #msg.header.stamp = rospy.Time.now()
         for obst in cls.list:
             #cls.
-            obstacle = PoseStamped()
-            obstacle.pose.position.y = obst.pose[0] 
-            obstacle.pose.position.x = obst.pose[1]
-            obst_quat = tf.transformations.quaternion_from_euler(0, 0, obst.pose[2])
-            obstacle.pose.orientation.x = obst_quat[0]
-            obstacle.pose.orientation.y = obst_quat[1]
-            obstacle.pose.orientation.z = obst_quat[2]
-            obstacle.pose.orientation.w = obst_quat[3]
-            msg.poses.append(obstacle)
+            obstacle = Obstacle()
+            obstacle.y = obst.pose[0] 
+            obstacle.x = obst.pose[1]
+            obstacle.size = 0 #PLACEHOLDER
+            msg.data.append(obstacle)
         cls.list_pub.publish(msg)
     @classmethod
     def clear(cls):
@@ -315,9 +314,8 @@ def main():
     rate = rospy.Rate(Laser.update_rate)
     #Beacons.initExpected()
     while not rospy.is_shutdown():
-
-
-
+        Beacons.update()
+        Objects.send()
         rate.sleep()
 
 

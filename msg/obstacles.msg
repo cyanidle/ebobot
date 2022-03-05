@@ -1,1 +1,1 @@
-ebobot/obstacle[] obstacle
+ebobot/Obstacle[] data
