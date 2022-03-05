@@ -1,1 +1,0 @@
-ebobot/Obstacle[] data
