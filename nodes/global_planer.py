@@ -384,48 +384,50 @@ class Global(): ##Полная жопа
         msg = Path()
         msg.header.frame_id = "/costmap" ###????????
         msg.header.stamp = rospy.Time.now()
-        target = Global.list.pop()[0]
-        for goal,_ in Global.list:
-                pose = PoseStamped()
-                pose.pose.position.y = goal[0]
-                pose.pose.position.x = goal[1]
-                #Global.sendTransfrom(goal[0],goal[1],0)
-                if Global.debug:
-                    rospy.loginfo(f"New point {goal}") 
-                msg.poses.append(pose)
-                if Global.rviz_enable:
-                    r = PoseStamped()
-                    r.pose.position.y = goal[0] / rviz_coeff
-                    r.pose.position.x = goal[1] / rviz_coeff
-                    Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
-                    rviz.poses.append(r)
-        target_pos = PoseStamped()
-        rospy.loginfo(f"Last point {target}")
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
-        if Global.rviz_enable:
-            rviz_targ = PoseStamped()
-            rviz_targ.pose.position.y = target[0] / rviz_coeff
-            rviz_targ.pose.position.x = target[1]/rviz_coeff
-            rviz_quat = tf.transformations.quaternion_from_euler(0, 0, target[2]/ (1/Global.costmap_resolution))
-            rviz_targ.pose.orientation.x = rviz_quat[0]
-            rviz_targ.pose.orientation.y = rviz_quat[1]
-            rviz_targ.pose.orientation.z = rviz_quat[2]
-            rviz_targ.pose.orientation.w = rviz_quat[3]
-            rviz.poses.append(rviz_targ)
-            Global.sendTransfrom(target[0]/ rviz_coeff,target[1]/ rviz_coeff,target[2])
-            Global.rviz_publisher.publish(rviz)
-        target_pos.pose.orientation.x = quaternion[0]
-        target_pos.pose.orientation.y = quaternion[1]
-        target_pos.pose.orientation.z = quaternion[2]
-        target_pos.pose.orientation.w = quaternion[3]
-        target_pos.pose.position.y = target[0]
-        target_pos.pose.position.x = target[1]
-        #Global.sendTransfrom(target[0],target[1],target[2])
-        if Global.debug:
-            rospy.loginfo(f"Last point {target}") 
-        msg.poses.append(target_pos)
-        Global.path_publisher.publish(msg)    
-        rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
+        if len(Global.list):
+            target = Global.list.pop()[0]
+            for goal,_ in Global.list:
+                    pose = PoseStamped()
+                    pose.pose.position.y = goal[0]
+                    pose.pose.position.x = goal[1]
+                    #Global.sendTransfrom(goal[0],goal[1],0)
+                    if Global.debug:
+                        rospy.loginfo(f"New point {goal}") 
+                    msg.poses.append(pose)
+                    if Global.rviz_enable:
+                        r = PoseStamped()
+                        r.pose.position.y = goal[0] / rviz_coeff
+                        r.pose.position.x = goal[1] / rviz_coeff
+                        Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
+                        rviz.poses.append(r)
+            target_pos = PoseStamped()
+            
+            rospy.loginfo(f"Last point {target}")
+            quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
+            if Global.rviz_enable:
+                rviz_targ = PoseStamped()
+                rviz_targ.pose.position.y = target[0] / rviz_coeff
+                rviz_targ.pose.position.x = target[1]/rviz_coeff
+                rviz_quat = tf.transformations.quaternion_from_euler(0, 0, target[2]/ (1/Global.costmap_resolution))
+                rviz_targ.pose.orientation.x = rviz_quat[0]
+                rviz_targ.pose.orientation.y = rviz_quat[1]
+                rviz_targ.pose.orientation.z = rviz_quat[2]
+                rviz_targ.pose.orientation.w = rviz_quat[3]
+                rviz.poses.append(rviz_targ)
+                Global.sendTransfrom(target[0]/ rviz_coeff,target[1]/ rviz_coeff,target[2])
+                Global.rviz_publisher.publish(rviz)
+            target_pos.pose.orientation.x = quaternion[0]
+            target_pos.pose.orientation.y = quaternion[1]
+            target_pos.pose.orientation.z = quaternion[2]
+            target_pos.pose.orientation.w = quaternion[3]
+            target_pos.pose.position.y = target[0]
+            target_pos.pose.position.x = target[1]
+            #Global.sendTransfrom(target[0],target[1],target[2])
+            if Global.debug:
+                rospy.loginfo(f"Last point {target}") 
+            msg.poses.append(target_pos)
+            Global.path_publisher.publish(msg)    
+            rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
 
 

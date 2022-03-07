@@ -1,9 +1,16 @@
 <launch>
+    <arg name="inflation_rad" default="0.50"/>
+    <arg name="debug" default="0"/>
+    <arg name="base_inflation_coeff" default="0.0027"/>
+
+
     
+
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "file_dir" value = "$(find ebobot)/nodes/costmap"/>
-        <param name = "file" value = "$(find ebobot)/nodes/costmap/costmap.png"/>
+        <param name = "file_dir" value = "$(find ebobot)/config/costmap"/>
+        <param name = "file" value = "$(find ebobot)/config/costmap/costmap.png"/>
+        <param name = "base_inflation_coeff" value = "$(arg base_inflation_coeff)"/>
     </node>
     
 </launch>

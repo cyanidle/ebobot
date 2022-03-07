@@ -35,8 +35,8 @@ class Costmap():
     inflation_radius = rospy.get_param('~inflation_radius',0.45)
     inflation_step_radians_resolution = rospy.get_param('~inflation_step_radians_resolution',5)
     resolution = rospy.get_param('~resolution',0.02)
-    file = rospy.get_param('~file','/config/costmap/costmap.png')
-    file_dir = rospy.get_param('~file_dir','/config/costmap/')
+    file = rospy.get_param('~file','costmap.png')
+    file_dir = rospy.get_param('~file_dir','config/costmap/')
     #safe_footprint_radius =  rospy.get_param('~safe_footprint_radius',0.08)
     ##
     #Topics
@@ -52,11 +52,11 @@ class Costmap():
     grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=5)
     #/Topics
     #/Params
-
+    os.chdir(f"{file_dir}")
     color_image = cv2.imread(file)
     gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)       
     pixels = np.around(np.divide(gray_image, 255.0/100), decimals=1)#np.rot90(np.around(np.divide(gray_image, 255.0/100), decimals=1))
-    # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
+    # 
     # cv2.imwrite("map_read.png", pixels)
     # print(f"pixels = {pixels[0][0], pixels[0][1],pixels[1][0],pixels[1][1]}")
     # rospy.sleep(1)
@@ -96,7 +96,7 @@ class Costmap():
         if cls.interpolate_enable:
             cls.interpolateGrid()
         if cls.write_map_enable:
-            os.chdir(cls.file_dir)
+            #os.chdir(cls.file_dir)
             cv2.imwrite("inflated_costmap.png", cls.grid * 255/100)
             if cls.debug:
                 mask = np.array([[0]*100 for _ in range(100)])
