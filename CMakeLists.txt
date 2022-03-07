@@ -18,13 +18,26 @@ find_package(catkin REQUIRED COMPONENTS
 ## modules and global scripts declared therein get installed
 catkin_python_setup()
 ################################################
+ add_message_files(
+   FILES
+   Obstacle.msg
+   Obstacles.msg
+  )
+add_action_files(
+  DIRECTORY action 
+  FILES Move.action
+  )
+generate_messages(
+  DEPENDENCIES
+  std_msgs nav_msgs sensor_msgs actionlib_msgs
+)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ebobot
 CATKIN_DEPENDS python3-numpy map_msgs geometry_msgs nav_msgs roscpp rospy rosserial_arduino sensor_msgs std_msgs message_runtime python3-pyyaml 
 #  DEPENDS system_lib
 )
-
 catkin_install_python(PROGRAMS
   scripts/pid_setter.py 
   nodes/motors_info_callback.py 
@@ -35,18 +48,3 @@ catkin_install_python(PROGRAMS
   nodes/task_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs nav_msgs sensor_msgs 
-)
-# Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   obstacle.msg
-   obstacles.msg
-)
-add_action_files(DIRECTORY action FILES Move.action)
-
-
-generate_messages(DEPENDENCIES actionlib_msgs)
