@@ -176,7 +176,7 @@ class Local():
             dist = np.linalg.norm(target[:2] - cls.robot_pos[:2])
             if dist < min_dist:
                 min_dist = dist
-                cls.current_target = num
+                cls.current_target = num + 1
         new_parsed_targets.append(final_target)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
