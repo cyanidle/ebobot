@@ -10,13 +10,33 @@ rospy.init_node("task_manager")
 from markers import pubMarker
 #
 
-class Condition:
-        def __init__(self,empty = False):
+
+class Manager:
+    
+    class Task:
+        def __init__(self, conditions, call_list, move_list, log_list):
+            pass
+        class Calls:
+            pass
+        class Moves:
+            pass
+        class Logs:
+            pass
+        class Conditions:
+            def __init__(self, move_index, call_index):
+                self.move_index = move_index
+                self.call_index = call_index
+                pass
+            pass
+            def __init__(self,num:int,actions:list, log:str = "None",condition:Condition = Condition(empty = True)):
+                pass
+
+    #@dataclass(frozen=True)
+    class Interrupts(Task):
+        def __init__():
 
             pass
         pass
-class Manager:
-    
     #Params
     file = rospy.get_param("~file", "/config/routes/route1.yaml")
 
@@ -37,18 +57,16 @@ class Manager:
 
     @classmethod
     def parse(cls):
-        pass
+        #interrupts = cls.route["interrupts"]
+        #tasks = cls.route["tasks"]
+        for interrupt in cls.route["interrupts"]:
+            pass
+        for task in cls.route["tasks"]:
+            pass
 
     
 
-     
-    class Task:
-        def __init__(self,num:int,actions:list, log:str = "None",condition:Condition = Condition(empty = True)):
-            pass
-
-    #@dataclass(frozen=True)
-    class Interrupt(Task):
-        pass
+    
 
 if __name__=="__main__":
     Manager.read()
