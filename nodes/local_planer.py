@@ -29,7 +29,7 @@ def shutdownHook():
 def robotPosCallback(robot):
     quat = [robot.pose.pose.orientation.x,robot.pose.pose.orientation.y,
     robot.pose.pose.orientation.z,robot.pose.pose.orientation.w]
-
+    Local.robot_twist = np.array([robot.twist.twist.linear.y,robot.twist.twist.linear.x,robot.twist.twist.angular.z])
     Local.robot_pos = np.array(
         [robot.pose.pose.position.y/ Local.costmap_resolution, 
         robot.pose.pose.position.x/Local.costmap_resolution,
@@ -108,7 +108,7 @@ class Local():
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
 
-    inertia_compensation_coeff = rospy.get_param('~safe_footprint_radius', 0.05)
+    inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params
 
     #Topics
@@ -132,6 +132,7 @@ class Local():
     #/Topics
 
     #cls values
+    robot_twist = np.array([0,0,0])
     last_target = []
     actual_target = []
     max_dist = 0
@@ -175,10 +176,10 @@ class Local():
         min_dist = 100
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
-            dist = np.linalg.norm(target[:2] - cls.robot_pos[:2])
+            dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
             if dist < min_dist:
                 min_dist = dist
-                cls.current_target = int(num + 1 + len(cls.new_targets) * cls.inertia_compensation_coeff)
+                cls.current_target = int(num + 1)
         new_parsed_targets.append(final_target)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
@@ -331,8 +332,9 @@ class Local():
             shutdownHook()
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
+        #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
         markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=1)
+        rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
@@ -340,7 +342,7 @@ class Local():
                 speed_coeff = speed_coeff * cls.cost_speed_coeff* cls.getCost(cls.actual_target)
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
-            cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos) ###ADJUSTS GLOBAL COMAND TO LOCAL
+            cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos-(cls.robot_twist*cls.inertia_compensation_coeff)) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
         return
