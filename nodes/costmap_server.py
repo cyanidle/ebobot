@@ -21,7 +21,7 @@ class Costmap():
     #Params
     #Features
     write_map_enable = rospy.get_param('~write_map_enable', 1)
-    debug = rospy.get_param('~debug',1)
+    debug = rospy.get_param('~debug', 1)
     interpolate_enable = rospy.get_param('~interpolate_enable',1)
     inflate_enable = rospy.get_param('~inflate_enable',  1  )
     super_debug = rospy.get_param('~super_debug',0)

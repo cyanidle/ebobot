@@ -20,6 +20,12 @@ import markers
 #Пусть глобал планер посылает экшоны (Global nav_msgs/Path) в сторону локального и получает некий фидбек по выполнению, в случае ступора он вызвоет либо отдельный скрипт, либо просто некую функцию
 #Внутри самого глобал планера, которая временно подтасует текущую цель на "ложную" которая позволит выехать из затруднения (Recovery Behavior)
 #В остальное время планеру в тупую следуют указаниям скрипта поведения, посылающего команды в /simple_goal
+####
+import actionlib
+#
+from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
+#
+####
 rospy.init_node('global_planer')
 
 
@@ -477,10 +483,7 @@ def main():
 
         rate.sleep()
 
-import actionlib
-#
-from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
-#
+
 
 
 class MoveServer:

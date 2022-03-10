@@ -5,7 +5,7 @@
 #include <std_msgs/MultiArrayDimension.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
-
+#include <ebobot/Servos.h>  ////Если не работает - погуглить, как правильно добавлять сервисы
 ////////////////////////////Все скорости в мм/с
 
 ////////////////////////////ROS init
@@ -34,6 +34,7 @@ char imu[] = "/imu";
 ///////////////////////Loop settings
 int loop_delay = 50;
 TimerMs main_loop(loop_delay, 1, 0);
+TimerMs servo_loop(20, 1, 0);
 ///////////////////////// ENCODER
 
 volatile long X[3];
@@ -218,12 +219,17 @@ void encoder2()
   X[2] += (temp * 1) + (!temp * -1);
 }
 /////////////////////////////////////////////////
+
+
 void setup()
 {
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
+  nh.advertiseService(server);
+  servo.begin();
+  servo.set_hz(1526);
 
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -235,7 +241,8 @@ void setup()
   motors_msg.layout.dim[1].size = 4;
   motors_msg.layout.dim[0].stride = 4;
   */
-  
+    
+  ////////////////////////////////
   motors_msg.layout.data_offset = 0;
   motors_msg.data_length = 12;
   motors_msg.data = (float *)malloc(sizeof(float) * 12);
@@ -257,6 +264,14 @@ void setup()
   pinMode(BCK2, OUTPUT);
 }
 ////////////////////////////////
+void servosUpdate(){ ////COMPLETE LATER
+  return
+}
+
+
+
+
+///////////////////////////////
 void loop()
 {
   if (main_loop.tick())
@@ -270,6 +285,10 @@ void loop()
       motors_msg.data[mot * 4 + 2] = dist[mot];
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
+  }
+
+  if (servo_loop.tick()){
+    servosUpdate()
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();

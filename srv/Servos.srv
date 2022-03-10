@@ -1,0 +1,6 @@
+#Сервис для переключения сервы (num) со скоростью (speed)
+int8 num
+int8 speed
+bool state
+---
+bool resp
