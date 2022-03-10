@@ -32,28 +32,22 @@ class Manager:
         def __init__(self,num:int,actions:list, log:str = "None",condition:Conditions = Conditions()):
             pass
         #pass
+    class Interrupts(Task):
+        def __init__():
+
+            pass
+        pass
+        #Params
+        file = rospy.get_param("~file", "/config/routes/route1.yaml")
+
+        #/Params
+
+
+        #Globals
+        route = {}
     ##################### Manager
     def __init__():
         pass
-
-
-pass
-#@dataclass(frozen=True)
-class Interrupts(Task):
-    def __init__():
-
-        pass
-    pass
-    #Params
-    file = rospy.get_param("~file", "/config/routes/route1.yaml")
-
-    #/Params
-
-
-    #Globals
-    route = {}
-    
-
     @classmethod
     def read(cls):
         with open(cls.file, "r") as stream:
