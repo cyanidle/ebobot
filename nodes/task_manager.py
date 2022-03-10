@@ -12,9 +12,15 @@ from markers import pubMarker
 
 
 class Manager:
-    
     class Task:
-        def __init__(self, conditions, call_list, move_list, log_list):
+        class Conditions:
+            def __init__(self, move_index, call_index, empty = True):
+                if empty:
+                    pass
+                else:
+                    self.move_index = move_index
+                    self.call_index = call_index
+                pass
             pass
         class Calls:
             pass
@@ -22,21 +28,22 @@ class Manager:
             pass
         class Logs:
             pass
-        class Conditions:
-            def __init__(self, move_index, call_index):
-                self.move_index = move_index
-                self.call_index = call_index
-                pass
+        ######### Task
+        def __init__(self,num:int,actions:list, log:str = "None",condition:Conditions = Conditions()):
             pass
-            def __init__(self,num:int,actions:list, log:str = "None",condition:Condition = Condition(empty = True)):
-                pass
-
-    #@dataclass(frozen=True)
-    class Interrupts(Task):
-        def __init__():
-
-            pass
+        #pass
+    ##################### Manager
+    def __init__():
         pass
+
+
+pass
+#@dataclass(frozen=True)
+class Interrupts(Task):
+    def __init__():
+
+        pass
+    pass
     #Params
     file = rospy.get_param("~file", "/config/routes/route1.yaml")
 

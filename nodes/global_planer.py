@@ -89,7 +89,7 @@ class Global(): ##Полная жопа
     debug = rospy.get_param('~debug',0)
     #/Features    
     #
-    resend = rospy.get_param('~resend', 0)
+    resend = rospy.get_param('~resend', 1)
     update_stop_thresh = rospy.get_param('~update_stop_thresh', 8) #in cells
     update_rate = rospy.get_param('~update_rate',1) #per second
     #
@@ -97,7 +97,7 @@ class Global(): ##Полная жопа
     if experimental_cleanup_enable:
         accelerate_coeff = 0
     costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
-    maximum_cost = rospy.get_param('~maximum_cost',40)  
+    maximum_cost = rospy.get_param('~maximum_cost',80)  
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
     

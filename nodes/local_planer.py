@@ -107,6 +107,8 @@ class Local():
     safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
+
+    inertia_compensation_coeff = rospy.get_param('~safe_footprint_radius', 0.05)
     #/Params
 
     #Topics
@@ -176,7 +178,7 @@ class Local():
             dist = np.linalg.norm(target[:2] - cls.robot_pos[:2])
             if dist < min_dist:
                 min_dist = dist
-                cls.current_target = num + 1
+                cls.current_target = int(num + 1 + len(cls.new_targets) * cls.inertia_compensation_coeff)
         new_parsed_targets.append(final_target)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
