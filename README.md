@@ -4,7 +4,7 @@
 Все работает с первого раза, как и должно
 :100:
 
-# Папки
+# Папки:
 
 # temp
 Файлопомойка
@@ -25,11 +25,12 @@
 Сообщения/Сервисы/Экшоны соответственно
 
 # launch
-Скрипты системы Roslaunch
+**Скрипты системы Roslaunch**
+
 В будущем предполагается наличие файлов yellow_side.launch и blue_side.launch
 
 Запустить rviz с оптимальными настройками можно через
-roslaunch ebobot rviz.launch
+*roslaunch ebobot rviz.launch*
 
 
 # firmware
