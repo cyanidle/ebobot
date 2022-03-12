@@ -1,11 +1,13 @@
-#include <TimerMs.h>
 #include <ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/MultiArrayDimension.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
-#include <ebobot/Servos.h>  ////Если не работает - погуглить, как правильно добавлять сервисы
+#include <ebobot/Servos.h> ////Если не работает - погуглить, как правильно добавлять сервисы
+/////////////////////////
+#include <TimerMs.h> 
+#include <FaBoPWM_PCA9685.h>
 ////////////////////////////Все скорости в мм/с
 
 ////////////////////////////ROS init
@@ -14,6 +16,11 @@ std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 char imu[] = "/imu";
 
+FaBoPWM servo;
+
+
+
+//////////////////////////
 #define ENCODER_PINA0 18
 #define ENCODER_PINB0 31
 #define EN0 12
@@ -38,9 +45,9 @@ TimerMs servo_loop(20, 1, 0);
 ///////////////////////// ENCODER
 
 volatile long X[3];
-float coeff = 1;
-float rad = 0.28; //m
-float ticks_per_rotation = 360;
+const float coeff = 1;
+const float rad = 0.185; //m
+const float ticks_per_rotation = 360;
 long dX[3];
 long lastX[3];
 
@@ -59,7 +66,6 @@ int bck[] = {BCK0, BCK1, BCK2};
 int ena[] = {EN0, EN1, EN2};
 int pwm[3];
 ////////////////////////////motors radians
-
 float to_radians(float ang)
 {
   return (ang * 6.283 / 360.0);
@@ -75,7 +81,27 @@ float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])), sin(to_radians(mots_an
 ///////Non-Adjustable
 float inter_term[] = {0, 0, 0};
 float last_error[] = {0, 0, 0};
-
+//////////////////////////////////
+void termsReset(int mot)
+{
+  last_error[mot] = 0;
+  inter_term[mot] = 0;
+}
+//////////////////////////////////////
+void servo_callback(const ebobot::Servos::Request &req, ebobot::Servos::Response &res)
+{
+    if (req.state){
+        servoUp();
+        res.resp = 123;
+    }
+    else{
+        servoDown();
+        res.resp = 0;
+    }
+}
+////
+ros::ServiceServer<ebobot::Servos::Request, ebobot::Servos::Response> server("servos_service", &servo_callback);
+////
 ////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
@@ -146,8 +172,20 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
     pid_count = 0;
 }
 ros::Subscriber<std_msgs::Float32> set_pid("set_pid", setPidCallback);
+//////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
 
-///////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
+const float dtime = (loop_delay / 1000.0);
+void PID(int mot)
+{
+  float error = targ_spd[mot] - curr_spd[mot];
+  inter_term[mot] += dtime * error;
+  pwm[mot] = error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] -
+             (error - last_error[mot]) / dtime * diff_coeff[mot];
+  constrain(inter_term[mot], -30000, 30000);
+  last_error[mot] = error;
+  pwm[mot] = constrain(pwm[mot], -255, 255);
+}
 //////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
 void update_mot(int mot)
 {
@@ -182,25 +220,10 @@ void update_mot(int mot)
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
-float dtime = (loop_delay / 1000.0);
-///////////////////////////////////////////////////////////////////////
-void PID(int mot)
-{
-  float error = targ_spd[mot] - curr_spd[mot];
-  inter_term[mot] += dtime * error;
-  pwm[mot] = error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] -
-             (error - last_error[mot]) / dtime * diff_coeff[mot];
-  constrain(inter_term[mot], -30000, 30000);
-  last_error[mot] = error;
-  pwm[mot] = constrain(pwm[mot], -255, 255);
-}
+
+
 //////////////////////////////////////////////////////
-void termsReset(int mot)
-{
-  last_error[mot] = 0;
-  inter_term[mot] = 0;
-}
+
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -264,12 +287,20 @@ void setup()
   pinMode(BCK2, OUTPUT);
 }
 ////////////////////////////////
-void servosUpdate(){ ////COMPLETE LATER
-  return
+
+
+
+void servoUp()
+{
+    nh.logerror("UP");
+    servo.set_channel_value(0,0);
 }
 
-
-
+void servoDown() 
+{
+    nh.logerror("DOWN");
+    servo.set_channel_value(0,0);
+}
 
 ///////////////////////////////
 void loop()
@@ -288,7 +319,7 @@ void loop()
   }
 
   if (servo_loop.tick()){
-    servosUpdate()
+    //servosUpdate()
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();
