@@ -1,25 +1,20 @@
+#include <Arduino.h>
 #include <ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/MultiArrayLayout.h>
 #include <std_msgs/MultiArrayDimension.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
-#include <ebobot/Servos.h> ////Если не работает - погуглить, как правильно добавлять сервисы
+ ////Если не работает - погуглить, как правильно добавлять сервисы
 /////////////////////////
-#include <TimerMs.h> 
-#include <FaBoPWM_PCA9685.h>
+#include "TimerMs.h"
+///////////////////////////
+#include "servos.h"
 ////////////////////////////Все скорости в мм/с
-
 ////////////////////////////ROS init
 ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh; //1532 for publish and 1024 receive
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
-char imu[] = "/imu";
-
-FaBoPWM servo;
-
-
-
 //////////////////////////
 #define ENCODER_PINA0 18
 #define ENCODER_PINB0 31
@@ -52,8 +47,8 @@ long dX[3];
 long lastX[3];
 
 ///////////////////////// MOTORS
-float turn_max_speed = 0.25; /////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
-float max_speed = 0.50;      /////////////With headrom (<~80)
+const float turn_max_speed = 0.25; /////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
+const float max_speed = 0.50;      /////////////With headroom (<~80)
 bool stop_mot[3];
 float dist[3];
 float absolute_max_speed = 0.75;
@@ -88,19 +83,9 @@ void termsReset(int mot)
   inter_term[mot] = 0;
 }
 //////////////////////////////////////
-void servo_callback(const ebobot::Servos::Request &req, ebobot::Servos::Response &res)
-{
-    if (req.state){
-        servoUp();
-        res.resp = 123;
-    }
-    else{
-        servoDown();
-        res.resp = 0;
-    }
-}
+
 ////
-ros::ServiceServer<ebobot::Servos::Request, ebobot::Servos::Response> server("servos_service", &servo_callback);
+
 ////
 ////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
@@ -251,8 +236,7 @@ void setup()
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
   nh.advertiseService(server);
-  servo.begin();
-  servo.set_hz(1526);
+
 
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -290,17 +274,7 @@ void setup()
 
 
 
-void servoUp()
-{
-    nh.logerror("UP");
-    servo.set_channel_value(0,0);
-}
 
-void servoDown() 
-{
-    nh.logerror("DOWN");
-    servo.set_channel_value(0,0);
-}
 
 ///////////////////////////////
 void loop()

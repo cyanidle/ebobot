@@ -34,6 +34,7 @@ add_action_files(
 add_service_files(
     FILES
     Servos.srv
+    ServosSettings.srv
   )
 generate_messages(
   DEPENDENCIES
@@ -57,18 +58,18 @@ catkin_install_python(PROGRAMS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-
+message(STATUS "Tvoya mama")
 ################## В этом месте мы опять получаем по ебалу от негров
-rosserial_generate_ros_lib(
-  PACKAGE rosserial_arduino
-  SCRIPT make_libraries.py
-)
+# rosserial_generate_ros_lib(
+#   PACKAGE rosserial_arduino
+#   SCRIPT make_libraries.py
+# )
 
-######## Ну или пытаемся скомпилировать и загрузить прошивку автоматически
-rosserial_configure_client(
-  DIRECTORY firmware
-  TOOLCHAIN_FILE ${ROSSERIAL_ARDUINO_TOOLCHAIN}
-)
-########
-rosserial_add_client_target(firmware main ALL)
-#rosserial_add_client_target(firmware main-upload)
+# ######## Ну или пытаемся скомпилировать и загрузить прошивку автоматически
+# rosserial_configure_client(
+#   DIRECTORY firmware
+#   TOOLCHAIN_FILE ${ROSSERIAL_ARDUINO_TOOLCHAIN}
+# )
+# ########
+# rosserial_add_client_target(firmware main ALL)
+# rosserial_add_client_target(firmware main-upload)
