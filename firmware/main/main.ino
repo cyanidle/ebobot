@@ -235,8 +235,17 @@ void setup()
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
-  nh.advertiseService(server);
-
+  nh.advertiseService(servos_server);
+  nh.advertiseService(servos_settings_server);
+  //
+  servos_shield.begin();
+  servos_shield.set_hz(1526);
+  createNewServo(0,0,5,0,200,0);
+  createNewServo(1,1,5,0,200,0);
+  createNewServo(2,2,5,0,200,0);
+  //createNewServo(3,3,5,0,200,0);
+  //createNewServo(4,4,5,0,200,0);
+  //
 
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -271,14 +280,7 @@ void setup()
   pinMode(BCK2, OUTPUT);
 }
 ////////////////////////////////
-
-
-
-
-
-///////////////////////////////
-void loop()
-{
+void loop(){
   if (main_loop.tick())
   {
     for (int mot = 0; mot < num_motors; mot++)
@@ -293,7 +295,7 @@ void loop()
   }
 
   if (servo_loop.tick()){
-    //servosUpdate()
+    servosUpdate();
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();
