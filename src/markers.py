@@ -1,7 +1,7 @@
 import rospy
 import tf
 from visualization_msgs.msg import Marker
-marker_publisher = rospy.Publisher("markers", Marker, queue_size = 10)
+marker_publisher = rospy.Publisher("markers", Marker, queue_size = 50)
 broadcaster = tf.TransformBroadcaster()
 
 def pubMarker(point:tuple,num:int,duration = 10,size=0.08,frame_name = "default",debug = 1,deletall=0,add = 1,type = "sphere",r=0,g=1,b=0):
