@@ -25,7 +25,7 @@
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author email="lyosha.doronin@gmail.com">Alexej Doronin</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->
@@ -82,7 +82,8 @@
   <exec_depend>actionlib_msgs</exec_depend>
   <build_depend>python3-pyyaml</build_depend>
   <exec_depend>python3-pyyaml</exec_depend>
-
+  <build_depend>python3-asyncio</build_depend>
+  <exec_depend>python3-asyncio</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
