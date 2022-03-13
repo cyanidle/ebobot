@@ -49,7 +49,7 @@ void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::S
     sprintf(buffer, "Servo %d set to min %d, max%d, spd %d", req.num ,req.min_val,req.max_val, req.speed);
     resp.resp = buffer;
 }
-ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> server("servos_settings_service", &servoSettingsCallback);
+//ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> server("servos_settings_service", &servoSettingsCallback);
 //
 int servoUp(struct Servo_mot *servo){
     //nh.logerror("UP");
@@ -96,5 +96,5 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
 }
 //
 ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> servos_server("servos_service", &servoCallback);
-ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> servos_settings_server("servos_service", &servoSettingsCallback);
+ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> servos_settings_server("servos_settings_service", &servoSettingsCallback);
 //

@@ -1,6 +1,7 @@
-int8 speed #in %
 int8 num #num of servo
-int16 max_val #В тугриках
+int8 channel #канал на плате
+int8 speed #in %
 int16 min_val #В тугриках
+int16 max_val #В тугриках
 ---
 string resp

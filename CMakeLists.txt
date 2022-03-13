@@ -51,6 +51,7 @@ std_msgs message_runtime python3-pyyaml python3-asyncio
 #  DEPENDS system_lib
 )
 catkin_install_python(PROGRAMS
+  scripts/servos_setter.py
   scripts/pid_setter.py 
   nodes/motors_info_callback.py 
   nodes/costmap_server.py 
