@@ -58,7 +58,7 @@ class Task:
                 pass
             pass
         class Calls:
-            dict = executer_dict
+            dict = executer_dict()
             def __init__(self,name,args:tuple):
                 self.args = args
                 self.call = type(self).dict[name]
