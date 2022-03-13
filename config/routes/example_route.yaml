@@ -9,7 +9,7 @@ tasks:
   1:
     - call: "test"
     - move: "1/1"
-    - log: "Moving to 1m/1m"
+    - log: "L:Moving to 1m/1m" #Prefixes (L:/W:/E:) = (Log, Warn, Error)
   2:
     - call: "test3"
     - together: 
@@ -22,7 +22,8 @@ tasks:
         - together:
           - call : "epic"
           - skip: "3"
-      - else: "skip/2"
+      - else: 
+        - skip: "2"
     - log: "Skipping task 2, bc test3 good"
     - move: "2/2"
   3: 

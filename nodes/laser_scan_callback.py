@@ -26,13 +26,13 @@ def robotPosCallback(odom):
     quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
     Laser.robot_pos = np.array([odom.pose.pose.position.y,odom.pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]]) 
 
-def costmapCallback(costmap):
-    Laser.costmap_resolution = costmap.info.resolution
-    Laser.costmap_height = costmap.info.height
-    Laser.costmap_width= costmap.info.width
-    rospy.loginfo_once(f"Got new map, height = {Laser.costmap_height}, width= {Laser.costmap_width}")
-    Laser.costmap= np.reshape(costmap.data,(Laser.costmap_height, Laser.costmap_width))  
-    #Laser.debug_map = Laser.costmap
+# def costmapCallback(costmap):
+#     Laser.costmap_resolution = costmap.info.resolution
+#     Laser.costmap_height = costmap.info.height
+#     Laser.costmap_width= costmap.info.width
+#     rospy.loginfo_once(f"Got new map, height = {Laser.costmap_height}, width= {Laser.costmap_width}")
+#     Laser.costmap= np.reshape(costmap.data,(Laser.costmap_height, Laser.costmap_width))  
+#     #Laser.debug_map = Laser.costmap
 def laserScanCallback(scan):
     Laser.angle_min = scan.angle_min
     Laser.angle_max = scan.angle_max

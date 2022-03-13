@@ -7,9 +7,10 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from markers import pubMarker
-from tasks_executer import executer_dict
+from calls_executer import executer_dict
 #
-
+from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
+#
 
 
     
@@ -26,16 +27,27 @@ class Task:
         return micro_list
     class Microtasks:                #EACH ENTRY'S CONSTRUCTOR MUST RETURN A CALLABLE OBJECT, 
         class Conditions:            #WHICH EXECUTES THE COMMAND AND ONLY THEN RETURNS TO MAIN
-            if_list = []
+            if_list = []             #EXECUTING THE OBJECT SHALL RETURN STATUS (BAD/GOOD/CUSTOM)
             else_list = []
-            def __init__(self) -> None:
-                pass
-            def parseIf(self):
-                pass
-            def parseDo(self):
-                pass
-            def parseElse(self):
-                pass
+            def __init__(self,arg):
+                items = arg.items()
+                self.check = self.parseIf(items[0])
+                self.yes = self.parseDo(items[1])
+                self.no = self.parseElse(items[2])
+            def parseIf(self,args):
+
+
+
+                pass                    # PLS DO LATER
+            def parseDo(self,args):
+                return Task.Microtasks.getExec(args)
+            def parseElse(self,args):
+                return Task.Microtasks.getExec(args)
+            def exec(self):
+                if self.check():
+                    return self.yes
+                else:
+                    return self.no
             ####Conditions
             def __init__(self, move_index, call_index, empty = True):
                 if empty:
@@ -58,27 +70,43 @@ class Task:
                 self.pos = pos
             pass
         class Logs:
-            def __init__(self,text):
-                pass
-            pass
+            def __init__(self,val:str):
+                #_, val = micro
+                self.text = val
+                return self.exec
+            def exec(self):
+                text = self.text
+                pref = text[:2]
+                if pref == "L:":
+                    rospy.loginfo(text[2:])
+                elif pref == "W:":
+                    rospy.logwarn(text[2:])
+                elif pref == "E:":
+                    rospy.logerr(text[2:])
+                else:
+                    rospy.logerr(f"(Incorrect log prefix!) {text}")
+                    return "bad"
+                return "good"
+
         class Skip:
             pass
         class Together:
             pass
         ############ Microtask
-        def __init__(self,micro:tuple):
-            name, val = micro
-            self.name = name
-            self.action = Manager.constructors_dict[name](val) #each constructor 
-            return self          #should return an executable object
+        def __init__(self,key,arg):
+            self.action = Manager.constructors_dict[key](arg)
+            return self
+        @staticmethod
+        def getExec(key,arg): #val in the dict!
+            micro = Task.Microtasks(key,arg)#each constructor 
+            return micro                     #should return an executable object
     ######### Task
     def __init__(self,name:str, list:list):
         "Inits a new task from dict, parses microtasks and appends them into own (micros_list)"
         self.name = name
-        for micro in self.parseMicroList(list):
-            self.micro_list.append(Task.Microtasks(micro))
+        for name, val in self.parseMicroList(name,val):
+            self.micro_list.append(Task.Microtasks.getExec(val)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
-    
 
     #pass
 ######################
@@ -95,6 +123,8 @@ class Interrupts(Task):
 class InterruptsServer:
     list = []
     pass
+class StatusServer:
+    pass
 ######################
 class Manager:
     #Params
@@ -106,16 +136,13 @@ class Manager:
         "call": Task.Microtasks.Calls,
         "log": Task.Microtasks.Logs,
         "condition":Task.Microtasks.Conditions,
-        "if":Task.Microtasks.Conditions.Do.parseIf, 
-        "do": Task.Microtasks.Conditions.Do.parseDo, 
-        "else": Task.Microtasks.Conditions.Do.parseElse,
         "together": Task.Microtasks.Together,
         "interrupt": Interrupts.forceParse,
         "skip": Task.Microtasks.Skip
         }
     ##################### Manager
-    def __init__():
-        pass
+    # def __init__(self):
+    #     sesdasd
     @classmethod
     def read(cls):
         with open(cls.file, "r") as stream:
@@ -133,6 +160,10 @@ class Manager:
         for task_name in cls.route["tasks"]:
             unparsed_list = cls.route["tasks"][task_name]
             new_task = Task(unparsed_list,task_name)
+    @staticmethod
+    def exec(action):
+        action()
+
 
 
 
