@@ -4,7 +4,7 @@ import roslib
 roslib.load_manifest('ebobot')
 #from sys import argv
 rospy.init_node('pid_setter')
-path = rospy.get_param('pid_setter/path', 'scripts/pid_settings.txt') 
+path = rospy.get_param('pid_setter/path', 'config/pid_settings.txt') 
 from std_msgs.msg import Float32
 rospy.sleep(5)
 rospy.loginfo(f"Setting PID from {path}")

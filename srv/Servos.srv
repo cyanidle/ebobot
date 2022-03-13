@@ -2,4 +2,4 @@
 int8 num
 bool state #up/down
 ---
-int8 resp  #arbitrary
+string resp  #arbitrary

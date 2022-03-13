@@ -8,7 +8,7 @@ import tf
 #####################
 from dorlib import turnVect
 from markers import pubMarker#, transform
-from ebobot.msg import Obstacles as, Obstacle
+from ebobot.msg import Obstacles, Obstacle
 ######################
 from nav_masgs.msg import Odometry, OccupancyGrid, Path, PoseStamped
 from sensor_msgs.msg import LaserScan
@@ -141,13 +141,13 @@ class Laser:
             else:
                 if len(curr_obst) < Beacons.dots_thresh:
                     Beacons.initRelative(cls.getPosition(curr_obst))
-                elif len(curr_obst) < Obstacles.dots_thresh:
+                elif len(curr_obst) < Objects.dots_thresh:
                     Objects(cls.getPosition(curr_obst))
                 curr_obst.clear()
         #Obstacles.send()
-    @staticmethod
-    def getPosition(poses):
-        "Simply returns algebraic median from list of positions, may get an upgrade later"
+    @classmethod
+    def getPosition(cls,poses):
+        "(Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x = y = 0
         for pos in poses:
             y += pos[0]
@@ -194,21 +194,21 @@ class Beacons(Laser):
         for num,coord in enumerate(raw_list):
             pos = cls.getPosition(coord)
             new_beacon = cls(pos,1)
-            pubMarker(pos,num,0,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=1,debug=Laser.debug,add=1)
+            pubMarker(pos,num,0,frame_name="expected_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,debug=Laser.debug,add=1)
         #cls.rel_list.append(new_beacon)
     @classmethod
-    def initRelative(cls, new_list:list):
-        for pose in new_list:
-            beacon = cls(pose) #initialisation auto-appends objects to their list
+    def initRelative(cls, pose):   
+        beacon = cls(pose) #initialisation auto-appends objects to their list
+        pubMarker(pose,1,1,frame_name="first_found_beacon",type="cylinder",duration=0.4,size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
             
     @classmethod
     def getExpected(cls):
         rel_poses = []
-        pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,deletall=1)
+        pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,b=1,debug=Laser.debug,deletall=1)
         for num,beacon in enumerate(cls.expected_list):
             rel_pos = turnVect((beacon.pose[0]- Laser.robot_pos[0], beacon.pose[1] - Laser.robot_pos[1]), - Laser.robot_pos[2])
             rel_poses.append(rel_pos)  
-            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,b=1,debug=Laser.debug,add=1)
         return rel_poses
     @classmethod
     def clearRelative(cls):

@@ -15,7 +15,7 @@ struct Servo_mot{
     int curr_val;
     bool target_state;
     bool state;
-    }
+    };
 //
 int max_num = 0;
 struct Servo_mot *ptr_list[20];
@@ -25,12 +25,16 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
     if (req.state){
         struct Servo_mot *servo = ptr_list[req.num];
         servo->target_state = true;
-        resp.resp = servo->max_val;
+        char buffer[40];
+        sprintf(buffer, "Servo %d moving to %d, max%d, spd %d", req.num ,servo->max_val);
+        resp.resp = buffer;
     } 
     else{
         struct Servo_mot *servo = ptr_list[req.num];
         servo->target_state = false;
-        resp.resp = servo->min_val;
+        char buffer[40];
+        sprintf(buffer, "Servo %d moving to %d, max%d, spd %d", req.num ,servo->min_val);
+        resp.resp = buffer;
     } 
 }
 //

@@ -18,55 +18,6 @@ class Manager:
     #/Params
     #Globals
     route = {}
-
-    ########## Subclasses
-    class Task:
-        micro_list = []
-        class Microtask:
-            class Condition:
-                def __init__(self, move_index, call_index, empty = True):
-                    if empty:
-                        pass
-                    else:
-                        self.move_index = move_index
-                        self.call_index = call_index
-                    pass
-                pass
-            class Call:
-                dict = {}
-                def __init__(self,name,args:tuple):
-                    self.name = str(name)
-                    self.exec = type(self).dict[name]
-                    self.args = args
-                    pass
-                @classmethod
-                def parse(cls,dict):
-                    cls.dict = calls_dict #FINISH THIS
-                pass
-            class Move:
-                def __init__(self,pos):
-                    self.pos = pos
-                pass
-            class Log:
-                def __init__(self,text):
-                    pass
-                pass
-            ############ Microtask
-            def __init__(self):
-                pass
-        ######### Task
-        def __init__(self):
-            self.micro_list.append(self.fetchNextMicro())
-        @classmethod
-        def fetchNextMicro(cls):
-            pass
-        #pass
-    class Interrupts(Task):
-        def __init__(self):
-            super().__init__(self)
-            pass
-        pass
-       
     ##################### Manager
     def __init__():
         pass
@@ -85,11 +36,57 @@ class Manager:
         for interrupt_name in cls.route["interrupts"]:
             pass
         for task_name in cls.route["tasks"]:
+            new_task = Task(cls.route["tasks"][task_name],task_name)
+
+    
+########## Subclasses
+class Task:
+    micro_list = []
+    class Microtasks:
+        class Conditions:
+            def __init__(self, move_index, call_index, empty = True):
+                if empty:
+                    pass
+                else:
+                    self.move_index = move_index
+                    self.call_index = call_index
+                pass
             pass
+        class Calls:
+            dict = {}
+            def __init__(self,name,args:tuple):
+                self.name = str(name)
+                self.exec = type(self).dict[name]
+                self.args = args
+                pass
+            @classmethod
+            def parse(cls):
+                cls.dict = calls_dict #FINISH THIS
+            pass
+        class Moves:
+            def __init__(self,pos):
+                self.pos = pos
+            pass
+        class Logs:
+            def __init__(self,text):
+                pass
+            pass
+        ############ Microtask
+        def __init__(self):
+            pass
+    ######### Task
+    def __init__(self,name:str, list:list):
+        self.name = name
+        for micro in self.parseMicroList(list):
+            self.micro_list.append(micro)
+    @classmethod
+    def parseMicroList(cls,list:list):
+        pass
+    #pass
+######################
+class Interrupts(Task):
+    pass
 
-    
-
-    
 
 if __name__=="__main__":
     Manager.read()

@@ -14,6 +14,6 @@
         <param name = "footprint_radius" value = "$(arg footprint_radius)"/>
     </node>
     <node pkg="ebobot" type="pid_setter.py" name="pid_setter">
-        <param name = "path" value = "$(find ebobot)/scripts/pid_settings.txt"/>
+        <param name = "path" value = "$(find ebobot)/config/pid_settings.txt"/>
     </node>
 </launch>
