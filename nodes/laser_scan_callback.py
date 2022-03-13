@@ -10,7 +10,8 @@ from dorlib import turnVect
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
-from nav_masgs.msg import Odometry, OccupancyGrid, Path, PoseStamped
+from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry, OccupancyGrid, Path
 from sensor_msgs.msg import LaserScan
 ######################
 rospy.init_node('laser_scan_callback')
@@ -24,6 +25,7 @@ rospy.init_node('laser_scan_callback')
 def robotPosCallback(odom):
     quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
     Laser.robot_pos = np.array([odom.pose.pose.position.y,odom.pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]]) 
+
 def costmapCallback(costmap):
     Laser.costmap_resolution = costmap.info.resolution
     Laser.costmap_height = costmap.info.height
@@ -70,8 +72,8 @@ class Laser:
     broadcaster = tf.TransformBroadcaster()
     adjust_publisher = rospy.Publisher(robot_pos_adj_topic, Odometry, queue_size = 5)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
-    laser_scan_subscriber = rospy.Subsrciber(laser_scan_topic,LaserScan,laserScanCallback)
-    robot_pos_subscriber = rospy.Subsrciber(robot_pos_topic,Odometry,robotPosCallback)
+    laser_scan_subscriber = rospy.Subscriber(laser_scan_topic,LaserScan,laserScanCallback)
+    robot_pos_subscriber = rospy.Subscriber(robot_pos_topic,Odometry,robotPosCallback)
     #/Topics
 
 
@@ -194,7 +196,7 @@ class Beacons(Laser):
         for num,coord in enumerate(raw_list):
             pos = cls.getPosition(coord)
             new_beacon = cls(pos,1)
-            pubMarker(pos,num,0,frame_name="expected_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,debug=Laser.debug,add=1)
+            pubMarker(pos,num,0,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=1,debug=Laser.debug,add=1)
         #cls.rel_list.append(new_beacon)
     @classmethod
     def initRelative(cls, pose):   
@@ -204,11 +206,11 @@ class Beacons(Laser):
     @classmethod
     def getExpected(cls):
         rel_poses = []
-        pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,b=1,debug=Laser.debug,deletall=1)
+        #pubMarker((0,0),0,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,add = 0)
         for num,beacon in enumerate(cls.expected_list):
             rel_pos = turnVect((beacon.pose[0]- Laser.robot_pos[0], beacon.pose[1] - Laser.robot_pos[1]), - Laser.robot_pos[2])
             rel_poses.append(rel_pos)  
-            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",duration=0,size=0.12,g=0,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,add=1)
         return rel_poses
     @classmethod
     def clearRelative(cls):
@@ -282,9 +284,9 @@ class Objects(Laser):
     #/Params
 
     #Topics
-    list_topic = rospy.get_param('~/obstacles/list_topic', Obstacles ,'obstacles')
+    list_topic = rospy.get_param('~/obstacles/list_topic' ,'obstacles')
     #
-    list_pub = rospy.Publisher(list_topic,Path,queue_size = 2)
+    list_pub = rospy.Publisher(list_topic,Obstacles,queue_size = 4)
     #/Topics
 
     list = []

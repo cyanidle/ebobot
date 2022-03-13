@@ -111,7 +111,7 @@ class Global(): ##Полная жопа
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',4)
-    robot_pos_topic =  rospy.get_param('~robot_pos_topic',"/odom")
+    
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
@@ -130,6 +130,7 @@ class Global(): ##Полная жопа
     costmap_update_topic = rospy.get_param('~costmap_update_topic','/costmap_server/updates')
     path_publish_topic =  rospy.get_param('~path_publish_topic', '/planers/global/path')
     pose_subscribe_topic =  rospy.get_param('~pose_subscribe_topic', 'move_base_simple/goal')
+    robot_pos_topic =  rospy.get_param('~robot_pos_topic',"/odom")
     ####
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
@@ -326,7 +327,8 @@ class Global(): ##Полная жопа
             rospy.logerr ("All start points failed! Goal ignored")
             Global.goal_reached = 1
         else:
-            rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
+            if Global.debug:
+                rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
         
     @staticmethod 
     def cleanupDeadEnds():
@@ -373,10 +375,10 @@ class Global(): ##Полная жопа
     @staticmethod
     def sendTransfrom(y , x, th):      
         Global.path_broadcaster.sendTransform(
-            (x, y, 0),
-            tf.transformations.quaternion_from_euler(0,0,th),
+            (0, 0, 0),
+            tf.transformations.quaternion_from_euler(0,0,0),
             rospy.Time.now(),
-            "odom",
+            "costmap",
             "rviz_path"
             )
     @staticmethod
@@ -407,8 +409,8 @@ class Global(): ##Полная жопа
                         Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
                         rviz.poses.append(r)
             target_pos = PoseStamped()
-            
-            rospy.loginfo(f"Last point {target}")
+            if Global.debug:
+                rospy.loginfo(f"Last point {target}")
             quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
             if Global.rviz_enable:
                 rviz_targ = PoseStamped()
@@ -460,7 +462,8 @@ def main():
                 Global.appendNextPos()
             if Global.goal_reached and not Global.target_set:
                 move_server.done(1)
-            rospy.loginfo(f"Last point {Global.list[-1]}")
+            if len(Global.list):
+                rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
             ######
             if Global.cleanup_feature:

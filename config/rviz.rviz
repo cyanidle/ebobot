@@ -8,9 +8,13 @@ Panels:
         - /Status1
         - /Map1
         - /Path1
-        - /TF1
+        - /TF1/Status1
+        - /TF1/Frames1
+        - /TF1/Tree1
         - /Marker1
         - /Marker1/Namespaces1
+        - /Odometry1/Shape1
+        - /Odometry1/Covariance1/Position1
       Splitter Ratio: 0.5058823823928833
     Tree Height: 719
   - Class: rviz/Selection
@@ -98,7 +102,17 @@ Visualization Manager:
         All Enabled: true
         costmap:
           Value: true
+        global_target_markers:
+          Value: true
+        local_current_target_markers:
+          Value: true
         map:
+          Value: true
+        odom:
+          Value: true
+        relative_beacon_markers:
+          Value: true
+        rviz_path:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -109,7 +123,16 @@ Visualization Manager:
       Tree:
         map:
           costmap:
-            {}
+            global_target_markers:
+              {}
+            local_current_target_markers:
+              {}
+            odom:
+              {}
+            relative_beacon_markers:
+              {}
+        rviz_path:
+          {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -117,9 +140,45 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        {}
+        global_target: true
+        local_current_target: false
       Queue Size: 100
       Value: true
+    - Angle Tolerance: 0.10000000149011612
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: false
+      Keep: 4
+      Name: Odometry
+      Position Tolerance: 0.10000000149011612
+      Queue Size: 10
+      Shape:
+        Alpha: 1
+        Axes Length: 0.20000000298023224
+        Axes Radius: 0.029999999329447746
+        Color: 255; 25; 0
+        Head Length: 0.019999999552965164
+        Head Radius: 0.009999999776482582
+        Shaft Length: 0.03999999910593033
+        Shaft Radius: 0.009999999776482582
+        Value: Arrow
+      Topic: /initialpose
+      Unreliable: false
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -147,7 +206,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -9.313225746154785e-10
+      Angle: -0.010000000707805157
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -157,10 +216,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 191.0332794189453
+      Scale: 337.8067626953125
       Target Frame: <Fixed Frame>
-      X: 1.7169028520584106
-      Y: 1.5376766920089722
+      X: 1.4702773094177246
+      Y: 0.5892400741577148
     Saved: ~
 Window Geometry:
   Displays:
