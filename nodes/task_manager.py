@@ -74,7 +74,7 @@ class Task:
                 #_, val = micro
                 self.text = val
                 return self.exec
-            def exec(self):
+            def exec(self,args):
                 text = self.text
                 pref = text[:2]
                 if pref == "L:":
@@ -114,19 +114,33 @@ class Interrupts(Task):
     def __init__(self):
         super().__init__(self)
         InterruptsServer.list.append(self)
-    def forceParse(self):
+    def forceCallParse(self):
         return self.action
     def forceCall(self):
         for micro in self.micros_list:
             micro.action()
     pass
+    def parseCond(self,arg):
+        pass
 class InterruptsServer:
     list = []
     pass
 class StatusServer:
+    class Timer:
+        pass
+    @staticmethod
+    def addStatus(obj):
+        pass
+    def __init__(self,args):
+
+
+        pass
     pass
+
+    
 ######################
 class Manager:
+
     #Params
     file = rospy.get_param("~file", "/config/routes/route1.yaml")
     #/Params
@@ -137,8 +151,9 @@ class Manager:
         "log": Task.Microtasks.Logs,
         "condition":Task.Microtasks.Conditions,
         "together": Task.Microtasks.Together,
-        "interrupt": Interrupts.forceParse,
-        "skip": Task.Microtasks.Skip
+        "interrupt": Interrupts.forceCallParse,
+        "skip": Task.Microtasks.Skip,
+        "inter_condition": Interrupts.parseCond
         }
     ##################### Manager
     # def __init__(self):

@@ -1,8 +1,9 @@
 interrupts:
   1:
+    - inter_condition: "service/epic_service/bad"
     - call: "test"
     - move: "1/1"
-    - condition: "service/epic_service/bad"
+    
   2: 
     - call: "test2"
 tasks:
