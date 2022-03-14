@@ -120,7 +120,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
   }
 }
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", speedCallback);
+ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
 
 /////////Adjustable !!!!!!!!!!
 float prop_coeff[] = {280, 280, 280};
@@ -157,7 +157,7 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
   if (pid_count > 8)
     pid_count = 0;
 }
-ros::Subscriber<std_msgs::Float32> set_pid("set_pid", setPidCallback);
+ros::Subscriber<std_msgs::Float32> set_pid("set_pid", &setPidCallback);
 //////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
