@@ -4,6 +4,7 @@
 #include <ebobot/Servos.h>
 #include <ebobot/ServosSettings.h>
 //
+#define MAX_SERVOS 16
 FaBoPWM servos_shield;
 //
 struct Servo_mot{
@@ -18,7 +19,7 @@ struct Servo_mot{
     };
 //
 int max_num = 0;
-struct Servo_mot *ptr_list[20];
+struct Servo_mot *ptr_list[MAX_SERVOS];
 //
 void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response &resp)
 {
@@ -41,13 +42,22 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
 //ebobot::ServosSettings::
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
 {
-    struct Servo_mot *servo = ptr_list[req.num];
-    servo->speed = req.speed;
-    servo->max_val = req.max_val;
-    servo->min_val = req.min_val;
-    char buffer[40];
-    sprintf(buffer, "Servo %d set to min %d, max%d, spd %d", req.num ,req.min_val,req.max_val, req.speed);
-    resp.resp = buffer;
+    if (num > MAX_SERVOS) resp.resp = "No servos left!";
+    else if (num > max_num){
+        createNewServo(req.num,req.channel,req.speed,req.min_val,req.max_val,0)
+    }
+    else{
+        struct Servo_mot *servo = ptr_list[req.num];
+        servo->channel = req.channel;
+        servo->speed = req.speed;
+        servo->max_val = req.max_val;
+        servo->min_val = req.min_val;
+        char buffer[40];
+        sprintf(buffer, "Servo %d set to ch %d, min %d, max%d, spd %d",
+        req.channel, req.num ,req.min_val,req.max_val, req.speed);
+        resp.resp = buffer;
+    }
+    
 }
 //ros::ServiceServer<ebobot::ServosSettings::Request, ebobot::ServosSettings::Response> server("servos_settings_service", &servoSettingsCallback);
 //
