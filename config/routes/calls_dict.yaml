@@ -1,21 +1,21 @@
 "ArmUp":
 - "servos_service":
-  - 0
-  - true
+  - num: 0
+  - state: true
 - "servos_service":
-  - 1
-  - false
+  - num: 1
+  - state: false
 - "servos_service":
-  - 2
-  - true
+  - num: 2
+  - state: true
   
 "ArmDown":
 - "servos_service":
-  - 0
-  - false
+  - num: 0
+  - state: false
 - "servos_service":
-  - 1
-  - true
+  - num: 1
+  - state: true
 - "servos_service":
-  - 2
-  - false
+  - num: 2
+  - state: false

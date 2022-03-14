@@ -10,6 +10,7 @@
 #include "TimerMs.h"
 ///////////////////////////
 #include "servos.h"
+#include "kadyrov_lcd.h"
 ////////////////////////////Все скорости в мм/с
 ////////////////////////////ROS init
 ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh; //1532 for publish and 1024 receive
@@ -235,8 +236,10 @@ void setup()
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
+  //
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
+  nh.advertiseService(lcd_server);
   //
   servos_shield.begin();
   servos_shield.set_hz(1526);
@@ -246,7 +249,9 @@ void setup()
   //createNewServo(3,3,5,0,200,0);
   //createNewServo(4,4,5,0,200,0);
   //
+  lcdSetup();
 
+  //
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
   motors_msg.layout.dim_length = 2;
