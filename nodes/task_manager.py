@@ -35,9 +35,6 @@ class Task:
                 self.yes = self.parseDo(items[1])
                 self.no = self.parseElse(items[2])
             def parseIf(self,args):
-
-
-
                 pass                    # PLS DO LATER
             def parseDo(self,args):
                 return Task.Microtasks.getExec(args)
@@ -61,10 +58,15 @@ class Task:
             dict = executer_dict()
             def __init__(self,name,args:tuple):
                 self.args = args
-                self.call = type(self).dict[name]
+                self.call, self.status_name = type(self).dict[name]
+                self.curr_status = None
                 return self.exec 
             def exec(self):
-                self.call(self.args)
+                self.curr_status = self.call(self.args)
+            def status(self):
+                return self.status
+            def statusUpdate(self):
+                pass
         class Moves:
             def __init__(self,pos):
                 self.pos = pos
@@ -125,23 +127,34 @@ class Interrupts(Task):
 class InterruptsServer:
     list = []
     pass
-class StatusServer:
-    class Timer:
-        pass
+class StatusServer:    ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD, AND A STATUS_NAME ATTRIBUTE
+    dict = []          ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
+    class Timer:     
+        def __init__(self) -> None:
+            self.time = 0
+            self.ros_time = rospy.Time.now()
+            StatusServer.addStatus(self)
+        def status(self):
+            return self.time
+        def updateStatus(self):
+            self.time = (rospy.Time.now() - self.ros_time).to_sec()
     @staticmethod
     def addStatus(obj):
-        pass
+        StatusServer.list.append(obj)
     def __init__(self,args):
-
-
         pass
-    pass
+    @staticmethod
+    def update():
+        for obj in StatusServer.list:
+            obj.updateStatus()
+
 
     
 ######################
 class Manager:
 
     #Params
+    update_rate = rospy.get_param("~update_rate", 5)
     file = rospy.get_param("~file", "/config/routes/route1.yaml")
     #/Params
     #Globals
@@ -152,8 +165,7 @@ class Manager:
         "condition":Task.Microtasks.Conditions,
         "together": Task.Microtasks.Together,
         "interrupt": Interrupts.forceCallParse,
-        "skip": Task.Microtasks.Skip,
-        "inter_condition": Interrupts.parseCond
+        "skip": Task.Microtasks.Skip
         }
     ##################### Manager
     # def __init__(self):
@@ -184,6 +196,14 @@ class Manager:
 
 def main():
     Manager.read()
+    Manager.parse()
+    timer = StatusServer.Timer()
+    rate = rospy.Rate(Manager.update_rate)
+    while not rospy.is_shutdown():
+        StatusServer.update()
+        rate.sleep()
+
+
 
 ####
 if __name__=="__main__":
