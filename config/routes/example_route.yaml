@@ -1,6 +1,6 @@
 interrupts:
   1:
-    - inter_condition: "service/epic_service/bad"
+    - inter_condition: "calls/epic_service/bad"
     - call: "test"
     - move: "1/1"
     

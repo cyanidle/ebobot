@@ -307,7 +307,7 @@ void loop(){
   }
 
   if (servo_loop.tick()){
-    debugServo(0);
+    //debugServo(0);
     servosUpdate();
   }
   motors_info.publish(&motors_msg);
