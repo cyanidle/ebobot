@@ -10,6 +10,11 @@ bool servosSetup(){
   if (servos_shield.begin()){
     servos_shield.init(300);
     servos_shield.set_hz(400);
+    ////
+    ////servos_shield.set_channel_value(9,90);
+    //delay(500);
+    //servos_shield.set_channel_value(9,500);
+    ////
     return true;
   }
 }
@@ -83,24 +88,24 @@ void servoUp(struct Servo_mot *servo){
     int max = servo->max_val;
     //int curr = servo->curr_val;
     int spd = servo->speed;
-    if ((max - servo->curr) > spd) servo->curr += spd;
+    if ((max - servo->curr_val) > spd) servo->curr_val += spd;
     else {
-        servo->curr = max;
+        servo->curr_val = max;
         servo->state = true;
     }
-    servos_shield.set_channel_value(servo->channel,servo->curr);
+    servos_shield.set_channel_value(servo->channel,servo->curr_val);
     //return servo->max_val;
 }
 void servoDown(struct Servo_mot *servo){
     int min = servo->min_val;
     //int curr = servo->curr_val;
     int spd = servo->speed;
-    if (abs(min - servo->curr) > spd) servo->curr -= spd;
+    if (abs(min - servo->curr_val) > spd) servo->curr_val -= spd;
     else {
-        servo->curr = min;
+        servo->curr_val = min;
         servo->state = false;
     }
-    servos_shield.set_channel_value(servo->channel,servo->curr);
+    servos_shield.set_channel_value(servo->channel,servo->curr_val);
     //return servo->min_val;
 }
 void servosUpdate(){

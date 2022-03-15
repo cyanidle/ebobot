@@ -234,8 +234,8 @@ void debugServo(int num){
     int target;
     if (servo->target_state) target = 1;
     else target = 0;
-    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d",
-    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target);
+    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
+    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
     nh.loginfo(buffer);
 }
 /////////////////////////////////////////////////
