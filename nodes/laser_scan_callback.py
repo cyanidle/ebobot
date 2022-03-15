@@ -34,23 +34,29 @@ def robotPosCallback(odom):
 #     Laser.costmap= np.reshape(costmap.data,(Laser.costmap_height, Laser.costmap_width))  
 #     #Laser.debug_map = Laser.costmap
 def laserScanCallback(scan):
-    Laser.angle_min = scan.angle_min
-    Laser.angle_max = scan.angle_max
-    Laser.angle_increment = scan.angle_increment
-    Laser.time_increment = scan.time_increment
-    Laser.scan_time  = scan.scan_time 
-    Laser.range_min  = scan.range_min
-    Laser.range_max = scan.range_max
-    Laser.ranges = scan.ranges 
-    Laser.intensities  = scan.intensities
-    if not Laser.angles_done:
-        Laser.precalcCoeffs()
-    Laser.update()
+    if Laser.skipped_counter < Laser.skip_scans:
+        Laser.skipped_counter += 1
+    else:
+        Laser.skipped_counter = 0
+        Laser.angle_min = scan.angle_min
+        Laser.angle_max = scan.angle_max
+        Laser.angle_increment = scan.angle_increment
+        Laser.time_increment = scan.time_increment
+        Laser.scan_time  = scan.scan_time 
+        Laser.range_min  = scan.range_min
+        Laser.range_max = scan.range_max
+        Laser.ranges = scan.ranges
+        Laser.intensities  = scan.intensities
+        if not Laser.angles_done:
+            Laser.precalcCoeffs()
+        Laser.update()
 
 
 class Laser:
     #Features
     debug = rospy.get_param("~debug",1)
+    skip_scans = rospy.get_param("~skipped_scans",1)  #number of skipped per update
+    skipped_counter = 0
     #/Features
 
     #Params
@@ -62,6 +68,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.2)
     dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.05) #in meters
     #
+    
     update_rate = rospy.get_param("~update_rate",1) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
@@ -128,10 +135,8 @@ class Laser:
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
-                meters_pos = np.array((range * y_coeff, range * x_coeff))
-                
-                prob_meters_pos = np.array(turnVect(meters_pos + cls.robot_pos[:2],  -cls.robot_pos[2] + cls.rads_offset))
-                
+                meters_pos = np.array((range * y_coeff, range * x_coeff))          
+                prob_meters_pos = turnVect(meters_pos + cls.robot_pos[:2],  cls.robot_pos[2] + cls.rads_offset)   
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     cls.new_list.append((prob_meters_pos,intensity))
@@ -163,7 +168,6 @@ class Laser:
         "(Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x = y = 0
         for pos in poses:
-            #print(pos)
             y += pos[0]
             x += pos[1]
         max = len(poses)
@@ -215,12 +219,9 @@ class Beacons(Laser):
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
             new_beacon = cls(coord,expected = 1)
-            #pubMarker(coord,num,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=0,b=1,debug=Laser.debug,add=1)
     @classmethod
     def initRelative(cls, pose):   
         beacon = cls(pose) #initialisation auto-appends objects to their list
-        #pubMarker(pose,1,frame_name="first_found_beacon",type="cylinder",duration=0.4,size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
-            
     @classmethod
     def getRelative(cls):
         rel_poses = []
