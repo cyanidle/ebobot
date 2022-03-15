@@ -58,9 +58,7 @@ class Laser:
     skip_scans = rospy.get_param("~skipped_scans",1)  #number of skipped per update
     skipped_counter = 0
     #/Features
-
     #Params
-    
     #
     minimal_x = rospy.get_param('~minimal_x', -0.1)
     maximum_x = rospy.get_param('~maximum_x', 2.2)
@@ -68,25 +66,19 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.2)
     dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.05) #in meters
     #
-    
     update_rate = rospy.get_param("~update_rate",1) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
-
     #Topics
-    #costmap_topic = rospy.get_param('~costmap_topic','/costmap')
     laser_scan_topic = rospy.get_param("~laser_scan_topic", "/scan")
     robot_pos_topic = rospy.get_param("~robot_pos_topic", "/odom")
     robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "/initialpose")
     #
     broadcaster = tf.TransformBroadcaster()
     adjust_publisher = rospy.Publisher(robot_pos_adj_topic, PoseWithCovarianceStamped, queue_size = 5)
-    #costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
     laser_scan_subscriber = rospy.Subscriber(laser_scan_topic,LaserScan,laserScanCallback)
     robot_pos_subscriber = rospy.Subscriber(robot_pos_topic,Odometry,robotPosCallback)
     #/Topics
-
-
     #Global values
     new_list = []
     list = []
@@ -105,9 +97,6 @@ class Laser:
     costmap = []
     robot_pos = np.array([0,0,0])
     #/Global values
-
-
-
     @classmethod
     def precalcCoeffs(cls):
         for num in range(int(round(Laser.angle_min/cls.angle_increment)),
@@ -129,7 +118,6 @@ class Laser:
     ###############
     @classmethod
     def update(cls):
-        #cls.abs_list.clear()
         cls.new_list.clear()
         cls.updateTF()
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
@@ -154,10 +142,9 @@ class Laser:
                 dist = np.linalg.norm(pose - Laser.list[prev_num][0])
                 if dist<cls.dist_dots_threshhold:
                     curr_obst.append(pose)
-                    #print(f"Appending to obst {pose}")
                 else:
                     if Laser.debug and len(curr_obst):
-                        print(f"Found obstacle! {len(curr_obst) = }")
+                        print(f"Found obstacle! {len(curr_obst) = }, {curr_obst = }")
                     if 0 < len(curr_obst) < Beacons.dots_thresh:
                         Beacons.initRelative(cls.getPosition(curr_obst))
                     elif 0 < len(curr_obst) < Objects.dots_thresh:
@@ -174,10 +161,6 @@ class Laser:
         point = (y/max,x/max)
     
         return point
-    
-
-
-
 #################################################################
 class Beacons(Laser):
     #Beacon params
@@ -192,10 +175,7 @@ class Beacons(Laser):
     raw_list.append(rospy.get_param('~/beacons/beacon2',[154*0.02,2*0.02])) #in meters
     raw_list.append(rospy.get_param('~/beacons/beacon3',[-3*0.02,50*0.02])) #in meters
     #############
-    
-    
     #/Beacon params
-
     #Globals
     delta_th = 0
     delta_pos = (0,0)
@@ -203,18 +183,14 @@ class Beacons(Laser):
     expected_list = []
     rel_list = []
     #/Globals
-
     def __init__(self,pos:tuple,expected:int = 0):
-        #rospy.logerr(f"{pos =}")
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
-            
         else:
             Beacons.rel_list.append(self)
     def __sub__(self,other):
         return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
-
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
@@ -258,7 +234,6 @@ class Beacons(Laser):
             if cls.enable_adjust:
                 cls.publishAdjust()
             cls.rel_list.clear()
-            
     @classmethod
     def publishAdjust(cls):
         new = PoseWithCovarianceStamped()
@@ -272,13 +247,6 @@ class Beacons(Laser):
         new.pose.pose.orientation.z = new_quat[2]
         new.pose.pose.orientation.w = new_quat[3]
         cls.adjust_publisher.publish(new)
-
-       
-#################################################################        
-    
-
-
-
 #################################################################
 class Objects(Laser):
 
