@@ -50,22 +50,25 @@ def laserScanCallback(scan):
 
 class Laser:
     #Features
-    debug = rospy.get_param("~/debug",1)
+    debug = rospy.get_param("~debug",1)
     #/Features
 
     #Params
     
-    
-    dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.1) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",5) #updates/sec
-    rads_offset = rospy.get_param("~rads_offset",1.5) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
-    costmap_resolution = rospy.get_param("~costmap_resolution",0.02) #meters/cell
+    minimal_x = rospy.get_param('~minimal_x', -0.1)
+    maximum_x = rospy.get_param('~maximum_x', 2.2)
+    minimal_y = rospy.get_param('~minimal_y ', -0.1)
+    maximum_y = rospy.get_param('~maximum_y', 3.2)
+    dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.05) #in meters
+    #
+    update_rate = rospy.get_param("~update_rate",0.5) #updates/sec
+    rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
 
     #Topics
     #costmap_topic = rospy.get_param('~costmap_topic','/costmap')
-    laser_scan_topic = rospy.get_param("~laser_scan_topic", "/laser_scan")
+    laser_scan_topic = rospy.get_param("~laser_scan_topic", "/scan")
     robot_pos_topic = rospy.get_param("~robot_pos_topic", "/odom")
     robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "/initialpose")
     #
@@ -100,14 +103,15 @@ class Laser:
 
     @classmethod
     def precalcCoeffs(cls):
-        for num in range(Laser.angle_min, Laser.angle_max):
+        for num in range(int(round(Laser.angle_min/cls.angle_increment)),
+         int(round(Laser.angle_max/cls.angle_increment))):
             Laser.coeffs.append((cos(Laser.angle_increment*num),sin(Laser.angle_increment*num))) 
         cls.angles_done = 1
     #####################
     @classmethod
     def updateTF(cls):
-        quat = tf.transformations.quaternion_from_euler(0,0,-cls.robot_pos[2]-cls.rads_offset)
-        cls.laser_broadcaster.sendTransform(
+        quat = tf.transformations.quaternion_from_euler(0,0,cls.robot_pos[2]-cls.rads_offset)
+        cls.broadcaster.sendTransform(
             (cls.robot_pos[1], cls.robot_pos[0], 0),
             quat,
             rospy.Time.now(),
@@ -124,8 +128,9 @@ class Laser:
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
                 meters_pos = np.array((range * y_coeff, range * x_coeff))
-                prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  -cls.robot_pos[2] + cls.rads_offset))
-                cls.new_list.append((prob_meters_pos,intensity))
+                prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  cls.robot_pos[2] + cls.rads_offset))
+                if cls.minimal_x < prob_meters_pos[1] < cls.maximum_x and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y:
+                    cls.new_list.append((prob_meters_pos,intensity))
         cls.list = cls.new_list
         cls.findRelative()
     @classmethod
@@ -137,13 +142,14 @@ class Laser:
         for prev_num, scan in enumerate(Laser.list[1:]):
             pose, intencity = scan
             #x,y = pose
-            dist = np.linalg.norm(pose - Laser.list[prev_num])
+            dist = np.linalg.norm(pose - Laser.list[prev_num][0])
+            #print(f"{pose =} {Laser.list[prev_num]=}")
             if dist<cls.dist_dots_threshhold:
                 curr_obst.append(pose)
             else:
-                if len(curr_obst) < Beacons.dots_thresh:
+                if 0 < len(curr_obst) < Beacons.dots_thresh:
                     Beacons.initRelative(cls.getPosition(curr_obst))
-                elif len(curr_obst) < Objects.dots_thresh:
+                elif 0 < len(curr_obst) < Objects.dots_thresh:
                     Objects(cls.getPosition(curr_obst))
                 curr_obst.clear()
         #Obstacles.send()
@@ -152,23 +158,29 @@ class Laser:
         "(Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x = y = 0
         for pos in poses:
+            #print(pos)
             y += pos[0]
             x += pos[1]
         max = len(poses)
         point = (y/max,x/max)
         return point
+    
 
 
 
 #################################################################
 class Beacons(Laser):
     #Beacon params
-    dots_thresh = rospy.get_param('~/beacons/dots_thresh', 4) #num
+    # Features
+    enable_adjust = rospy.get_param('~/beacons/enable_adjust', 0)
+    # /Features
+    ###
+    dots_thresh = rospy.get_param('~/beacons/dots_thresh', 50) #num
     #############
     raw_list = []
-    raw_list.append(rospy.get_param('~/beacons/beacon1',[154*0.02,2*0.02])) #in meters, first beacon is top-left, then - counterclockwise
-    raw_list.append(rospy.get_param('~/beacons/beacon2',[-3*0.02,50*0.02])) #in meters
-    raw_list.append(rospy.get_param('~/beacons/beacon3',[154*0.02,99*0.02])) #in meters
+    raw_list.append(rospy.get_param('~/beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
+    raw_list.append(rospy.get_param('~/beacons/beacon2',[154*0.02,2*0.02])) #in meters
+    raw_list.append(rospy.get_param('~/beacons/beacon3',[-3*0.02,50*0.02])) #in meters
     #############
     
     
@@ -183,94 +195,100 @@ class Beacons(Laser):
     #/Globals
 
     def __init__(self,pos:tuple,expected:int = 0):
+        #rospy.logerr(f"{pos =}")
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
             
         else:
             Beacons.rel_list.append(self)
-
+    def __sub__(self,other):
+        return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
 
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
+            #rospy.logerr(f"Initing exp list with {cls.raw_list}")
             #pos = cls.getPosition(coord)
             new_beacon = cls(coord,expected = 1)
-            #print(num,coord)
-            pubMarker(coord,num,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=0,b=1,debug=Laser.debug,add=1)
+            #pubMarker(coord,num,frame_name="expected_beacon",type="cylinder",size=0.12,g=0,r=0,b=1,debug=Laser.debug,add=1)
         #cls.rel_list.append(new_beacon)
     @classmethod
     def initRelative(cls, pose):   
         beacon = cls(pose) #initialisation auto-appends objects to their list
-        pubMarker(pose,1,frame_name="first_found_beacon",type="cylinder",duration=0.4,size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
+        #pubMarker(pose,1,frame_name="first_found_beacon",type="cylinder",duration=0.4,size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
             
     @classmethod
-    def getExpected(cls):
+    def getRelative(cls):
         rel_poses = []
         #pubMarker((0,0),0,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=0,r=1,b=1,debug=Laser.debug,add = 0)
         for num,beacon in enumerate(cls.rel_list):
             rel_pos = turnVect((beacon.pose[0], beacon.pose[1]), Laser.robot_pos[2])
             rel_pos = (rel_pos[0] - Laser.robot_pos[0],  rel_pos[1] - Laser.robot_pos[1])
-            rel_poses.append(rel_pos)  
-            pubMarker(rel_pos,num,1,frame_name="relative_beacon",type="cylinder",size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            Beacons(rel_pos)
+            pubMarker(rel_pos,num,5,frame_name="relative_beacon",type="cylinder",size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
         return rel_poses
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
-    @staticmethod
-    def rearrangeExpList(exp_list, rel_list):
-        "ITS IMPORTANT to pass relative list second"
-        new_exp_list = ['empty' for _ in range(len(exp_list))]
-        for rel_beacon in rel_list:
-            min_dist = 100 #should be more than any dist
-            min_num = 0
-            for num,exp_beacon in enumerate(exp_list):
-                dist = np.linalg.norm(rel_beacon.pose - exp_beacon.pose)
-                if dist < min_dist:
-                    min_num = num
-                    min_dist = dist
-            new_exp_list[min_num] = rel_beacon
-        new_exp_list[:] = [pos for pos in new_exp_list if pos != 'empty']
-        return new_exp_list
+    # @staticmethod
+    # def rearrangeExpList(exp_list, rel_list):
+    #     "ITS IMPORTANT to pass relative list second"
+    #     new_exp_list = ['empty' for _ in range(len(exp_list))]
+    #     #print (new_exp_list)
+    #     rel_list = rel_list[:3]
+    #     print(rel_list)
+    #     for num, rel_beacon in enumerate(rel_list):
+    #         min_dist = 100 #should be more than any dist
+    #         min_num = 0
+    #         dist = np.linalg.norm(rel_beacon - exp_list[0])
+    #         if dist < min_dist:
+    #             min_num = num
+    #             min_dist = dist
+    #     new_exp_list[min_num] = rel_beacon
+    #     print (new_exp_list)
+    #     new_exp_list[:] = [pos for pos in new_exp_list if pos != 'empty']
+    #     print (new_exp_list)
+    #     return new_exp_list
     @classmethod
     def update(cls):
-        "The most importatnt func in localization"
-        exp_list = np.array(cls.getExpected())
+
+        "The most important func in localization"
+        exp_list = np.array(cls.expected_list)
         rel_list = np.array(cls.rel_list)
-        exp_list = cls.rearrangeExpList(exp_list, rel_list)
         if len(rel_list) < 2:
-            rospy.logwarn("Less than 2 beacons found")
-            return
+            cls.rel_list.clear()
         else:
-            exp, rel =exp_list[:2],rel_list[:2] #cuts off the first two beacons
-            rel_line = np.array(     (rel[0][0]-rel[1][0],    rel[0][1]-rel[1][1])   )
-            exp_line = np.array(     (exp[0][0]-exp[1][0],    exp[0][1]-exp[1][1])   )
+            rel_line = []
+            exp_line = []
+            rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+            exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             cls.delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[0]-exp_line[0])  ) #try changing the order of division and sign if fails
-            rel = map(turnVect, rel, [cls.delta_th]*2) #turn both beacons
-            # get d_x adn d_y
+            rel_line = turnVect( rel_line, cls.delta_th) #turn both beacons
             d_x = d_y = 0
             for i in range(2):
-                d_y += rel[i][0] - exp[i][0]
-                d_x += rel[i][1] - exp[i][1]
+                d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
+                d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
             d_y = d_y/2
             d_x = d_x/2
             #
             cls.delta_pos = (d_y,d_x)
-            cls.publishAdjust()
-        cls.rel_list.clear()
+            if cls.enable_adjust:
+                cls.publishAdjust()
+            cls.rel_list.clear()
             
     @classmethod
     def publishAdjust(cls):
         new = PoseWithCovarianceStamped()
         new.header.stamp = rospy.Time.now()
         new.header.frame_id = "initialpose"
-        new_quat = tf.transformations.quaternion_from_euler(0, 0, cls.robot_pos[2] + cls.delta_th)
-        new.pose.position.x = cls.robot_pos[1] + cls.delta_pos[1]
-        new.pose.position.y = cls.robot_pos[0] + cls.delta_pos[0]
-        new.pose.orientation.x = new_quat[0]
-        new.pose.orientation.y = new_quat[1]
-        new.pose.orientation.z = new_quat[2]
-        new.pose.orientation.w = new_quat[3]
+        new_quat = tf.transformations.quaternion_from_euler(0, 0, cls.robot_pos[2] - cls.delta_th)
+        new.pose.pose.position.x = cls.robot_pos[1] + cls.delta_pos[1]
+        new.pose.pose.position.y = cls.robot_pos[0] + cls.delta_pos[0]
+        new.pose.pose.orientation.x = new_quat[0]
+        new.pose.pose.orientation.y = new_quat[1]
+        new.pose.pose.orientation.z = new_quat[2]
+        new.pose.pose.orientation.w = new_quat[3]
         cls.adjust_publisher.publish(new)
 
        
@@ -283,7 +301,7 @@ class Beacons(Laser):
 class Objects(Laser):
 
     #Params
-    dots_thresh = rospy.get_param('~/obstacles/dots_thresh', 10) #num
+    dots_thresh = rospy.get_param('~/obstacles/dots_thresh', 200) #num
     #/Params
 
     #Topics
@@ -293,21 +311,22 @@ class Objects(Laser):
     #/Topics
 
     list = []
-    def __init__(self, dots_list:list):
-        self.pose = Obstacles.getPosition(dots_list)
-        Obstacles.list.append(self)
+    def __init__(self, pose):
+        self.pose = pose
+        type(self).list.append(self)
     
     @classmethod
     def send(cls):
         msg = Obstacles()
         #msg.header.frame_id = "obstacles"
         #msg.header.stamp = rospy.Time.now()
-        for obst in cls.list:
+        for num,obst in enumerate(cls.list):
             #cls.
             obstacle = Obstacle()
+            pubMarker(obst.pose,num,5,frame_name="objects",type="cube",size=0.2,g=0,r=1,b=0,debug=Laser.debug,add=1)
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
-            obstacle.size = 0 #PLACEHOLDER
+            obstacle.radius = 0 #PLACEHOLDER
             msg.data.append(obstacle)
         cls.list_pub.publish(msg)
     @classmethod

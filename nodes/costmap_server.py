@@ -189,14 +189,13 @@ class Costmap():
         for y, x in cls.grid_parser:
             #print(x,y)
             msg.data.append(int(cls.grid[y][x]))
-        zero_quat = tf.transformations.quaternion_from_euler(0,0,0)
-        # #cls.costmap_broadcaster.sendTransform(
-        #     (0, 0, 0),
-        #     zero_quat,
-        #     curr_time ,
-        #     "costmap",
-        #     "map" ##???
-        #     )
+        cls.costmap_broadcaster.sendTransform(
+            (0, 0, 0),
+            tf.transformations.quaternion_from_euler(0,0,0),
+            curr_time ,
+            "costmap",
+            "map" ##???
+            )
         cls.grid_publisher.publish(msg)
 
 

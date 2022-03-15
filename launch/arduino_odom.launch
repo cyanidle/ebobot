@@ -3,7 +3,7 @@
 <arg name="port" default="/dev/ttyACM0"/>
 <arg name="arduino_baud" default="57600"/>
 <arg name="debug" default="0"/>
-<arg name="footprint_radius" default="0.10"/>
+<arg name="footprint_radius" default="0.15"/>
 
 <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" respawn="true" respawn_delay="10">
         <param name="port" value="$(arg port)"/>

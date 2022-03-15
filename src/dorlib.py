@@ -31,7 +31,7 @@ def dCoordsInRad(rad: int,resolution:int = 3):
     #print (list)
     return list
 
-def turnVect(vect: tuple,turn: float, dims = 2):
+def turnVect(vect,turn: float, dims = 2):
     "Turn vector using complex rotor by (turn) rads"
     rotor = cos(turn) + 1j*sin(turn)
     if dims == 2:
