@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from nodes.laser_scan_callback import Objects
+#from nodes.laser_scan_callback import Objects
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -24,7 +24,9 @@ rospy.init_node('costmap_server')
 def obstaclesCallback(obst):
     Objects.clear()
     for obj in obst.data:
-        Objects((obj.y, obj.x),obj.radius)
+        if Costmap.debug:
+            rospy.loginfo(f"Got new object {obj.y =} {obj.x =}")
+        Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),obj.radius/Costmap.resolution)
 
 class Costmap():
     #Params
@@ -32,7 +34,7 @@ class Costmap():
     write_map_enable = rospy.get_param('~write_map_enable', 1)
     debug = rospy.get_param('~debug', 1)
     interpolate_enable = rospy.get_param('~interpolate_enable',1)
-    inflate_enable = rospy.get_param('~inflate_enable',  1  )
+    inflate_enable = rospy.get_param('~inflate_enable',  1 )
     super_debug = rospy.get_param('~super_debug',0)
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
@@ -76,6 +78,7 @@ class Costmap():
     height = int(len(pixels))
     width = int(len(pixels[0]))
     grid = []
+    mask = np.full((height,width),0)
     for _ in range(height):
         row = []
         for _ in range(width):
@@ -146,7 +149,8 @@ class Costmap():
             for dy, dx in interpolation_list:
                 rospy.loginfo_once('Interpolation working...')
                 new_y,new_x = y+dy,x+dx
-                if new_x <= cls.width-cls.interpolation_radius and new_x > cls.interpolation_radius and new_y  <= cls.height-cls.interpolation_radius and new_y  > cls.interpolation_radius:
+                if (new_x <= cls.width-cls.interpolation_radius and new_x > cls.interpolation_radius
+                 and new_y  <= cls.height-cls.interpolation_radius and new_y  > cls.interpolation_radius):
                     sum += cls.grid[new_y][new_x]
                     num += 1
             if num:
@@ -186,17 +190,7 @@ class Costmap():
                 data_list.append(cls.grid[y][x])
         msg.data = data_list
         cls.grid_update_publisher.publish(msg)
-    @classmethod
-    def updateObstacles(cls):
-        if Objects.use_default:
-            for obst in Objects.list:
-                 for y, x in obst.getCoords():
-                    cls.grid[y][x] += obst.getInflation()   
-        else:
-            for obst in Objects.list:
-                default_obstacle.pos = obst.pos
-                for y, x in default_obstacle.getCoords():
-                    cls.grid[y][x] += default_obstacle.getInflation()
+
                
     @classmethod
     def publish(cls): ###An example
@@ -209,7 +203,11 @@ class Costmap():
         msg.info.width = cls.width
         for y, x in cls.grid_parser:
             #print(x,y)
-            msg.data.append(int(cls.grid[y][x]))
+            data = int(cls.grid[y][x] + cls.mask[y][x])
+            if data > 100:
+                data = 100
+            msg.data.append(data)
+        
         cls.costmap_broadcaster.sendTransform(
             (0, 0, 0),
             tf.transformations.quaternion_from_euler(0,0,0),
@@ -226,28 +224,62 @@ class Objects:
     use_default = rospy.get_param('~obstacles/use_default',1)
 
     #
+
+    base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',150)
+    #
     topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
     ######################################
-    subscriber = rospy.Subscriber(topic, Obstacles)
+    subscriber = rospy.Subscriber(topic, Obstacles, obstaclesCallback)
     #/Obstacle params
 
     #globals
     list = []
 
-    def __init__(self,pos,radius,resolution = 8):
+    def __init__(self,pos,radius,resolution = 10, default = 0):
         self.delta_coords = dCoordsInRad(radius,resolution)
-        for
         self.pos = pos
-        Objects.list.append(self)
+        self.inflation = [100]
+        for y,x in self.delta_coords[1:]:
+            infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
+            if infl > 100:
+                infl = 100
+            self.inflation.append(infl)
+        if not default:
+            Objects.list.append(self)
     @staticmethod
     def clear():
         Objects.list.clear()
+    @staticmethod
+    def updateMask():
+        Costmap.mask = np.full((Costmap.height,Costmap.width),0)
+        if not Objects.use_default:
+            for obst in Objects.list:
+                 for coords,inflation  in zip(obst.getCoords(),obst.inflation):
+                    y, x  = coords
+                    y, x = int(y), int(x)
+                    rospy.loginfo(f"{x =}, {y = }, {inflation =}")
+                    if 0 < x < Costmap.width and 0 < y < Costmap.height:
+                        Costmap.mask[y][x] += inflation
+                        if Costmap.mask [y][x] > 100:
+                            Costmap.mask [y][x] = 100
+        else:
+            for obst in Objects.list:
+                default_obstacle.pos = obst.pos
+                for coords,inflation in zip(default_obstacle.getCoords(),default_obstacle.inflation):
+                    #if Costmap.debug:
+                        #rospy.loginfo(f"{coords =} {inflation =}")
+                    y, x  = coords
+                    y,x = int(y), int(x)
+                    if 0 < x < Costmap.width and 0 < y < Costmap.height:
+                        Costmap.mask[y][x] += inflation
+                        if Costmap.mask [y][x] > 100:
+                            Costmap.mask [y][x] = 100
     def getCoords(self) -> list:
-        coords = []
+        #coords = [] 
         for y,x in self.delta_coords:
-            coords.append(  (self.pos[0] + y , self.pos[1] + x)       )
-        return coords
-default_obstacle = Objects((0,0), 30)
+            yield  (self.pos[0] + y , self.pos[1] + x)       
+        #return coords
+default_obstacle = Objects((0,0), 20, default=1)
 
 
 def main():
@@ -261,7 +293,7 @@ def main():
     Costmap.initCostmap()
     Costmap.publish()
     while not rospy.is_shutdown():
-        Costmap.updateObstacles()
+        Objects.updateMask()
         Costmap.publish()
         rate.sleep()
 

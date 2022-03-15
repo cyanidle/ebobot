@@ -11,6 +11,7 @@
         <param name = "file_dir" value = "$(find ebobot)/config/costmap"/>
         <param name = "file" value = "$(find ebobot)/config/costmap/costmap.png"/>
         <param name = "base_inflation_coeff" value = "$(arg base_inflation_coeff)"/>
+        <param name = "inflate_enable" value = "1"/>
     </node>
     
 </launch>

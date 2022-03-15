@@ -14,7 +14,6 @@ Panels:
         - /Marker1
         - /Marker1/Namespaces1
         - /LaserScan1
-        - /LaserScan1/Status1
       Splitter Ratio: 0.6823529601097107
     Tree Height: 407
   - Class: rviz/Selection
@@ -102,8 +101,6 @@ Visualization Manager:
         All Enabled: true
         costmap:
           Value: true
-        first_found_beacon_markers:
-          Value: true
         laser:
           Value: true
         map:
@@ -111,8 +108,6 @@ Visualization Manager:
         objects_markers:
           Value: true
         odom:
-          Value: true
-        relative_beacon_markers:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -123,15 +118,11 @@ Visualization Manager:
       Tree:
         map:
           costmap:
-            first_found_beacon_markers:
-              {}
             laser:
               {}
             objects_markers:
               {}
             odom:
-              {}
-            relative_beacon_markers:
               {}
       Update Interval: 0
       Value: true
@@ -140,9 +131,7 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        first_found_beacon: true
         objects: true
-        relative_beacon: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -200,7 +189,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.3783574104309082e-07
+      Angle: -2.3469328880310059e-07
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -210,10 +199,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 146.31198120117188
+      Scale: 162.54296875
       Target Frame: <Fixed Frame>
-      X: 1.3603692054748535
-      Y: 0.7257851958274841
+      X: 1.1525554656982422
+      Y: 1.7687654495239258
     Saved: ~
 Window Geometry:
   Displays:
@@ -231,5 +220,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1294
-  X: 72
-  Y: 27
+  X: 191
+  Y: 220
