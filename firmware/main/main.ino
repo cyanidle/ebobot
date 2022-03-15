@@ -5,13 +5,13 @@
 #include <std_msgs/MultiArrayDimension.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
- ////Если не работает - погуглить, как правильно добавлять сервисы
 /////////////////////////
 #include "TimerMs.h"
 ///////////////////////////
 #include "servos.h"
 #include "kadyrov_lcd.h"
 ////////////////////////////Все скорости в мм/с
+
 ////////////////////////////ROS init
 ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh; //1532 for publish and 1024 receive
 std_msgs::Float32MultiArray motors_msg;
@@ -37,7 +37,7 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 ///////////////////////Loop settings
 int loop_delay = 50;
 TimerMs main_loop(loop_delay, 1, 0);
-TimerMs servo_loop(20, 1, 0);
+TimerMs servo_loop(100, 1, 0);
 ///////////////////////// ENCODER
 
 volatile long X[3];
@@ -228,10 +228,18 @@ void encoder2()
   X[2] += (temp * 1) + (!temp * -1);
 }
 /////////////////////////////////////////////////
-
-
-void setup()
-{
+void debugServo(int num){
+    struct Servo_mot *servo = ptr_list[num];
+    char buffer[40];
+    int target;
+    if (servo->target_state) target = 1;
+    else target = 0;
+    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d",
+    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target);
+    nh.loginfo(buffer);
+}
+/////////////////////////////////////////////////
+void setup(){
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
@@ -243,14 +251,14 @@ void setup()
   //
   servos_shield.begin();
   servos_shield.set_hz(1526);
-  createNewServo(0,0,5,0,200,0); //speed is by what amount servo moves each update
+  createNewServo(0,9,5,0,200,0); //speed is by what amount servo moves each update
   createNewServo(1,1,5,0,200,0); //with servo_loop being 10ms and speed 5 
   createNewServo(2,2,5,0,200,0); //it will move full 200 in 40 loops, or 0.4 seconds
   //createNewServo(3,3,5,0,200,0);
   //createNewServo(4,4,5,0,200,0);
   //
   lcdSetup();
-
+  if (servosSetup()) nh.logwarn("Servos shield found");
   //
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -286,8 +294,7 @@ void setup()
 }
 ////////////////////////////////
 void loop(){
-  if (main_loop.tick())
-  {
+  if (main_loop.tick()){
     for (int mot = 0; mot < num_motors; mot++)
       update_mot(mot);
     for (int mot = 0; mot < num_motors; mot++)
@@ -300,6 +307,7 @@ void loop(){
   }
 
   if (servo_loop.tick()){
+    debugServo(0);
     servosUpdate();
   }
   motors_info.publish(&motors_msg);

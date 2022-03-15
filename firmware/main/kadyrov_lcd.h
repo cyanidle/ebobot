@@ -19,6 +19,7 @@ void lcdSetup(){
   lcd.backlight();
   lcd.home();
   lcd.clear();
+  lcd.print("Ebobot V1.0.1");
   lcd.createChar(0,LT);
   lcd.createChar(1,UB);
   lcd.createChar(2,RT);
@@ -186,6 +187,7 @@ void printDigits(int digits, int x){
   }
 }
 void lcdCallback(const ebobot::Lcd_show::Request &req, ebobot::Lcd_show::Response &resp){
+    lcd.clear();
     uint16_t numb = req.num; /////входное число
     uint16_t numba = numb; //распускается на цифры в ходе подсчета
     uint8_t count = 0; //количество цифр
@@ -206,6 +208,6 @@ void lcdCallback(const ebobot::Lcd_show::Request &req, ebobot::Lcd_show::Respons
     reverseArray(score, n);
     for(uint8_t i; i<n; i++){
         printDigits(score[i],i*4);}
-    resp.resp = 1
+    resp.resp = 1;
 }
 ros::ServiceServer<ebobot::Lcd_show::Request, ebobot::Lcd_show::Response> lcd_server("lcd_service", &lcdCallback);

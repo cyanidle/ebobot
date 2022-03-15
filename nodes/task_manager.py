@@ -72,9 +72,9 @@ class Task:
                 self.pos = pos
             pass
         class Logs:
-            def __init__(self,val:str):
+            def __init__(self,args:str):
                 #_, val = micro
-                self.text = val
+                self.text = args
                 return self.exec
             def exec(self,args):
                 text = self.text

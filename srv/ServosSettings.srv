@@ -4,4 +4,4 @@ int8 speed #in %
 int16 min_val #В тугриках
 int16 max_val #В тугриках
 ---
-string resp
+int8 resp
