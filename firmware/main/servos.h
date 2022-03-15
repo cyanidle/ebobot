@@ -9,11 +9,11 @@ FaBoPWM servos_shield;
 bool servosSetup(){
   if (servos_shield.begin()){
     servos_shield.init(300);
-    servos_shield.set_hz(400);
+    servos_shield.set_hz(50);
     ////
     ////servos_shield.set_channel_value(9,90);
     //delay(500);
-    //servos_shield.set_channel_value(9,500);
+    servos_shield.set_channel_value(9,300);
     ////
     return true;
   }
@@ -87,8 +87,7 @@ void servoUp(struct Servo_mot *servo){
     //nh.logerror("UP");
     int max = servo->max_val;
     //int curr = servo->curr_val;
-    int spd = servo->speed;
-    if ((max - servo->curr_val) > spd) servo->curr_val += spd;
+    if ((max - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
     else {
         servo->curr_val = max;
         servo->state = true;
@@ -99,8 +98,7 @@ void servoUp(struct Servo_mot *servo){
 void servoDown(struct Servo_mot *servo){
     int min = servo->min_val;
     //int curr = servo->curr_val;
-    int spd = servo->speed;
-    if (abs(min - servo->curr_val) > spd) servo->curr_val -= spd;
+    if (abs(min - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
     else {
         servo->curr_val = min;
         servo->state = false;
@@ -111,13 +109,10 @@ void servoDown(struct Servo_mot *servo){
 void servosUpdate(){
     for (int num=0;num<max_num;num++){
         struct Servo_mot *servo = ptr_list[num];
-        if (servo->target_state != servo->state){
-            if (servo->target_state > servo->state) servoUp(servo);
-            else servoDown(servo);
-        }
-        
+        if (servo->target_state) servoUp(servo); 
+        else servoDown(servo);
+        }       
     }
-}
 
 //
 ros::ServiceServer<ebobot::Servos::Request, ebobot::Servos::Response> servos_server("servos_service", &servoCallback);

@@ -251,7 +251,7 @@ void setup(){
   //
   servos_shield.begin();
   servos_shield.set_hz(1526);
-  createNewServo(0,9,5,0,200,0); //speed is by what amount servo moves each update
+  createNewServo(0,9,5,90,500,90); //speed is by what amount servo moves each update (num, ch, spd, min, max, curr_pos)
   createNewServo(1,1,5,0,200,0); //with servo_loop being 10ms and speed 5 
   createNewServo(2,2,5,0,200,0); //it will move full 200 in 40 loops, or 0.4 seconds
   //createNewServo(3,3,5,0,200,0);
