@@ -13,8 +13,6 @@ Panels:
         - /TF1/Tree1
         - /Marker1
         - /Marker1/Namespaces1
-        - /Odometry1/Shape1
-        - /Odometry1/Covariance1/Position1
         - /LaserScan1
         - /LaserScan1/Status1
       Splitter Ratio: 0.6823529601097107
@@ -110,6 +108,8 @@ Visualization Manager:
           Value: true
         map:
           Value: true
+        objects_markers:
+          Value: true
         odom:
           Value: true
         relative_beacon_markers:
@@ -127,6 +127,8 @@ Visualization Manager:
               {}
             laser:
               {}
+            objects_markers:
+              {}
             odom:
               {}
             relative_beacon_markers:
@@ -139,44 +141,10 @@ Visualization Manager:
       Name: Marker
       Namespaces:
         first_found_beacon: true
+        objects: true
         relative_beacon: true
       Queue Size: 100
       Value: true
-    - Angle Tolerance: 0.10000000149011612
-      Class: rviz/Odometry
-      Covariance:
-        Orientation:
-          Alpha: 0.5
-          Color: 255; 255; 127
-          Color Style: Unique
-          Frame: Local
-          Offset: 1
-          Scale: 1
-          Value: true
-        Position:
-          Alpha: 0.30000001192092896
-          Color: 204; 51; 204
-          Scale: 1
-          Value: true
-        Value: true
-      Enabled: false
-      Keep: 4
-      Name: Odometry
-      Position Tolerance: 0.10000000149011612
-      Queue Size: 10
-      Shape:
-        Alpha: 1
-        Axes Length: 0.20000000298023224
-        Axes Radius: 0.029999999329447746
-        Color: 255; 25; 0
-        Head Length: 0.019999999552965164
-        Head Radius: 0.009999999776482582
-        Shaft Length: 0.03999999910593033
-        Shaft Radius: 0.009999999776482582
-        Value: Arrow
-      Topic: /initialpose
-      Unreliable: false
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -199,7 +167,7 @@ Visualization Manager:
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.009999999776482582
-      Style: Flat Squares
+      Style: Points
       Topic: /scan
       Unreliable: false
       Use Fixed Frame: true
@@ -242,10 +210,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 142.41738891601562
+      Scale: 146.31198120117188
       Target Frame: <Fixed Frame>
-      X: 1.2852683067321777
-      Y: 1.2920188903808594
+      X: 1.3603692054748535
+      Y: 0.7257851958274841
     Saved: ~
 Window Geometry:
   Displays:

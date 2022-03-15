@@ -103,13 +103,14 @@ class Laser:
 
     @classmethod
     def precalcCoeffs(cls):
-        for num in range(int(round(Laser.angle_min/cls.angle_increment)),
-         int(round(Laser.angle_max/cls.angle_increment))):
-            Laser.coeffs.append((cos(Laser.angle_increment*num),sin(Laser.angle_increment*num))) 
+        for num in range(int(round(3.1415/cls.angle_increment + Laser.angle_min/cls.angle_increment)),
+         int(round(3.1415/cls.angle_increment + Laser.angle_max/cls.angle_increment))):
+            Laser.coeffs.append((sin(Laser.angle_increment*num),cos(Laser.angle_increment*num))) 
         cls.angles_done = 1
     #####################
     @classmethod
     def updateTF(cls):
+        #rospy.logerr(f"epic")
         quat = tf.transformations.quaternion_from_euler(0,0,cls.robot_pos[2]-cls.rads_offset)
         cls.broadcaster.sendTransform(
             (cls.robot_pos[1], cls.robot_pos[0], 0),
@@ -128,7 +129,9 @@ class Laser:
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
                 meters_pos = np.array((range * y_coeff, range * x_coeff))
-                prob_meters_pos = np.array(turnVect(meters_pos - cls.robot_pos[:2],  cls.robot_pos[2] + cls.rads_offset))
+                #rospy.loginfo(f"{meters_pos = }")
+                prob_meters_pos = np.array(turnVect(meters_pos + cls.robot_pos[:2],  cls.robot_pos[2] + cls.rads_offset))
+                
                 if cls.minimal_x < prob_meters_pos[1] < cls.maximum_x and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y:
                     cls.new_list.append((prob_meters_pos,intensity))
         cls.list = cls.new_list
@@ -146,7 +149,9 @@ class Laser:
             #print(f"{pose =} {Laser.list[prev_num]=}")
             if dist<cls.dist_dots_threshhold:
                 curr_obst.append(pose)
+                #print(f"Appending to obst {pose}")
             else:
+                print(f"Found obstacle! {len(curr_obst) = } \n {cls.getPosition(curr_obst) =} ")
                 if 0 < len(curr_obst) < Beacons.dots_thresh:
                     Beacons.initRelative(cls.getPosition(curr_obst))
                 elif 0 < len(curr_obst) < Objects.dots_thresh:
