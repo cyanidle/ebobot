@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from nodes.laser_scan_callback import Objects
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -11,12 +12,20 @@ from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
 ###########
 from dorlib import dCoordsInRad
+from ebobot.msg import Obstacles, Obstacle
+#
 import numpy as np
 import cv2
 import os
 ####
 rospy.init_node('costmap_server')
 #####
+
+def obstaclesCallback(obst):
+    Objects.clear()
+    for obj in obst.data:
+        Objects((obj.y, obj.x),obj.radius)
+
 class Costmap():
     #Params
     #Features
@@ -178,6 +187,18 @@ class Costmap():
         msg.data = data_list
         cls.grid_update_publisher.publish(msg)
     @classmethod
+    def updateObstacles(cls):
+        if Objects.use_default:
+            for obst in Objects.list:
+                 for y, x in obst.getCoords():
+                    cls.grid[y][x] += obst.getInflation()   
+        else:
+            for obst in Objects.list:
+                default_obstacle.pos = obst.pos
+                for y, x in default_obstacle.getCoords():
+                    cls.grid[y][x] += default_obstacle.getInflation()
+               
+    @classmethod
     def publish(cls): ###An example
         msg = OccupancyGrid()
         curr_time = rospy.Time.now()
@@ -199,13 +220,34 @@ class Costmap():
         cls.grid_publisher.publish(msg)
 
 
-class Obstacle:
+class Objects:
     #Obstacle params
-    #/Obstacle params
-    delta_coords = (0,0)
-    def __init__(self,radius,resolution = 8):
-        self.delta_coords = dCoordsInRad(radius,resolution)
+    #Features
+    use_default = rospy.get_param('~obstacles/use_default',1)
 
+    #
+    topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
+    ######################################
+    subscriber = rospy.Subscriber(topic, Obstacles)
+    #/Obstacle params
+
+    #globals
+    list = []
+
+    def __init__(self,pos,radius,resolution = 8):
+        self.delta_coords = dCoordsInRad(radius,resolution)
+        for
+        self.pos = pos
+        Objects.list.append(self)
+    @staticmethod
+    def clear():
+        Objects.list.clear()
+    def getCoords(self) -> list:
+        coords = []
+        for y,x in self.delta_coords:
+            coords.append(  (self.pos[0] + y , self.pos[1] + x)       )
+        return coords
+default_obstacle = Objects((0,0), 30)
 
 
 def main():
@@ -219,6 +261,7 @@ def main():
     Costmap.initCostmap()
     Costmap.publish()
     while not rospy.is_shutdown():
+        Costmap.updateObstacles()
         Costmap.publish()
         rate.sleep()
 

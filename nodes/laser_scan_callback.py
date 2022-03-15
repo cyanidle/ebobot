@@ -132,26 +132,26 @@ class Laser:
                 #rospy.loginfo(f"{meters_pos = }")
                 prob_meters_pos = np.array(turnVect(meters_pos + cls.robot_pos[:2],  cls.robot_pos[2] + cls.rads_offset))
                 
-                if cls.minimal_x < prob_meters_pos[1] < cls.maximum_x and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y:
+                if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
+                 and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     cls.new_list.append((prob_meters_pos,intensity))
         cls.list = cls.new_list
         cls.findRelative()
     @classmethod
-    def findRelative(cls): #todo: move to laser, check cost
+    def findRelative(cls): 
         curr_obst = []
         curr_obst.append(Laser.list[0][0])
         Beacons.clearRelative()
         Objects.clear()
         for prev_num, scan in enumerate(Laser.list[1:]):
             pose, intencity = scan
-            #x,y = pose
             dist = np.linalg.norm(pose - Laser.list[prev_num][0])
-            #print(f"{pose =} {Laser.list[prev_num]=}")
             if dist<cls.dist_dots_threshhold:
                 curr_obst.append(pose)
                 #print(f"Appending to obst {pose}")
             else:
-                print(f"Found obstacle! {len(curr_obst) = } \n {cls.getPosition(curr_obst) =} ")
+                rospy.loginfo_once(f"{Beacons.dots_thresh = }\n{Objects.dots_thresh}")
+                rospy.loginfo(f"Found obstacle! {len(curr_obst) = } \n {cls.getPosition(curr_obst) =} ")
                 if 0 < len(curr_obst) < Beacons.dots_thresh:
                     Beacons.initRelative(cls.getPosition(curr_obst))
                 elif 0 < len(curr_obst) < Objects.dots_thresh:
@@ -306,13 +306,13 @@ class Beacons(Laser):
 class Objects(Laser):
 
     #Params
-    dots_thresh = rospy.get_param('~/obstacles/dots_thresh', 200) #num
+    dots_thresh = rospy.get_param('~obstacles/dots_thresh', 200) #num
     #/Params
 
     #Topics
-    list_topic = rospy.get_param('~/obstacles/list_topic' ,'obstacles')
+    list_topic = rospy.get_param('~obstacles/list_topic' ,'/laser/obstacles')
     #
-    list_pub = rospy.Publisher(list_topic,Obstacles,queue_size = 4)
+    list_pub = rospy.Publisher(list_topic,Obstacles,queue_size = 6)
     #/Topics
 
     list = []
@@ -328,10 +328,10 @@ class Objects(Laser):
         for num,obst in enumerate(cls.list):
             #cls.
             obstacle = Obstacle()
-            pubMarker(obst.pose,num,5,frame_name="objects",type="cube",size=0.2,g=0,r=1,b=0,debug=Laser.debug,add=1)
+            #pubMarker(obst.pose,num,5,frame_name="objects",type="cube",size=0.2,g=0,r=1,b=0,debug=Laser.debug,add=1)
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
-            obstacle.radius = 0 #PLACEHOLDER
+            obstacle.radius = -1 #PLACEHOLDER
             msg.data.append(obstacle)
         cls.list_pub.publish(msg)
     @classmethod
