@@ -153,13 +153,12 @@ class Laser:
     @classmethod
     def getPosition(cls,poses):
         "(Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
-        x = y = 0
+        x, y = 0,0
         for pos in poses:
             y += pos[0]
             x += pos[1]
         max = len(poses)
         point = (y/max,x/max)
-    
         return point
 #################################################################
 class Beacons(Laser):
