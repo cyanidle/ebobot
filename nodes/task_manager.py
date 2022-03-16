@@ -153,11 +153,15 @@ class Task:
                     unparsed_list = args[subtask_name]
                     for name, args in Task.parseMicroList(subtask_name,unparsed_list):
                         self.micro_list.append(Task.Microtasks.getExec(name,args)) ##FINISH THIS!!!
-            def exec(self):
+            async def exec(self):
+                subtasks = []
                 for micro in self.micro_list:
                     if Manager.debug:
                         rospy.loginfo(f"Executing {micro} in {self}")
-                    micro.action.exec()
+                        task = asyncio.create_task(micro.action.exec)
+                    subtasks.append(task)
+                    await asyncio.gather(*subtasks)
+                
             def status(self):
                 return "good"
             def statusUpdate(self):
