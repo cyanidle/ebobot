@@ -6,6 +6,8 @@ import yaml
 import asyncio
 rospy.init_node("task_manager")
 #
+from std_msgs.msg import Bool
+#
 from markers import pubMarker
 from calls_executer import executer_dict, showPrediction
 from calls_executer import Move as move_client_constructor
@@ -14,7 +16,8 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 
 
-    
+def startCallback(start):
+    _execute = start.data
 ########## Subclasses
 class Task:
     list =  []
@@ -45,7 +48,7 @@ class Task:
                 return Task.Microtasks.getExec(args)
             def parseElse(self,args):
                 return Task.Microtasks.getExec(args)
-            def exec(self):
+            async def exec(self):
                 if self.check():
                     self.yes.exec()
                 else:
@@ -65,7 +68,7 @@ class Task:
                 self.curr_status = None
                 Status.add(self,type(self))
                 return self
-            def exec(self):
+            async def exec(self):
                 self.curr_status = self.call(self.args)
             def status(self):
                 return self.curr_status
@@ -83,7 +86,7 @@ class Task:
                 type(self).counter += 1
                 self.pos = pos
                 return self
-            def exec(self):
+            async def exec(self):
                 Status.add(self)
                 self.curr_status = self.call(self.args)
             def status(self):
@@ -101,7 +104,7 @@ class Task:
                 type(self).counter += 1
                 self.text = args
                 return self
-            def exec(self):
+            async def exec(self):
                 text = self.text
                 pref = text[:2]
                 if pref == "L:":
@@ -133,7 +136,7 @@ class Task:
                 self.num = type(self).counter
                 type(self).counter += 1
                 return self
-            def exec(self):
+            async def exec(self):
                 Task.list[self.task_num]._skip_flag = 1
             def status(self):
                 return "good"
@@ -160,7 +163,7 @@ class Task:
                         rospy.loginfo(f"Executing {micro} in {self}")
                         task = asyncio.create_task(micro.action.exec)
                     subtasks.append(task)
-                    await asyncio.gather(*subtasks)
+                await asyncio.gather(*subtasks)
                 
             def status(self):
                 return "good"
@@ -200,12 +203,12 @@ class Task:
             rospy.loginfo(f"Parsing {name} with {args = }...")
             self.micro_list.append(Task.Microtasks.getExec(name,args)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
-    def exec(self):
+    async def exec(self):
         if not self._skip_flag:
             for micro in self.micro_list:
                 if Manager.debug:
                     rospy.loginfo(f"Executing {micro} in {self}")
-                micro.action.exec()
+                asyncio.run(micro.action.exec())
         else:
             rospy.loginfo(f"Skipping {self}")
     def __str__(self):
@@ -302,6 +305,11 @@ class Manager:
     #
     update_rate = rospy.get_param("~update_rate", 5)
     file = rospy.get_param("~file", "/config/routes/route1.yaml")
+    #
+    start_topic = rospy.get_param("~start_topic", "ebobot/begin")
+    #
+    start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
+    #
     #/Params
     #Globals
     route = {}
@@ -336,11 +344,12 @@ class Manager:
     @staticmethod
     def exec():
         for task in Task.list:
-            task.exec()
+            asyncio.run(task.exec())
 
 
 
-
+async def doneCallback():
+    _execute, _executing = 0, 0
 def main():
     Manager.read()
     start_time = rospy.Time.now()
@@ -349,12 +358,20 @@ def main():
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
     timer = Status.Timer()
     rate = rospy.Rate(Manager.update_rate)
+    main_task = asyncio.create_task(Task.exec())
+    cb_task = doneCallback()
+    main_task.add_done_callback(cb_task)
     while not rospy.is_shutdown():
+        if not _executing and _execute:
+            _executing = 1
+            asyncio.run(main_task)
         Status.update()
         rate.sleep()
 
-
+ 
 
 ####
 if __name__=="__main__":
+    _execute = 0
+    _executing = 0
     main()
