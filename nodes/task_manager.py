@@ -32,12 +32,12 @@ class Task:
             else_list = []
             def __init__(self,arg):
                 items = arg.items()
-                self.check = self.parseIf(items[0])
+                self.check_args = items[0]
                 self.yes = self.parseDo(items[1])
                 self.no = self.parseElse(items[2])
                 return self
-            def parseIf(self,args):
-                pass                    # PLS DO LATER
+            def check(self) -> bool:
+                return Status.check(self.check_args)
             def parseDo(self,args):
                 return Task.Microtasks.getExec(args)
             def parseElse(self,args):
@@ -84,6 +84,7 @@ class Task:
                 self.pos = pos
                 return self
             def exec(self):
+                Status.add(self)
                 self.curr_status = self.call(self.args)
             def status(self):
                 return self.curr_status
@@ -150,7 +151,7 @@ class Task:
             def statusUpdate(self):
                 pass 
             def __str__(self):
-                return f"'Together' {self.num}"
+                return f"'Together' call {self.num}"
         ############ Microtask
         counter = 0
         def __init__(self,key,args):
@@ -176,6 +177,7 @@ class Task:
         self.name = name
         self.micro_list = []
         for name, args in self.parseMicroList(name,args):
+            rospy.loginfo(f"Parsing {name} with {args = }...")
             self.micro_list.append(Task.Microtasks.getExec(name,args)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
     def exec(self):
@@ -200,22 +202,21 @@ class Interrupts(Task):
     def forceCall(self):
         for micro in self.micros_list:
             micro.action()
-    pass
     def parseCond(self,arg):
         pass
     @classmethod
     def update(cls):
         pass
 ########################
-class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD, AND A STATUS_NAME ATTRIBUTE
-    dict = {    ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
-        "calls": Task.Microtasks.Calls,
-        "moves": Task.Microtasks.Move
-    }    
-    types_counter = []
+class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD,
+    calls = []  ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
+    moves = []
+    timers = []
     class Timer:     
+        counter = 0
         def __init__(self) -> None:
-            
+            self.num = type(self).counter
+            type(self).counter += 1
             self.time = 0
             self.ros_time = rospy.Time.now()
             Status.add(self)
@@ -225,14 +226,51 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
             self.time = (rospy.Time.now() - self.ros_time).to_sec()
     @staticmethod
     def add(obj):
-        rospy.loginfo(f"Adding object {obj} to status tracking list")
-        Status.list.append(obj)
+        rospy.loginfo(f"Adding object {obj} to {type(obj)} status tracking list")
+        t_list = status_dict[type(obj)]
+        t_list.append(obj)
     @staticmethod
     def update():
-        for obj in Status.list:
+        rospy.loginfo_once("Updating status for tracking lists...")
+        if Manager.debug:
+            start_time = rospy.Time.now()
+        for obj in Status.calls:
             obj.updateStatus()
-
-
+        for obj in Status.moves:
+            obj.updateStatus()
+        for obj in Status.timers:
+            obj.updateStatus()
+        if Manager.debug:
+            rospy.loginfo_once(f"Updating status done in {(rospy.Time.now() - start_time).to_sec()}")
+    @staticmethod
+    def check(string:str):
+        parsed = string.split("/")
+        curr = parsed[0]
+        name = parsed[1]
+        cond = parsed[2]
+        if Manager.debug:
+                rospy.loginfo(f"Checking type {curr} with {name = } for {cond = }!")
+        curr_list = status_check_dict[curr]
+        if name in curr_list:
+            if cond == curr_list[curr_list.index(name)].status():
+                return True
+            else:
+                return False
+        else:
+            if Manager.debug:
+                rospy.loginfo(f"Name {name} not found in tracking list!")
+            return False
+####
+status_dict = dict = {           #dict for appending from code
+        Task.Microtasks.Calls: Status.calls,
+        Task.Microtasks.Move: Status.moves,
+        Status.Timer: Status.timers
+    }    
+status_check_dict = dict = {     #dict for syntax in yaml
+        "calls": Status.calls,
+        "moves": Status.moves,
+        "timer": Status.timers
+    }  
     
 ######################
 class Manager:

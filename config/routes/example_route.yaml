@@ -17,9 +17,8 @@ tasks:
     - together: 
       - move: "1/2"
       - call: "cbt"
-    
     - condition: 
-      - if: "test3/bad"
+      - if: "calls/ArmUp/bad"
       - do: 
         - together:
           - call : "epic"
