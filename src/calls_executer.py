@@ -3,7 +3,7 @@ roslib.load_manifest('ebobot')
 import rospy
 import actionlib
 import yaml
-import asyncio
+#import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import Servos, ServosRequest, ServosResponse

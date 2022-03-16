@@ -8,7 +8,7 @@ interrupts:
     - call: "test2"
 tasks:
   1:
-    - call: "test"
+    - call: "ArmUp"
     - move: "1/1"
     - log: "L:Moving to 1m/1m" 
     #Prefixes (L:/W:/E:) = (Log, Warn, Error)

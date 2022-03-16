@@ -8,6 +8,7 @@ rospy.init_node("task_manager")
 #
 from markers import pubMarker
 from calls_executer import executer_dict
+from calls_executer import Move as move_client_constructor
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
@@ -55,11 +56,11 @@ class Task:
                 pass
             pass
         class Calls:
-            dict = executer_dict()
             def __init__(self,name,args:tuple):
                 self.args = args
-                self.call, self.status_name = type(self).dict[name]
+                self.call, self.status_name = executer_dict()[name]
                 self.curr_status = None
+                Status.add(self)
                 return self.exec 
             def exec(self):
                 self.curr_status = self.call(self.args)
@@ -68,6 +69,7 @@ class Task:
             def statusUpdate(self):
                 pass
         class Move:
+            client = move_client_constructor()
             def __init__(self,pos):
                 self.pos = pos
             def exec(self):
@@ -92,8 +94,8 @@ class Task:
                     rospy.logerr(text[2:])
                 else:
                     rospy.logerr(f"(Incorrect log prefix!) {text}")
-                    return "bad"
-                return "good"
+                    self.curr_status = "bad"
+                self.curr_status = "good"
             def status(self):
                 return self.curr_status
             def statusUpdate(self):
@@ -117,12 +119,13 @@ class Task:
             def statusUpdate(self):
                 pass
         ############ Microtask
-        def __init__(self,key,arg):
-            self.action = Manager.constructors_dict[key](arg)
+        def __init__(self,key,args):
+            rospy.loginfo(f"Initialising microtask {key = } {args = }")
+            self.action = Manager.constructors_dict[key](args)
             return self
         @staticmethod
-        def getExec(key,arg): #val in the dict!
-            micro = Task.Microtasks(key,arg)#each constructor 
+        def getExec(key,args): #val in the dict!
+            micro = Task.Microtasks(key,args)#each constructor 
             return micro                     #should return an executable object
     ######### Task
     def __init__(self,name:str, list:list):
@@ -135,9 +138,10 @@ class Task:
     #pass
 ######################
 class Interrupts(Task):
+    list = []
     def __init__(self):
         super().__init__(self)
-        InterruptsServer.list.append(self)
+        Interrupts.list.append(self)
     def forceCallParse(self):
         return self.action
     def forceCall(self):
@@ -148,26 +152,25 @@ class Interrupts(Task):
         pass
     @classmethod
     def update(cls):
-        pas
-class StatusServer:    ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD, AND A STATUS_NAME ATTRIBUTE
+        pass
+########################
+class Status:    ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD, AND A STATUS_NAME ATTRIBUTE
     dict = []          ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
     class Timer:     
         def __init__(self) -> None:
             self.time = 0
             self.ros_time = rospy.Time.now()
-            StatusServer.addStatus(self)
+            Status.addStatus(self)
         def status(self):
             return self.time
         def updateStatus(self):
             self.time = (rospy.Time.now() - self.ros_time).to_sec()
     @staticmethod
-    def addStatus(obj):
-        StatusServer.list.append(obj)
-    def __init__(self,args):
-        pass
+    def add(obj):
+        Status.list.append(obj)
     @staticmethod
     def update():
-        for obj in StatusServer.list:
+        for obj in Status.list:
             obj.updateStatus()
 
 
@@ -203,8 +206,6 @@ class Manager:
 
     @classmethod
     def parse(cls):
-        #interrupts = cls.route["interrupts"]
-        #tasks = cls.route["tasks"]
         for interrupt_name in cls.route["interrupts"]:
             pass
         for task_name in cls.route["tasks"]:
@@ -220,10 +221,10 @@ class Manager:
 def main():
     Manager.read()
     Manager.parse()
-    timer = StatusServer.Timer()
+    timer = Status.Timer()
     rate = rospy.Rate(Manager.update_rate)
     while not rospy.is_shutdown():
-        StatusServer.update()
+        Status.update()
         rate.sleep()
 
 
