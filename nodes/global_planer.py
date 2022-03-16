@@ -103,14 +103,14 @@ class Global(): ##Полная жопа
     if experimental_cleanup_enable:
         accelerate_coeff = 0
     costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
-    maximum_cost = rospy.get_param('~maximum_cost',80)  
+    maximum_cost = rospy.get_param('~maximum_cost',40)  
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
     
     
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
-    consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',4)
+    consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
     
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
@@ -118,7 +118,7 @@ class Global(): ##Полная жопа
     #Cleanup params
     cleanup_repeats_len = rospy.get_param('~cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
     cleanup_power = rospy.get_param('~cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)
-    cleanup_repeats_threshhold = rospy.get_param('~cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.4 ) #cells CHANGE CAREFULLY!!
+    cleanup_repeats_threshhold = rospy.get_param('~cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.5 ) #cells CHANGE CAREFULLY!!
     #/Params
     
 

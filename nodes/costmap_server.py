@@ -20,21 +20,22 @@ import os
 ####
 rospy.init_node('costmap_server')
 #####
-
+rospy.logwarn("If scripts lags, check line 30")
 def obstaclesCallback(obst):
     Objects.clear()
     for obj in obst.data:
         if Costmap.debug:
-            rospy.loginfo(f"Got new object {obj.y =} {obj.x =}")
-        Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),obj.radius/Costmap.resolution)
-
+            print(f"Got new object {obj.y =} {obj.x =}")
+        Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),
+        obj.radius/Costmap.resolution)
+        Objects.updateMask()
 class Costmap():
     #Params
     #Features
     write_map_enable = rospy.get_param('~write_map_enable', 1)
     debug = rospy.get_param('~debug', 1)
     interpolate_enable = rospy.get_param('~interpolate_enable',1)
-    inflate_enable = rospy.get_param('~inflate_enable',  1 )
+    inflate_enable = rospy.get_param('~inflate_enable', 0)
     super_debug = rospy.get_param('~super_debug',0)
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
@@ -51,9 +52,6 @@ class Costmap():
     #safe_footprint_radius =  rospy.get_param('~safe_footprint_radius',0.08)
     ##
     #Topics
-    
-
-
     ######################################
     costmap_broadcaster = tf.TransformBroadcaster()
     costmap_publish_topic = rospy.get_param('~costmap_publish_topic','/costmap_server/costmap')
@@ -67,11 +65,9 @@ class Costmap():
     color_image = cv2.imread(file)
     gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)       
     pixels = np.around(np.divide(gray_image, 255.0/100), decimals=1)#np.rot90(np.around(np.divide(gray_image, 255.0/100), decimals=1))
-    # 
     # cv2.imwrite("map_read.png", pixels)
     # print(f"pixels = {pixels[0][0], pixels[0][1],pixels[1][0],pixels[1][1]}")
     # rospy.sleep(1)
-    
     #Global
     inflation_radius_in_cells = inflation_radius/resolution
     #height = 151
@@ -97,7 +93,6 @@ class Costmap():
     @classmethod
     def initCostmap(cls):
         start_time = rospy.Time.now()
-        
         cls.grid = cls.pixels#new_grid
         #if cls.debug:
             #rospy.loginfo(f"Map read \n(First row = {cls.grid[0]})\n(Row 40 = {cls.grid[39]})")
@@ -221,7 +216,7 @@ class Costmap():
 class Objects:
     #Obstacle params
     #Features
-    use_default = rospy.get_param('~obstacles/use_default',1)
+    use_default = rospy.get_param('~obstacles/use_default',0)
 
     #
 
@@ -236,28 +231,43 @@ class Objects:
     list = []
 
     def __init__(self,pos,radius,resolution = 10, default = 0):
-        self.delta_coords = dCoordsInRad(radius,resolution)
-        self.pos = pos
-        self.inflation = [100]
-        for y,x in self.delta_coords[1:]:
-            infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
-            if infl > 100:
-                infl = 100
-            self.inflation.append(infl)
-        if not default:
+        if not Objects.use_default:
+            self.delta_coords = dCoordsInRad(radius,resolution)
+            self.pos = pos
+            self.inflation = []
+            self.inflation.append(100)
+            for y,x in self.delta_coords[1:]:
+                infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
+                if infl > 100:
+                    infl = 100
+                self.inflation.append(infl)
+            if not default:
+                Objects.list.append(self)
+        elif default:
+            self.delta_coords = dCoordsInRad(radius,resolution)
+            self.pos = pos
+            self.inflation = [100]
+            for y,x in self.delta_coords[1:]:
+                infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
+                if infl > 100:
+                    infl = 100
+                self.inflation.append(infl)
+        else:
+            self.pos = pos
             Objects.list.append(self)
+
     @staticmethod
     def clear():
         Objects.list.clear()
     @staticmethod
     def updateMask():
         Costmap.mask = np.full((Costmap.height,Costmap.width),0)
+        #print (Costmap.mask)
         if not Objects.use_default:
             for obst in Objects.list:
                  for coords,inflation  in zip(obst.getCoords(),obst.inflation):
                     y, x  = coords
                     y, x = int(y), int(x)
-                    rospy.loginfo(f"{x =}, {y = }, {inflation =}")
                     if 0 < x < Costmap.width and 0 < y < Costmap.height:
                         Costmap.mask[y][x] += inflation
                         if Costmap.mask [y][x] > 100:
@@ -266,8 +276,6 @@ class Objects:
             for obst in Objects.list:
                 default_obstacle.pos = obst.pos
                 for coords,inflation in zip(default_obstacle.getCoords(),default_obstacle.inflation):
-                    #if Costmap.debug:
-                        #rospy.loginfo(f"{coords =} {inflation =}")
                     y, x  = coords
                     y,x = int(y), int(x)
                     if 0 < x < Costmap.width and 0 < y < Costmap.height:
@@ -275,27 +283,26 @@ class Objects:
                         if Costmap.mask [y][x] > 100:
                             Costmap.mask [y][x] = 100
     def getCoords(self) -> list:
-        #coords = [] 
         for y,x in self.delta_coords:
             yield  (self.pos[0] + y , self.pos[1] + x)       
-        #return coords
-default_obstacle = Objects((0,0), 20, default=1)
 
 
 def main():
-   
     if Costmap.debug:
         rospy.loginfo(f"Costmap shape is {Costmap.height,Costmap.width}(w,h)")
         rospy.loginfo(f"Costmap is\n{Costmap.pixels}")
         rospy.loginfo(f"Inflation radius in cells = {Costmap.inflation_radius_in_cells}")
     rate = rospy.Rate(Costmap.update_rate)
-    rospy.sleep(1)
-    Costmap.initCostmap()
     Costmap.publish()
     while not rospy.is_shutdown():
-        Objects.updateMask()
         Costmap.publish()
         rate.sleep()
 
 if __name__=="__main__":
+    Costmap.initCostmap()
+    if Objects.use_default:
+        rospy.loginfo(f"Using default obstacles, initialazing...")
+        start_time = rospy.Time.now()
+        default_obstacle = Objects((0,0), 20, default=1)
+        rospy.loginfo(f"Done in {(rospy.Time.now()-start_time).to_sec()}!")
     main()

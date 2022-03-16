@@ -55,18 +55,18 @@ def laserScanCallback(scan):
 class Laser:
     #Features
     debug = rospy.get_param("~debug",1)
-    skip_scans = rospy.get_param("~skipped_scans",1)  #number of skipped per update
+    skip_scans = rospy.get_param("~skipped_scans",3)  #number of skipped per update
     skipped_counter = 0
     #/Features
     #Params
     #
-    minimal_x = rospy.get_param('~minimal_x', -0.1)
-    maximum_x = rospy.get_param('~maximum_x', 2.2)
-    minimal_y = rospy.get_param('~minimal_y ', -0.1)
-    maximum_y = rospy.get_param('~maximum_y', 3.2)
+    minimal_x = rospy.get_param('~minimal_x', -0.2)
+    maximum_x = rospy.get_param('~maximum_x', 2.4)
+    minimal_y = rospy.get_param('~minimal_y ', -0.2)
+    maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_dots_threshhold = rospy.get_param('~dist_dots_threshhold', 0.05) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",1) #updates/sec
+    update_rate = rospy.get_param("~update_rate",0.5) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
     #Topics
@@ -101,7 +101,7 @@ class Laser:
     def precalcCoeffs(cls):
         for num in range(int(round(Laser.angle_min/cls.angle_increment)),
          int(round(Laser.angle_max/cls.angle_increment))):
-            Laser.coeffs.append((cos(Laser.angle_increment*num),sin(Laser.angle_increment*num))) 
+            Laser.coeffs.append((sin(Laser.angle_increment*num),cos(Laser.angle_increment*num))) 
         cls.angles_done = 1
     #####################
     @classmethod
@@ -137,18 +137,20 @@ class Laser:
             curr_obst.append(Laser.list[0][0])
             Beacons.clearRelative()
             Objects.clear()
+            print("----------")
             for prev_num, scan in enumerate(Laser.list[1:]):
                 pose, intencity = scan
-                dist = np.linalg.norm(pose - Laser.list[prev_num][0])
+                dist = np.linalg.norm((pose[0] - Laser.list[prev_num][0][0],pose[1] - Laser.list[prev_num][0][1]))
                 if dist<cls.dist_dots_threshhold:
                     curr_obst.append(pose)
                 else:
                     if Laser.debug and len(curr_obst):
-                        print(f"Found obstacle! {len(curr_obst) = }, {curr_obst = }")
+                        print(f"Found obstacle! {len(curr_obst) = }, pos {cls.getPosition(curr_obst)}")
                     if 0 < len(curr_obst) < Beacons.dots_thresh:
                         Beacons.initRelative(cls.getPosition(curr_obst))
                     elif 0 < len(curr_obst) < Objects.dots_thresh:
-                        Objects(cls.getPosition(curr_obst),len(curr_obst)/2)
+                        Objects(cls.getPosition(curr_obst),np.linalg.norm(
+                            (curr_obst[0][0] - curr_obst[-1][0]        ,  curr_obst[0][1] - curr_obst[-1][1]    ))/2)
                     curr_obst.clear()
     @classmethod
     def getPosition(cls,poses):
@@ -167,7 +169,7 @@ class Beacons(Laser):
     enable_adjust = rospy.get_param('~/beacons/enable_adjust', 0)
     # /Features
     ###
-    dots_thresh = rospy.get_param('~/beacons/dots_thresh', 10) #num
+    dots_thresh = rospy.get_param('~/beacons/dots_thresh', 15) #num
     #############
     raw_list = []
     raw_list.append(rospy.get_param('~/beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
@@ -250,7 +252,7 @@ class Beacons(Laser):
 class Objects(Laser):
 
     #Params
-    dots_thresh = rospy.get_param('~obstacles/dots_thresh', 500) #num
+    dots_thresh = rospy.get_param('~obstacles/dots_thresh', 100) #num
     #/Params
 
     #Topics
@@ -270,7 +272,7 @@ class Objects(Laser):
         msg = Obstacles()
         for num,obst in enumerate(cls.list):
             obstacle = Obstacle()
-            #pubMarker(obst.pose,num,1,frame_name="objects",type="cube",size=0.15,g=0,r=1,b=0,debug=Laser.debug,add=1)
+            #pubMarker(obst.pose,num,1/Laser.update_rate,frame_name="objects",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
             obstacle.radius = obst.radius #PLACEHOLDER
@@ -280,9 +282,14 @@ class Objects(Laser):
     def clear(cls):
         cls.list.clear()
 #################################################################
-
+def shutdownHook():
+    msg = Obstacles()
+    obstacle = Obstacle()
+    msg.data.append(obstacle)
+    Objects.list_pub.publish(msg)
 def main():
     rate = rospy.Rate(Laser.update_rate)
+    rospy.on_shutdown(shutdownHook)
     Beacons.initExpected()
     while not rospy.is_shutdown():
         Beacons.update()
