@@ -1,21 +1,22 @@
+#Available services: servos_service
 "ArmUp":
 - "servos_service":
-  - num: 0
-  - state: true
+  - "num": 0
+  - "state": 1
 - "servos_service":
-  - num: 1
-  - state: false
+  - "num": 1
+  - "state": 0
 - "servos_service":
-  - num: 2
-  - state: true
+  - "num": 2
+  - "state": 1
   
 "ArmDown":
 - "servos_service":
-  - num: 0
-  - state: false
+  - "num": 0
+  - "state": 0
 - "servos_service":
-  - num: 1
-  - state: true
+  - "num": 1
+  - "state": 1
 - "servos_service":
-  - num: 2
-  - state: false
+  - "num": 2
+  - "state": 0

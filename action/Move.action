@@ -4,7 +4,9 @@ float32 y
 float32 theta
 ---
 # Определение результата (result)
-string result
+int8 result
+# 1 - bad, 0 - good, 2 - unknown
 ---
 # Определение обратной связи (feedback)
 string status
+# from 0 to 100 - progress

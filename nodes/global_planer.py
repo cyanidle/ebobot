@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from this import s
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -47,8 +48,7 @@ def robotPosCallback(odom):
     Global.robot_pos = np.array([odom.pose.pose.position.y/Global.costmap_resolution,    odom.pose.pose.position.x/Global.costmap_resolution,    euler[2]%(3.1415*2)]) 
 
 def localStatusCallback(status):
-    MoveServer.feedback = status
-    MoveServer.server.update(local=1)
+    move_server.update(status.data,local=1)
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.y/Global.costmap_resolution,target.pose.position.x/Global.costmap_resolution,euler[2]%(3.1415*2)]
@@ -440,8 +440,6 @@ class Global(): ##Полная жопа
 
 
 def main():
-    
-    move_server = MoveServer()
     Global.initRotors()
     rate = rospy.Rate(Global.update_rate)
     while not rospy.is_shutdown():
@@ -454,14 +452,12 @@ def main():
             Global.start_pos = Global.robot_pos #Здесь нужно получить по ебалу от негров!s
             Global.consecutive_jumps = 0
         ####
-
-        ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
             if Global.goal_reached and not Global.target_set:
-                move_server.done(1)
+                move_server.done(status=1)
             if len(Global.list):
                 rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
@@ -485,24 +481,14 @@ def main():
                 #Global.goal_reached = 1
 
         rate.sleep()
-
-
-
-
 class MoveServer:
-    #set_aborted()
-    #set_preempted() - заменен
-    ###########
-    server = None
     feedback = MoveFeedback('good')
-    #result = MoveResult()
     def __init__(self):
         self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
         self.server.start()
         MoveServer.server = self
-    # def feedback(self,status: str):
-    #     self.feedback = status
     def execute(self,goal):
+        self.server.set_active()
         new_target = PoseStamped()
         new_target.pose.position.x = goal.x
         new_target.pose.position.x = goal.x
@@ -512,17 +498,21 @@ class MoveServer:
         new_target.pose.orientation.z = quat[2]
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
-    def update(self,local=0):
+    def update(self,feedback, local=0):
         if local:
             self.server.publish_feedback(f"local/{self.feedback}")
+            if self.feedback == "error/goal":
+                self.done(0)
         else:
             self.server.publish_feedback(f"global/{self.feedback}")
     #@staticmethod
     def done(self,status:int):
+        "Status 1 = success, status 0 = fail"
         if status:
-            self.server.set_succeeded(MoveResult("good"))
+            self.server.set_succeeded(MoveResult(0))
         else:
-            self.server.set_aborted(MoveResult("bad"))
+            self.server.set_aborted(MoveResult(1))
 
 if __name__=="__main__":
+    move_server = MoveServer()
     main()

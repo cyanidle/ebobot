@@ -64,13 +64,18 @@ class Task:
             def exec(self):
                 self.curr_status = self.call(self.args)
             def status(self):
-                return self.status
+                return self.curr_status
             def statusUpdate(self):
                 pass
-        class Moves:
+        class Move:
             def __init__(self,pos):
                 self.pos = pos
-            pass
+            def exec(self):
+                self.curr_status = self.call(self.args)
+            def status(self):
+                return self.curr_status
+            def statusUpdate(self):
+                pass
         class Logs:
             def __init__(self,args:str):
                 #_, val = micro
@@ -89,11 +94,28 @@ class Task:
                     rospy.logerr(f"(Incorrect log prefix!) {text}")
                     return "bad"
                 return "good"
-
+            def status(self):
+                return self.curr_status
+            def statusUpdate(self):
+                pass
         class Skip:
-            pass
+            def __init__(self,pos):
+                self.pos = pos
+            def exec(self):
+                self.curr_status = self.call(self.args)
+            def status(self):
+                return self.curr_status
+            def statusUpdate(self):
+                pass
         class Together:
-            pass
+            def __init__(self,pos):
+                self.pos = pos
+            def exec(self):
+                self.curr_status = self.call(self.args)
+            def status(self):
+                return self.curr_status
+            def statusUpdate(self):
+                pass
         ############ Microtask
         def __init__(self,key,arg):
             self.action = Manager.constructors_dict[key](arg)
@@ -124,9 +146,9 @@ class Interrupts(Task):
     pass
     def parseCond(self,arg):
         pass
-class InterruptsServer:
-    list = []
-    pass
+    @classmethod
+    def update(cls):
+        pas
 class StatusServer:    ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD, AND A STATUS_NAME ATTRIBUTE
     dict = []          ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
     class Timer:     
@@ -162,6 +184,7 @@ class Manager:
     constructors_dict = {
         "call": Task.Microtasks.Calls,
         "log": Task.Microtasks.Logs,
+        "move": Task.Move,
         "condition":Task.Microtasks.Conditions,
         "together": Task.Microtasks.Together,
         "interrupt": Interrupts.forceCallParse,
