@@ -7,7 +7,7 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from markers import pubMarker
-from calls_executer import executer_dict
+from calls_executer import executer_dict, showPrediction
 from calls_executer import Move as move_client_constructor
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
@@ -30,7 +30,10 @@ class Task:
         class Conditions:            #WHICH EXECUTES THE COMMAND AND ONLY THEN RETURNS TO MAIN
             if_list = []             #EXECUTING THE OBJECT SHALL RETURN STATUS (BAD/GOOD/CUSTOM)
             else_list = []
+            counter = 0
             def __init__(self,arg):
+                self.num = type(self).counter
+                type(self).counter += 1
                 items = arg.items()
                 self.check_args = items[0]
                 self.yes = self.parseDo(items[1])
@@ -47,15 +50,10 @@ class Task:
                     self.yes.exec()
                 else:
                     self.no.exec()
-            ####Conditions
-            def __init__(self, move_index, call_index, empty = True):
-                if empty:
-                    pass
-                else:
-                    self.move_index = move_index
-                    self.call_index = call_index
-                pass
-            pass
+            def __str__(self):
+                return f"Condition {self.num}"
+            def __repr__(self):
+                return f"Condition {self.num}"
         class Calls:
             counter = 0
             def __init__(self,name,args:tuple):
@@ -75,6 +73,8 @@ class Task:
                 pass
             def __str__(self):
                 return f"Call {self.num}: {self.name}"
+            def __repr__(self):
+                return f"Call {self.num}: {self.name}"
         class Move:
             counter = 0
             client = move_client_constructor()
@@ -92,6 +92,8 @@ class Task:
                 pass
             def __str__(self):
                 return f"Move {self.num}: {self.pos = }"
+            def __repr__(self):
+                return f"Move {self.num}: {self.pos = }"
         class Logs:
             counter = 0
             def __init__(self,args:str):
@@ -99,7 +101,7 @@ class Task:
                 type(self).counter += 1
                 self.text = args
                 return self
-            def exec(self,args):
+            def exec(self):
                 text = self.text
                 pref = text[:2]
                 if pref == "L:":
@@ -116,6 +118,14 @@ class Task:
                 return self.curr_status
             def statusUpdate(self):
                 pass
+        class Prediction:
+            score = 0
+            def __init__(self, num):
+                self.score = num
+                return self
+            def exec(self):
+                type(self).score += self.score
+                return showPrediction(type(self).score)
         class Skip:
             counter = 0
             def __init__(self,num):
@@ -130,6 +140,8 @@ class Task:
             def statusUpdate(self):
                 pass
             def __str__(self):
+                return f"Skip {self.num}: {self.task_num = }"
+            def __repr__(self):
                 return f"Skip {self.num}: {self.task_num = }"
         class Together:
             def __init__(self,args):
@@ -152,6 +164,8 @@ class Task:
                 pass 
             def __str__(self):
                 return f"'Together' call {self.num}"
+            def __repr__(self):
+                return f"'Together' call {self.num}"
         ############ Microtask
         counter = 0
         def __init__(self,key,args):
@@ -166,6 +180,8 @@ class Task:
             micro = Task.Microtasks(key,args) #each constructor 
             return micro                      #should return an executable object
         def __str__(self):
+            return f"Microtask {self.num}: {self.name}"
+        def __repr__(self):
             return f"Microtask {self.num}: {self.name}"
     ######### Task
     counter = 0
@@ -189,6 +205,8 @@ class Task:
         else:
             rospy.loginfo(f"Skipping {self}")
     def __str__(self):
+        return f"Task {self.num}: {self.name}"
+    def __repr__(self):
         return f"Task {self.num}: {self.name}"
     #pass
 ######################
@@ -283,14 +301,15 @@ class Manager:
     #/Params
     #Globals
     route = {}
-    constructors_dict = {
+    constructors_dict = {  #syntax for route.yaml
         "call": Task.Microtasks.Calls,
         "log": Task.Microtasks.Logs,
         "move": Task.Move,
         "condition":Task.Microtasks.Conditions,
         "together": Task.Microtasks.Together,
         "interrupt": Interrupts.forceCallParse,
-        "skip": Task.Microtasks.Skip
+        "skip": Task.Microtasks.Skip,
+        "score": Task.Prediction
         }
     ##################### Manager
     # def __init__(self):

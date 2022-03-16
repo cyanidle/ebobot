@@ -6,7 +6,7 @@ import yaml
 #import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
-from ebobot.srv import Servos, ServosRequest, ServosResponse
+from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponce
 from actionlib_msgs.msg import GoalStatus
 #from ebobot.srv import Catcher
 #
@@ -16,6 +16,7 @@ def getMoveClient():
     return Move()
 class Calls:
     move_servo = rospy.ServiceProxy("servos_service", Servos)
+    lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
     def __init__(self, name,execs):
         rospy.loginfo(f"Initialising a call {name}")
         self.executables = []
@@ -44,6 +45,11 @@ class Calls:
         parsed.num = args["num"]
         parsed.state = args["state"]
         return parsed
+##############
+def showPrediction(num):
+    parsed = Lcd_showRequest()
+    parsed.num = num
+    return Calls.lcd_show(parsed)
 ################################       
 class Execute:
     file = rospy.get_param("/task_manager/calls_file", "/config/calls/calls_dict.yaml")

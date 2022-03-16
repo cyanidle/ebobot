@@ -18,11 +18,11 @@ tasks:
       - move: "1/2"
       - call: "cbt"
     - condition: 
-      - if: "calls/ArmUp/bad"
+      - if: "calls/ArmUp/1"
       - do: 
-        - together:
-          - call : "epic"
-          - skip: "3"
+          together:
+            - call : "epic"
+            - skip: "3"
       - else: 
         - skip: "2"
     - log: "Skipping task 2, bc test3 good"
