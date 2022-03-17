@@ -63,7 +63,7 @@ class Task:
                 self.num = type(self).counter
                 type(self).counter += 1
                 self.args = args
-                self.name = name
+                self.name = f"{name}{self.num}"
                 self.call = executer_dict()[name]
                 self.curr_status = None
                 Status.add(self,type(self))
@@ -197,7 +197,7 @@ class Task:
         self.num = type(self).counter
         type(self).counter += 1
         self._skip_flag = 0
-        self.name = name
+        self.name = f"{name}{self.num}"
         self.micro_list = []
         for name, args in self.parseMicroList(name,args):
             rospy.loginfo(f"Parsing {name} with {args = }...")
@@ -316,12 +316,12 @@ class Manager:
     constructors_dict = {  #syntax for route.yaml
         "call": Task.Microtasks.Calls,
         "log": Task.Microtasks.Logs,
-        "move": Task.Move,
+        "move": Task.Microtasks.Move,
         "condition":Task.Microtasks.Conditions,
         "together": Task.Microtasks.Together,
         "interrupt": Interrupts.forceCallParse,
         "skip": Task.Microtasks.Skip,
-        "score": Task.Prediction
+        "score": Task.Microtasks.Prediction
         }
     ##################### Manager
     # def __init__(self):
