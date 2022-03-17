@@ -22,9 +22,9 @@ def startCallback(start):
 class Task:
     list =  []
     @staticmethod
-    def parseMicroList(args:list) -> list:
+    def parseMicroList(unparsed:list) -> list:
         micro_list = []
-        for dict in args: ####
+        for dict in unparsed: ####
             entry_name = list(dict.keys())[0]
             entry_value = dict[entry_name]
             micro_list.append(   (entry_name, entry_value)   )
@@ -34,7 +34,8 @@ class Task:
             if_list = []             #EXECUTING THE OBJECT SHALL RETURN STATUS (BAD/GOOD/CUSTOM)
             else_list = []
             counter = 0
-            def __init__(self,arg):
+            def __init__(self,parent,arg):
+                self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
                 items = arg.items()
@@ -45,21 +46,22 @@ class Task:
             def check(self) -> bool:
                 return Status.check(self.check_args)
             def parseDo(self,args):
-                return Task.Microtasks.getExec(args)
+                return Task.Microtasks(self,args)
             def parseElse(self,args):
-                return Task.Microtasks.getExec(args)
+                return Task.Microtasks(self,args)
             async def exec(self):
                 if self.check():
-                    asyncio.run(self.yes.exec())
+                    asyncio.run(self.yes.action.exec())
                 else:
-                    asyncio.run(self.no.exec())
+                    asyncio.run(self.no.action.exec())
             def __str__(self):
                 return f"Condition {self.num}"
             def __repr__(self):
                 return f"Condition {self.num}"
         class Calls:
             counter = 0
-            def __init__(self,name,args:tuple):
+            def __init__(self,parent,name,args:tuple):
+                self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
                 self.args = args
@@ -81,7 +83,8 @@ class Task:
         class Move:
             counter = 0
             curr_status = None
-            def __init__(self,pos:str):
+            def __init__(self,parent,pos:str):
+                self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
                 parsed = pos.split("/")
@@ -104,7 +107,8 @@ class Task:
                 return f"Move {self.num}: {self.pos = }"
         class Logs:
             counter = 0
-            def __init__(self,args:str):
+            def __init__(self,parent,args:str):
+                self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
                 self.text = args
@@ -128,7 +132,8 @@ class Task:
                 pass
         class Prediction:
             score = 0
-            def __init__(self, num):
+            def __init__(self,parent, num):
+                self.parent = parent
                 self.score = num
                 return self
             def exec(self):
@@ -136,7 +141,8 @@ class Task:
                 return showPrediction(type(self).score)
         class Skip:
             counter = 0
-            def __init__(self,num):
+            def __init__(self,parent,num):
+                self.parent = parent
                 self.task_num = num
                 self.num = type(self).counter
                 type(self).counter += 1
@@ -152,7 +158,8 @@ class Task:
             def __repr__(self):
                 return f"Skip {self.num}: {self.task_num = }"
         class Together:
-            def __init__(self,args):
+            def __init__(self,parent,args):
+                self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
                 self.subtask_list = []
@@ -180,17 +187,21 @@ class Task:
                 return f"'Together' call {self.num}"
         ############ Microtask
         counter = 0
-        def __init__(self,key,args):
+        def __init__(self,parent,key,args):
             rospy.loginfo(f"Initialising microtask {key = } {args = }")
             self.num = type(self).counter
             self.name = key
+            self.parent_task = parent
             type(self).counter += 1
-            self.action = Manager.constructors_dict[args[0]](args[1]) #parse args correctly, the args of the func are not working!
+            try:
+                self.action = Manager.constructors_dict[key](self,args) #parse args correctly, the args of the func are not working!
+            except:
+                rospy.logerr(f"Incorrect route syntax({key = }, {args = })")
             return self
-        @staticmethod
-        def getExec(key,args): #val in the dict!
-            micro = Task.Microtasks(key,args) #each constructor 
-            return micro                      #should return an executable object
+        # @staticmethod
+        # def getExec(key,args): #val in the dict!
+        #     micro = Task.Microtasks(key,args) #each constructor 
+        #     return micro                      #should return an executable object
         def __str__(self):
             return f"Microtask {self.num}: {self.name}"
         def __repr__(self):
@@ -202,11 +213,11 @@ class Task:
         self.num = type(self).counter
         type(self).counter += 1
         self._skip_flag = 0
-        self.name = f"{name}{self.num}"
+        self.name = f"Task {name}"
         self.micro_list = []
-        for args in self.parseMicroList(list):
-            rospy.loginfo(f"Parsing {name} with {args = }...")
-            self.micro_list.append(Task.Microtasks.getExec(name,args)) #micro is a tuple (key, val) for current dict position
+        for exec_name, args in self.parseMicroList(list):
+            rospy.loginfo(f"Parsing {exec_name} with {args = }...")
+            self.micro_list.append(Task.Microtasks(self,exec_name,args)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
     async def exec(self):
         if not self._skip_flag:
@@ -352,9 +363,12 @@ class Manager:
             asyncio.run(task.exec())
 
 
-
-async def doneCallback():
-    _execute, _executing = 0, 0
+class Flags:
+    _execute = 0
+    _executing = 0
+    @staticmethod
+    async def doneCallback():
+        Flags._execute, Flags._executing = 0, 0
 def main():
     Manager.read()
     start_time = rospy.Time.now()
@@ -364,11 +378,11 @@ def main():
     timer = Status.Timer()
     rate = rospy.Rate(Manager.update_rate)
     main_task = asyncio.create_task(Task.exec())
-    cb_task = doneCallback()
+    cb_task = asyncio.create_task(Flags.doneCallback())
     main_task.add_done_callback(cb_task)
     while not rospy.is_shutdown():
-        if not _executing and _execute:
-            _executing = 1
+        if not Flags._executing and Flags._execute:
+            Flags._executing = 1
             asyncio.run(main_task)
         Status.update()
         rate.sleep()
@@ -377,7 +391,5 @@ def main():
 
 ####
 if __name__=="__main__":
-    _execute = 0
-    _executing = 0
     Task.Microtasks.Move.client = move_client_constructor(Task.Microtasks.Move.feedback)
     main()
