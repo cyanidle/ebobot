@@ -50,9 +50,9 @@ class Task:
                 return Task.Microtasks.getExec(args)
             async def exec(self):
                 if self.check():
-                    asyncio.run(self.yes.action.exec())
+                    asyncio.run(self.yes.exec())
                 else:
-                    asyncio.run(self.no.action.exec())
+                    asyncio.run(self.no.exec())
             def __str__(self):
                 return f"Condition {self.num}"
             def __repr__(self):
