@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from this import s
 import roslib
 roslib.load_manifest('ebobot')
 import rospy

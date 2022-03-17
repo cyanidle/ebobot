@@ -6,7 +6,7 @@ import yaml
 #import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
-from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponce
+from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponse
 from actionlib_msgs.msg import GoalStatus
 #from ebobot.srv import Catcher
 #
@@ -18,27 +18,32 @@ class Calls:
     move_servo = rospy.ServiceProxy("servos_service", Servos)
     lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
     def __init__(self, name,execs):
-        rospy.loginfo(f"Initialising a call {name}")
+        print(f"Initialising a call {name}")
         self.executables = []
         self.args = []
         self.parsers = []
         self.name = name   
-        rospy.loginfo(f"Parsing through execs...\n{execs}")
+        print(f"Parsing through execs...\n{execs}")
         for exec_name in execs:
-            rospy.loginfo(f"Parsing {exec_name =}")
+            print(f"Parsing {exec_name =}")
             args = []
             self.executables.append(Execute.exec_dict[exec_name])
-            rospy.loginfo(f"Appended executable {self.executables[-1]}")
+            print(f"Appended executable {self.executables[-1]}")
             self.parsers.append(Execute.parsers_dict[exec_name])
-            rospy.loginfo(f"Appended parser {self.parsers[-1]}")
+            print(f"Appended parser {self.parsers[-1]}")
             for arg in execs[exec_name].items():
                 args.append(arg)
             self.args.append(args)
-            rospy.loginfo(f"Appended args {self.args[-1]}")
+            print(f"Appended args {self.args[-1]}")
         return self.execute
     def execute(self):
+        resp = []
         for exec, args, parser in zip(self.executables, self.args, self.parsers):
-            exec(parser(args))
+            resp.append(exec(parser(args)))
+        if 0 in resp:
+            return 1
+        else:
+            return 0
     @staticmethod
     def parseServos(args):
         parsed = ServosRequest()
@@ -65,11 +70,11 @@ class Execute:
     }
     @classmethod
     def read(cls):
-        rospy.loginfo("Reading file")
+        print("Reading file")
         with open(cls.file, "r") as stream:
             try:
                 cls.raw_dict = (yaml.safe_load(stream))
-                rospy.loginfo(f"Got dict!\n{cls.raw_dict}")
+                print(f"Got dict!\n{cls.raw_dict}")
             except yaml.YAMLError as exc:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
@@ -78,14 +83,14 @@ class Execute:
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
 
 class Move:
-    def __init__(self,cb:function):
+    def __init__(self,cb):
         "Init a client with a callback function!"
         self.cb = cb
         self.client = actionlib.SimpleActionClient('move', MoveAction)
-        rospy.loginfo(f"Waiting for server 'move'...")
+        print(f"Waiting for server 'move'...")
         self.client.wait_for_server()
     def setTarget(self,target_pos,target_th):
-        rospy.loginfo(
+        print(
             f"##Set new goal for {target_pos = }, {target_th = }, with {self.cb = }")
         self.target_pos = target_pos
         self.target_th = target_th
@@ -113,6 +118,6 @@ class Move:
         self.client.wait_for_result()
 
 
-rospy.loginfo("Parsing calls...")
+print("Parsing calls...")
 Execute.parse()
-rospy.loginfo("Done parsing calls!")
+print("Done parsing calls!")

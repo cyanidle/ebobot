@@ -22,10 +22,10 @@ def startCallback(start):
 class Task:
     list =  []
     @staticmethod
-    def parseMicroList(list:list) -> list:
+    def parseMicroList(args:list) -> list:
         micro_list = []
-        for dict in list: ####
-            entry_name = list(dict)[0]
+        for dict in args: ####
+            entry_name = list(dict.keys())[0]
             entry_value = dict[entry_name]
             micro_list.append(   (entry_name, entry_value)   )
         return micro_list
@@ -80,7 +80,7 @@ class Task:
                 return f"Call {self.num}: {self.name}"
         class Move:
             counter = 0
-            client = move_client_constructor()
+            curr_status = None
             def __init__(self,pos:str):
                 self.num = type(self).counter
                 type(self).counter += 1
@@ -95,6 +95,9 @@ class Task:
                 return self.curr_status
             def statusUpdate(self):
                 pass
+            @staticmethod
+            def feedback(fb):
+                Task.Microtasks.Move.curr_status = fb.status
             def __str__(self):
                 return f"Move {self.num}: {self.pos = }"
             def __repr__(self):
@@ -201,7 +204,7 @@ class Task:
         self._skip_flag = 0
         self.name = f"{name}{self.num}"
         self.micro_list = []
-        for name, args in self.parseMicroList(name,args):
+        for args in self.parseMicroList(list):
             rospy.loginfo(f"Parsing {name} with {args = }...")
             self.micro_list.append(Task.Microtasks.getExec(name,args)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
@@ -306,7 +309,7 @@ class Manager:
     debug = rospy.get_param("~debug", 1)
     #
     update_rate = rospy.get_param("~update_rate", 5)
-    file = rospy.get_param("~file", "/config/routes/route1.yaml")
+    file = rospy.get_param("~file", "config/routes/example_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "ebobot/begin")
     #
@@ -376,4 +379,5 @@ def main():
 if __name__=="__main__":
     _execute = 0
     _executing = 0
+    Task.Microtasks.Move.client = move_client_constructor(Task.Microtasks.Move.feedback)
     main()
