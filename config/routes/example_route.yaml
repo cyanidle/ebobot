@@ -6,6 +6,7 @@ interrupts:
     
   2: 
     - call: "test2"
+# NEVER CALL TWO MOVES SIMOLTAMIOUSLY!!!
 tasks:
   1:
     - call: "ArmUp"

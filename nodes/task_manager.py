@@ -81,14 +81,16 @@ class Task:
         class Move:
             counter = 0
             client = move_client_constructor()
-            def __init__(self,pos):
+            def __init__(self,pos:str):
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.pos = pos
+                parsed = pos.split("/")
+                self.pos = (parsed[0],parsed[1])
+                self.th = parsed[2]
                 return self
             async def exec(self):
                 Status.add(self)
-                self.curr_status = self.call(self.args)
+                type(self).client.setTarget(self.pos,self.th)
             def status(self):
                 return self.curr_status
             def statusUpdate(self):
