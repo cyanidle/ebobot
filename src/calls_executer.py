@@ -14,7 +14,7 @@ def executer_dict():
     return Execute.dict
 def getMoveClient():
     return Move()
-class Calls:
+class Calls: #Async
     move_servo = rospy.ServiceProxy("servos_service", Servos)
     lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
     def __init__(self, name,execs):
@@ -79,7 +79,7 @@ class Execute:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for call_name in cls.raw_dict:
+        for call_name in list(cls.raw_dict.keys()):
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
 
 class Move:
@@ -121,3 +121,4 @@ class Move:
 print("Parsing calls...")
 Execute.parse()
 print("Done parsing calls!")
+print(f"{Execute.dict = }")

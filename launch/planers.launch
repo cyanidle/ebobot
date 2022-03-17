@@ -5,7 +5,7 @@
 
     <node pkg="ebobot" type="global_planer.py" name="global_planer" output="log" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "maximum_cost" value = "25"/>
+        <param name = "maximum_cost" value = "8"/>
         <param name = "cleanup_repeats_threshhold" value = "9.5"/>
         <param name = "cleanup_repeats_len" value = "9"/>
         

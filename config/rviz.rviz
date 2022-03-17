@@ -8,10 +8,10 @@ Panels:
         - /Status1
         - /Map1
         - /Path1
-        - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
         - /Marker1
+        - /Marker1/Status1
         - /Marker1/Namespaces1
         - /LaserScan1
       Splitter Ratio: 0.6823529601097107
@@ -101,13 +101,19 @@ Visualization Manager:
         All Enabled: true
         costmap:
           Value: true
+        global_target_markers:
+          Value: true
         laser:
+          Value: true
+        local_current_target_markers:
           Value: true
         map:
           Value: true
-        objects_markers:
-          Value: true
         odom:
+          Value: true
+        relative_beacon_markers:
+          Value: true
+        rviz_path:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -118,12 +124,18 @@ Visualization Manager:
       Tree:
         map:
           costmap:
+            global_target_markers:
+              {}
             laser:
               {}
-            objects_markers:
+            local_current_target_markers:
               {}
             odom:
               {}
+            relative_beacon_markers:
+              {}
+        rviz_path:
+          {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -131,7 +143,9 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        objects: true
+        global_target: true
+        local_current_target: true
+        relative_beacon: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -189,7 +203,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -2.3469328880310059e-07
+      Angle: 3.134995698928833
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -199,10 +213,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 162.54296875
+      Scale: -119.65808868408203
       Target Frame: <Fixed Frame>
-      X: 1.1525554656982422
-      Y: 1.7687654495239258
+      X: 0.7789990305900574
+      Y: 1.9027299880981445
     Saved: ~
 Window Geometry:
   Displays:
@@ -220,5 +234,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1294
-  X: 191
-  Y: 220
+  X: 183
+  Y: 76

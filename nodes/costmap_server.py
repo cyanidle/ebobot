@@ -28,10 +28,12 @@ def obstaclesCallback(obst):
             print(f"Got new object {obj.y =} {obj.x =}")
         Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),
         obj.radius/Costmap.resolution)
-        Objects.updateMask()
+    Objects.updateMask() # AHAHAHAHAHAAHAHA H AHAHAHAHHAHAHAHAAHHAHAHHAHAHAAHAHAHAHAHAHAHAHAHAHAHAHHAHAHA Питон момент
+        #короче здесь был лишний обступ и он обновлял и пересылал карту НА КАЖДОМ объекте, а.к.а. они появлялись по очереди и планер не всегда их видел вовремя))))
 class Costmap():
     #Params
     #Features
+    publish_on_obstacles_recieve = rospy.get_param('~publish_on_obstacles_recieve', 1)
     write_map_enable = rospy.get_param('~write_map_enable', 1)
     debug = rospy.get_param('~debug', 1)
     interpolate_enable = rospy.get_param('~interpolate_enable',1)
@@ -189,6 +191,7 @@ class Costmap():
                
     @classmethod
     def publish(cls): ###An example
+        #rospy.loginfo(f"Publishing map")
         msg = OccupancyGrid()
         curr_time = rospy.Time.now()
         msg.header.frame_id = "costmap" ###????????
@@ -217,9 +220,8 @@ class Objects:
     #Obstacle params
     #Features
     use_default = rospy.get_param('~obstacles/use_default',0)
-
+    resolution = rospy.get_param('~obstacles/resolution',15)
     #
-
     base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',150)
     #
     topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
@@ -230,9 +232,9 @@ class Objects:
     #globals
     list = []
 
-    def __init__(self,pos,radius,resolution = 10, default = 0):
+    def __init__(self,pos,radius, default = 0):
         if not Objects.use_default:
-            self.delta_coords = dCoordsInRad(radius,resolution)
+            self.delta_coords = dCoordsInRad(radius,Objects.resolution)
             self.pos = pos
             self.inflation = []
             self.inflation.append(100)
@@ -244,7 +246,7 @@ class Objects:
             if not default:
                 Objects.list.append(self)
         elif default:
-            self.delta_coords = dCoordsInRad(radius,resolution)
+            self.delta_coords = dCoordsInRad(radius,Objects.resolution)
             self.pos = pos
             self.inflation = [100]
             for y,x in self.delta_coords[1:]:
@@ -261,6 +263,7 @@ class Objects:
         Objects.list.clear()
     @staticmethod
     def updateMask():
+        #rospy.loginfo(f"Updating mask")
         Costmap.mask = np.full((Costmap.height,Costmap.width),0)
         #print (Costmap.mask)
         if not Objects.use_default:
@@ -282,6 +285,8 @@ class Objects:
                         Costmap.mask[y][x] += inflation
                         if Costmap.mask [y][x] > 100:
                             Costmap.mask [y][x] = 100
+        if Costmap.publish_on_obstacles_recieve:
+            Costmap.publish()
     def getCoords(self) -> list:
         for y,x in self.delta_coords:
             yield  (self.pos[0] + y , self.pos[1] + x)       
@@ -295,7 +300,8 @@ def main():
     rate = rospy.Rate(Costmap.update_rate)
     Costmap.publish()
     while not rospy.is_shutdown():
-        Costmap.publish()
+        if not Costmap.publish_on_obstacles_recieve:
+            Costmap.publish()
         rate.sleep()
 
 if __name__=="__main__":
