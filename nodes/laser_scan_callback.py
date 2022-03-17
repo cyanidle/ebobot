@@ -155,7 +155,10 @@ class Laser:
                     radius = np.linalg.norm(
                         (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
                     if Beacons.min_dots < len(curr_obst) < Beacons.dots_thresh:
-                        Beacons.initRelative(cls.getPosition(curr_obst))
+                        pos = cls.getPosition(curr_obst)
+                        for exp in Beacons.expected_list:
+                            if np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] )):
+                                Beacons(pos,exp.num)
                     elif Objects.min_dots < len(curr_obst) < Objects.dots_thresh:
                         if radius < Objects.safe_footprint_radius:
                             radius = Objects.safe_footprint_radius
@@ -178,6 +181,7 @@ class Beacons(Laser):
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 0)
     # /Features
     ###
+    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
     min_dots = rospy.get_param('~beacons/min_dots', 5)
     dots_thresh = rospy.get_param('~beacons/dots_thresh', 15) #num
     #############
@@ -194,7 +198,8 @@ class Beacons(Laser):
     expected_list = []
     rel_list = []
     #/Globals
-    def __init__(self,pos:tuple,expected:int = 0):
+    def __init__(self,pos:tuple,num:int = 10,expected:int = 0):
+        self.num = num
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
@@ -207,10 +212,10 @@ class Beacons(Laser):
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
-            new_beacon = cls(coord,expected = 1)
-    @classmethod
-    def initRelative(cls, pose):   
-        beacon = cls(pose) #initialisation auto-appends objects to their list
+            new_beacon = cls(coord,num,expected = 1)
+    # @classmethod
+    # def initRelative(cls, pose,num):   
+    #     beacon = cls(pose,num) #initialisation auto-appends objects to their list
     @classmethod
     def pubRelative(cls):
         for num,beacon in enumerate(cls.rel_list):
