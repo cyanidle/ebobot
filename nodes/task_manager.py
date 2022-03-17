@@ -185,7 +185,7 @@ class Task:
             self.num = type(self).counter
             self.name = key
             type(self).counter += 1
-            self.action = Manager.constructors_dict[key](args)
+            self.action = Manager.constructors_dict[args[0]](args[1]) #parse args correctly, the args of the func are not working!
             return self
         @staticmethod
         def getExec(key,args): #val in the dict!
