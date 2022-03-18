@@ -22,8 +22,8 @@
   - "num": 2
   - "state": 0
 
-"Dynamic":
-"Example":
+"Dynamic": #plain call of service, but one at a time!
+"Example": #with args!
   - custom_arg1
   - custom_arg2
 "Move_servo":

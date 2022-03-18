@@ -40,23 +40,13 @@ class Calls: #Async
             self.args.append(args)
             print(f"Appended args {self.args[-1]}")
         return self.execute
-    async def execute(self):
+    async def execute(self,args=None):
         if self.static == True:
-            asyncio.run(Static.execute(self))
+            asyncio.run(self.executeStatic())
         else:
-            asyncio.run(Dynamic.execute(self))
+            asyncio.run(self.executeDynamic(args))
     @staticmethod
-    def parseServos(args):
-        parsed = ServosRequest()
-        parsed.num = args["num"]
-        parsed.state = args["state"]
-        return parsed
-
-
-
-
-class Static:
-    async def execute(self):
+    async def executeStatic(self):
             sub_calls = []
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 sub_calls.append(asyncio.create_task(exec(parser(args))))
@@ -66,19 +56,19 @@ class Static:
                 return 1
             else:
                 return 0
-    pass
-class Dynamic: #Fix later
-    async def execute(self):
-        sub_calls = []
-        for exec, args, parser in zip(self.executables, self.args, self.parsers):
-            sub_calls.append(asyncio.create_task(exec(parser(args))))
-        resp = await asyncio.gather(*sub_calls)
+    async def executeDynamic(self,args):
+        exec, args, parser = self.executables[0], self.args[0], self.parsers[0]
+        resp = asyncio.run(exec(parser(args)))
         rospy.loginfo(f"Executing {self.name}, responces = {resp}")
         if 0 in resp:
             return 1
         else:
             return 0
-    pass
+    def parseServos(args):
+        parsed = ServosRequest()
+        parsed.num = args["num"]
+        parsed.state = args["state"]
+        return parsed
 ##############
 def showPrediction(num):
     parsed = Lcd_showRequest()
@@ -110,8 +100,8 @@ class Execute:
     def parse(cls):
         for call_name in list(cls.raw_dict["Static"].keys()):
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
-        # for call_name in list(cls.raw_dict["Dynamic"].keys()):
-        #     cls.dict[call_name] = Calls(cls.raw_dict[call_name])
+        for call_name in list(cls.raw_dict["Dynamic"].keys()):
+            cls.dict[call_name] = Calls(cls.raw_dict[call_name], static = False)
 
 class Move:
     def __init__(self,cb):
