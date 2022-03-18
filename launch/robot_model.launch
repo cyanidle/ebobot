@@ -1,14 +1,19 @@
 <launch>
 
-  <arg name="urdf_model_file" default="$(find ebobot)urdf/ebobot.urdf"/>
+    <arg name="urdf_model_file" default="$(find ebobot)urdf/ebobot.urdf" />
 
-  <param name="robot_description" command="cat $(arg urdf_model_file)" />
+    <param name="robot_description" command="cat $(arg urdf_model_file)" />
 
+    <arg name="fake_joint" default="true"/>
 
-    <node pkg="tf" type="static_transform_publisher" name="transform" args="0 0 0 0 0 0 odom base_footprint 50"/>
+    <group if="$(arg fake_joint)">
+        <node pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" name="joint_publisher" />
+    </group>
+        
+    <node pkg="tf" type="static_transform_publisher" name="transform" args="0 0 0 0 0 0 odom base_footprint 50" />
 
-  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
-    <param name="publish_frequency" type="double" value="50.0" />
-  </node>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="50.0" />
+    </node>
 
 </launch>
