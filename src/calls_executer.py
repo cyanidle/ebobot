@@ -20,11 +20,12 @@ class Calls: #Async
     def getServoExec():
         return rospy.ServiceProxy("servos_service", Servos)
     lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
-    def __init__(self, name,execs):
+    def __init__(self, name,execs, static = True):
         print(f"Initialising a call {name}")
         self.executables = []
         self.args = []
         self.parsers = []
+        self.static = static
         self.name = name   
         print(f"Parsing through execs...\n{execs}")
         for exec_name in execs:
@@ -40,6 +41,34 @@ class Calls: #Async
             print(f"Appended args {self.args[-1]}")
         return self.execute
     async def execute(self):
+        if self.static == True:
+            asyncio.run(Static.execute(self))
+        else:
+            asyncio.run(Dynamic.execute(self))
+    @staticmethod
+    def parseServos(args):
+        parsed = ServosRequest()
+        parsed.num = args["num"]
+        parsed.state = args["state"]
+        return parsed
+
+
+
+
+class Static:
+    async def execute(self):
+            sub_calls = []
+            for exec, args, parser in zip(self.executables, self.args, self.parsers):
+                sub_calls.append(asyncio.create_task(exec(parser(args))))
+            resp = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing {self.name}, responces = {resp}")
+            if 0 in resp:
+                return 1
+            else:
+                return 0
+    pass
+class Dynamic: #Fix later
+    async def execute(self):
         sub_calls = []
         for exec, args, parser in zip(self.executables, self.args, self.parsers):
             sub_calls.append(asyncio.create_task(exec(parser(args))))
@@ -49,15 +78,6 @@ class Calls: #Async
             return 1
         else:
             return 0
-    @staticmethod
-    def parseServos(args):
-        parsed = ServosRequest()
-        parsed.num = args["num"]
-        parsed.state = args["state"]
-        return parsed
-class Static(Calls):
-    pass
-class Dynamic(Calls):
     pass
 ##############
 def showPrediction(num):
@@ -88,8 +108,10 @@ class Execute:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for call_name in list(cls.raw_dict.keys()):
+        for call_name in list(cls.raw_dict["Static"].keys()):
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
+        # for call_name in list(cls.raw_dict["Dynamic"].keys()):
+        #     cls.dict[call_name] = Calls(cls.raw_dict[call_name])
 
 class Move:
     def __init__(self,cb):
