@@ -19,6 +19,9 @@
   <material name="white">
     <color rgba="0.9 0.9 0.9 1.0"/>
   </material>
+  <material name="red">
+    <color rgba="0.9 0.0 0.0 1.0"/>
+  </material>
 
 
   <joint name="base_joint" type="fixed">
@@ -106,10 +109,9 @@
       <geometry>
         <cylinder length="0.025" radius="0.03"/>
       </geometry>
-      <material name="dark"/>
+      <material name="red"/>
     </visual>
   </link>    
 
 
 </robot>
-
