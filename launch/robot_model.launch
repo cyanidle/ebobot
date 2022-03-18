@@ -4,10 +4,9 @@
 
   <param name="robot_description" command="cat $(arg urdf_model_file)" />
 
-  <!-- send fake joint values -->
-  <!--node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="false"/>
-  </node-->
+
+    <node pkg="tf" type="static_transform_publisher" name="transform" args="0 0 0 0 0 0 odom base_footprint 50"/>
+
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="50.0" />
   </node>
