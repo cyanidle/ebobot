@@ -1,6 +1,6 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 78
+    Help Height: 138
     Name: Displays
     Property Tree Widget:
       Expanded:
@@ -15,7 +15,7 @@ Panels:
         - /Marker1/Namespaces1
         - /LaserScan1
       Splitter Ratio: 0.6823529601097107
-    Tree Height: 407
+    Tree Height: 1490
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -34,7 +34,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -99,15 +99,23 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        costmap:
+        base_footprint:
           Value: true
-        laser:
+        base_link:
+          Value: true
+        base_scan:
+          Value: true
+        costmap:
           Value: true
         map:
           Value: true
-        objects_markers:
-          Value: true
         odom:
+          Value: true
+        wheel_1_link:
+          Value: true
+        wheel_2_link:
+          Value: true
+        wheel_3_link:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -118,12 +126,17 @@ Visualization Manager:
       Tree:
         map:
           costmap:
-            laser:
-              {}
-            objects_markers:
-              {}
             odom:
-              {}
+              base_footprint:
+                base_link:
+                  base_scan:
+                    {}
+                  wheel_1_link:
+                    {}
+                  wheel_2_link:
+                    {}
+                  wheel_3_link:
+                    {}
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -131,7 +144,7 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        objects: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -162,6 +175,51 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -199,7 +257,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 162.54296875
+      Scale: 434.5667724609375
       Target Frame: <Fixed Frame>
       X: 1.1525554656982422
       Y: 1.7687654495239258
@@ -207,10 +265,10 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 704
+  Height: 2002
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000015600000222fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000222000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000222fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d00000222000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050e0000003efc0100000002fb0000000800540069006d006501000000000000050e000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000029d0000022200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f7000006cafc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000006ca0000018200fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000015f000006cafc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000006e000006ca0000013200fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000cfc00000060fc0100000002fb0000000800540069006d0065010000000000000cfc0000057100fffffffb0000000800540069006d006501000000000000045000000000000000000000098e000006ca00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -219,6 +277,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1294
-  X: 191
-  Y: 220
+  Width: 3324
+  X: 84
+  Y: 54
