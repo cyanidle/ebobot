@@ -8,10 +8,10 @@ Panels:
         - /Status1
         - /Map1
         - /Path1
-        - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
         - /Marker1
+        - /Marker1/Status1
         - /Marker1/Namespaces1
         - /LaserScan1
       Splitter Ratio: 0.6823529601097107
@@ -101,21 +101,36 @@ Visualization Manager:
         All Enabled: true
         base_footprint:
           Value: true
+<<<<<<< HEAD
         base_link:
           Value: true
         base_scan:
           Value: true
         costmap:
           Value: true
+=======
+        global_target_markers:
+          Value: true
+        laser:
+          Value: true
+        local_current_target_markers:
+          Value: true
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6
         map:
           Value: true
         odom:
           Value: true
+<<<<<<< HEAD
         wheel_1_link:
           Value: true
         wheel_2_link:
           Value: true
         wheel_3_link:
+=======
+        relative_beacon_markers:
+          Value: true
+        rviz_path:
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -126,6 +141,7 @@ Visualization Manager:
       Tree:
         map:
           costmap:
+<<<<<<< HEAD
             odom:
               base_footprint:
                 base_link:
@@ -137,6 +153,20 @@ Visualization Manager:
                     {}
                   wheel_3_link:
                     {}
+=======
+            global_target_markers:
+              {}
+            laser:
+              {}
+            local_current_target_markers:
+              {}
+            odom:
+              {}
+            relative_beacon_markers:
+              {}
+        rviz_path:
+          {}
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6
       Update Interval: 0
       Value: true
     - Class: rviz/Marker
@@ -144,7 +174,13 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
+<<<<<<< HEAD
         {}
+=======
+        global_target: true
+        local_current_target: true
+        relative_beacon: true
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -247,7 +283,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -2.3469328880310059e-07
+      Angle: 3.134995698928833
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -257,10 +293,14 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
+<<<<<<< HEAD
       Scale: 434.5667724609375
+=======
+      Scale: -119.65808868408203
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6
       Target Frame: <Fixed Frame>
-      X: 1.1525554656982422
-      Y: 1.7687654495239258
+      X: 0.7789990305900574
+      Y: 1.9027299880981445
     Saved: ~
 Window Geometry:
   Displays:
@@ -277,6 +317,12 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
+<<<<<<< HEAD
   Width: 3324
   X: 84
   Y: 54
+=======
+  Width: 1294
+  X: 183
+  Y: 76
+>>>>>>> ab99478ba41cf8558cdeb08b3e9dcf3ff12e00d6

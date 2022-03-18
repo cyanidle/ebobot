@@ -47,7 +47,8 @@ def robotPosCallback(odom):
     Global.robot_pos = np.array([odom.pose.pose.position.y/Global.costmap_resolution,    odom.pose.pose.position.x/Global.costmap_resolution,    euler[2]%(3.1415*2)]) 
 
 def localStatusCallback(status):
-    move_server.update(status.data,local=1)
+    if move_server.server.is_active():
+        move_server.update(status.data,local=1)
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
     goal = [target.pose.position.y/Global.costmap_resolution,target.pose.position.x/Global.costmap_resolution,euler[2]%(3.1415*2)]
@@ -405,7 +406,7 @@ class Global(): ##Полная жопа
                         r = PoseStamped()
                         r.pose.position.y = goal[0] / rviz_coeff
                         r.pose.position.x = goal[1] / rviz_coeff
-                        Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
+                        #Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
                         rviz.poses.append(r)
             target_pos = PoseStamped()
             if Global.debug:
@@ -497,7 +498,7 @@ class MoveServer:
         new_target.pose.orientation.z = quat[2]
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
-    def update(self,feedback, local=0):
+    def update(self, local=0):
         if local:
             self.server.publish_feedback(f"local/{self.feedback}")
             if self.feedback == "error/goal":

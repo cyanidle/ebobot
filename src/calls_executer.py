@@ -3,7 +3,7 @@ roslib.load_manifest('ebobot')
 import rospy
 import actionlib
 import yaml
-#import asyncio
+import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponse
@@ -14,8 +14,11 @@ def executer_dict():
     return Execute.dict
 def getMoveClient():
     return Move()
-class Calls:
-    move_servo = rospy.ServiceProxy("servos_service", Servos)
+class Calls: #Async
+    #move_servo = rospy.ServiceProxy("servos_service", Servos)
+    @staticmethod
+    def getServoExec():
+        return rospy.ServiceProxy("servos_service", Servos)
     lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
     def __init__(self, name,execs):
         print(f"Initialising a call {name}")
@@ -27,7 +30,7 @@ class Calls:
         for exec_name in execs:
             print(f"Parsing {exec_name =}")
             args = []
-            self.executables.append(Execute.exec_dict[exec_name])
+            self.executables.append(Execute.exec_dict[exec_name]())
             print(f"Appended executable {self.executables[-1]}")
             self.parsers.append(Execute.parsers_dict[exec_name])
             print(f"Appended parser {self.parsers[-1]}")
@@ -36,10 +39,12 @@ class Calls:
             self.args.append(args)
             print(f"Appended args {self.args[-1]}")
         return self.execute
-    def execute(self):
-        resp = []
+    async def execute(self):
+        sub_calls = []
         for exec, args, parser in zip(self.executables, self.args, self.parsers):
-            resp.append(exec(parser(args)))
+            sub_calls.append(asyncio.create_task(exec(parser(args))))
+        resp = await asyncio.gather(*sub_calls)
+        rospy.loginfo(f"Executing {self.name}, responces = {resp}")
         if 0 in resp:
             return 1
         else:
@@ -63,7 +68,7 @@ class Execute:
     dict = {}
     raw_dict = {}
     exec_dict = {
-        "servos_service":  Calls.move_servo
+        "servos_service":  Calls.getServoExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos
@@ -79,7 +84,7 @@ class Execute:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for call_name in cls.raw_dict:
+        for call_name in list(cls.raw_dict.keys()):
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
 
 class Move:
@@ -121,3 +126,4 @@ class Move:
 print("Parsing calls...")
 Execute.parse()
 print("Done parsing calls!")
+print(f"{Execute.dict = }")
