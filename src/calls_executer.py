@@ -55,6 +55,10 @@ class Calls: #Async
         parsed.num = args["num"]
         parsed.state = args["state"]
         return parsed
+class Static(Calls):
+    pass
+class Dynamic(Calls):
+    pass
 ##############
 def showPrediction(num):
     parsed = Lcd_showRequest()

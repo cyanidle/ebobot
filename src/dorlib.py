@@ -30,7 +30,11 @@ def dCoordsInRad(rad: int,resolution:int = 3):
         last_x = x_max
     #print (list)
     return list
-
+def getRotor(turn):
+    return cos(turn) + 1j*sin(turn)
+def applyRotor(vect,rotor):
+    comp = rotor * (vect[0] + 1j * vect[1])
+    return (comp.real , comp.imag)
 def turnVect(vect,turn: float, dims = 2):
     "Turn vector using complex rotor by (turn) rads"
     rotor = cos(turn) + 1j*sin(turn)
