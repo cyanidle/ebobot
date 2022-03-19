@@ -383,7 +383,6 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
                 obj.updateStatus()
             for obj in Status.timers:
                 obj.updateStatus()
-            print (f"Inner timer: {Status.timers[0].time}")
             rate.sleep()
     @staticmethod
     def check(string:str):
