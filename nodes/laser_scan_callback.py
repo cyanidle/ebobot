@@ -142,11 +142,7 @@ class Laser:
                 try:
                     dist = np.linalg.norm((pose[0] - Laser.list[last_num][0][0] ,  pose[1] - Laser.list[last_num][0][1]))
                 except:
-                    #pass
-                    # print(f"Error! {Laser.list = }")
-                    # print(f"{len(Laser.list) = }")
-                    # print(f"{last_num = }")
-                    rospy.logwarn(f"Laser error!")
+                    rospy.logwarn(f"Laserscan callback overwhelmed!")
                     break
                 last_num = last_num +1
                 if dist<cls.dist_between_dots_minimal:
@@ -156,21 +152,20 @@ class Laser:
                         (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
                     if Beacons.min_dots < len(curr_obst) < Beacons.dots_thresh:
                         Beacons.initRelative(cls.getPosition(curr_obst))
-                    elif Objects.min_dots < len(curr_obst) < Objects.dots_thresh:
+                    if Objects.min_dots < len(curr_obst) < Objects.dots_thresh:
                         if radius < Objects.safe_footprint_radius:
                             radius = Objects.safe_footprint_radius
                         Objects(cls.getPosition(curr_obst), radius*Objects.radius_coeff)
                     curr_obst.clear()
     @classmethod
     def getPosition(cls,poses):
-        "(Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
+        "(from class Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x, y = 0,0
         for pos in poses:
             y += pos[0]
             x += pos[1]
         max = len(poses)
-        point = (y/max,x/max)
-        return point
+        return = (y/max,x/max)
 #################################################################
 class Beacons(Laser):
     #Beacon params
@@ -266,6 +261,11 @@ class Objects(Laser):
     radius_coeff = rospy.get_param('~obstacles/radius_coeff', 1.2)
     min_dots = rospy.get_param('~obstacles/min_dots', 20)
     dots_thresh = rospy.get_param('~obstacles/dots_thresh', 200) #num
+    #
+    minimal_x = rospy.get_param('~minimal_x', 0.05)
+    maximum_x = rospy.get_param('~maximum_x', 2)
+    minimal_y = rospy.get_param('~minimal_y ', 0.05)
+    maximum_y = rospy.get_param('~maximum_y', 3)
     #/Params
 
     #Topics
