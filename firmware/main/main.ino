@@ -10,6 +10,7 @@
 ///////////////////////////
 #include "servos.h"
 #include "kadyrov_lcd.h"
+#include "ohm_reader.h"
 ////////////////////////////Все скорости в мм/с
 
 ////////////////////////////ROS init
@@ -35,9 +36,10 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 #define FWD2 43
 #define BCK2 42
 ///////////////////////Loop settings
-int loop_delay = 50;
+const int loop_delay = 50;
+const int servo_loop_delay = 40;
 TimerMs main_loop(loop_delay, 1, 0);
-TimerMs servo_loop(100, 1, 0);
+TimerMs servo_loop(servo_loop_delay, 1, 0);
 ///////////////////////// ENCODER
 
 volatile long X[3];
@@ -248,6 +250,7 @@ void setup(){
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
+  nh.advertiseService(ohm_reader_server);
   //
   servos_shield.begin();
   servos_shield.set_hz(1526);

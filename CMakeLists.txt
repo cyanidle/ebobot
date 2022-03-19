@@ -33,6 +33,7 @@ add_action_files(
   )
 add_service_files(
     FILES
+    OhmReader.srv
     Lcd_show.srv
     PIDSettings.srv
     Servos.srv
