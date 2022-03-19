@@ -157,7 +157,9 @@ class Laser:
                         for exp in Beacons.expected_list:
                             if np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] )):
                                 Beacons(pos,exp.num)
-                    if Objects.min_dots < len(curr_obst) < Objects.dots_thresh:
+                    if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
+                        Objects.minimal_y < pos[0] < Objects.maximum_y
+                        and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
                         if radius < Objects.safe_footprint_radius:
                             radius = Objects.safe_footprint_radius
                         Objects(pos, radius*Objects.radius_coeff)

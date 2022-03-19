@@ -1,0 +1,32 @@
+#Available services: servos_service, lcd_service
+"Static":
+  - "ArmUp":
+    - "servos_service":
+      - "num": 0
+      - "state": 1
+    - "servos_service":
+      - "num": 1
+      - "state": 0
+    - "servos_service":
+      - "num": 2
+      - "state": 1
+
+  - "ArmDown":
+    - "servos_service":
+      - "num": 0
+      - "state": 0
+    - "servos_service":
+      - "num": 1
+      - "state": 1
+    - "servos_service":
+      - "num": 2
+      - "state": 0
+
+"Dynamic": #plain call of service, but one at a time!
+  - "Example": #with args!
+    - service1
+    - service2
+  - "Move_servo":
+    - "servos_service"
+  - "Show_prediction":
+    - "lcd_service"

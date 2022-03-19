@@ -8,12 +8,12 @@ interrupts:
     - call: "test2"
 # NEVER CALL TWO MOVES SIMOLTAMIOUSLY!!!
 tasks:
-  1:
+  Start:
     - call: "ArmUp"
     - move: "1/1"
     - log: "L:Moving to 1m/1m" 
     #Prefixes (L:/W:/E:) = (Log, Warn, Error)
-  2:
+  Epic_task:
     - call: "test3"
     - together: 
       - move: "1/2"
@@ -28,8 +28,9 @@ tasks:
         - skip: "2"
     - log: "Skipping task 2, bc test3 good"
     - move: "2/2"
-  3: 
+  Da_vinki??: 
     - call: "test4"
     - interrupt: "2"
+    - score: 2 #plus
 
         

@@ -42,7 +42,6 @@ class Task:
                 self.check_args = items[0]
                 self.yes = self.parseDo(items[1])
                 self.no = self.parseElse(items[2])
-                return self
             def check(self) -> bool:
                 return Status.check(self.check_args)
             def parseDo(self,args):
@@ -69,7 +68,6 @@ class Task:
                 self.call = executer_dict()[name]
                 self.curr_status = None
                 Status.add(self,type(self))
-                return self
             async def exec(self):
                 self.curr_status = self.call(self.args)
             def status(self):
@@ -91,7 +89,6 @@ class Task:
                 parsed = pos.split("/")
                 self.pos = (parsed[0],parsed[1])
                 self.th = parsed[2]
-                return self
             async def exec(self):
                 Status.add(self)
                 type(self).client.setTarget(self.pos,self.th)
@@ -113,7 +110,6 @@ class Task:
                 self.num = type(self).counter
                 type(self).counter += 1
                 self.text = args
-                return self
             async def exec(self):
                 text = self.text
                 pref = text[:2]
@@ -136,7 +132,6 @@ class Task:
             def __init__(self,parent, num):
                 self.parent = parent
                 self.score = num
-                return self
             def exec(self):
                 type(self).score += self.score
                 return showPrediction(type(self).score)
@@ -147,7 +142,6 @@ class Task:
                 self.task_num = num
                 self.num = type(self).counter
                 type(self).counter += 1
-                return self
             async def exec(self):
                 Task.list[self.task_num]._skip_flag = 1
             def status(self):
@@ -197,12 +191,7 @@ class Task:
             try:
                 self.action = Manager.constructors_dict[key](self,args) #parse args correctly, the args of the func are not working!
             except:
-                rospy.logerr(f"Incorrect route syntax({key = }, {args = })")
-            return self
-        # @staticmethod
-        # def getExec(key,args): #val in the dict!
-        #     micro = Task.Microtasks(key,args) #each constructor 
-        #     return micro                      #should return an executable object
+                raise SyntaxError(f"Incorrect route syntax({key = }, {args = })")
         def __str__(self):
             return f"Microtask {self.num}: {self.name}"
         def __repr__(self):
@@ -217,7 +206,7 @@ class Task:
         self.name = f"Task {name}"
         self.micro_list = []
         for exec_name, args in self.parseMicroList(list):
-            rospy.loginfo(f"Parsing {exec_name} with {args = }...")
+            rospy.loginfo(f"Parsing {exec_name} with {args = } in {self}...")
             self.micro_list.append(Task.Microtasks(self,exec_name,args)) #micro is a tuple (key, val) for current dict position
         Task.list.append(self)
     async def exec(self):
@@ -229,9 +218,9 @@ class Task:
         else:
             rospy.loginfo(f"Skipping {self}")
     def __str__(self):
-        return f"Task {self.num}: {self.name}"
+        return f"Task {self.num}: name - {self.name}"
     def __repr__(self):
-        return f"Task {self.num}: {self.name}"
+        return f"Task {self.num}: name - {self.name}"
     #pass
 ######################
 class Interrupts(Task):
@@ -378,11 +367,12 @@ def main():
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
     timer = Status.Timer()
     rate = rospy.Rate(Manager.update_rate)
-    main_task = asyncio.create_task(Task.exec())
+    main_task = asyncio.create_task(Manager.exec())
     cb_task = asyncio.create_task(Flags.doneCallback())
     main_task.add_done_callback(cb_task)
     while not rospy.is_shutdown():
-        if not Flags._executing and Flags._execute:
+        if Flags._execute and not Flags._executing :
+            rospy.logwarn(f"Starting course!")
             Flags._executing = 1
             asyncio.run(main_task)
         Status.update()

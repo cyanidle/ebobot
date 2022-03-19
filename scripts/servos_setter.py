@@ -5,7 +5,7 @@ roslib.load_manifest('ebobot')
 #from sys import argv
 rospy.init_node('servos_setter')
 #
-from ebobot.srv import Servos, ServosRequest, ServosResponse
+from ebobot.srv import ServosSettings, ServosSettingsRequest, ServosSettingsResponse
 #
 import yaml
 def read(file):
@@ -16,11 +16,13 @@ def read(file):
             except yaml.YAMLError as exc:
                 rospy.logerr(f"Loading failed ({exc})")
 def main():
-    file = rospy.get_param("~/file", "config/servos.yaml")
+    print(f"Setting values for servos...")
+    file = rospy.get_param("~file", "config/servos.yaml")
     dict = read(file)
     for num in dict:
         vals = dict[num]
-        req = ServosRequest()
+        req = ServosSettingsRequest()
+        print(f"Servo {num}, settings - {vals}")
         req.num = num
         req.channel = vals[0]
         req.speed = vals[1]
@@ -32,7 +34,7 @@ def main():
 def client(req):
     rospy.wait_for_service("servos_settings_service")
     try:
-        servos = rospy.ServiceProxy("servos_settings_service", Servos)
+        servos = rospy.ServiceProxy("servos_settings_service", ServosSettings)
         resp = servos(req)
         rospy.loginfo(f"{resp.resp}")
     except rospy.ServiceException as e:

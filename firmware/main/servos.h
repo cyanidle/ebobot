@@ -47,7 +47,7 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
         servo->target_state = false;
         //char buffer[40];
         //sprintf(buffer, "Servo %d moving to %d, max%d, spd %d", req.num ,servo->min_val);
-        resp.resp = 1;
+        resp.resp = 0;
     } 
 }
 //
@@ -79,7 +79,7 @@ void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::S
         servo->speed = req.speed;
         servo->max_val = req.max_val;
         servo->min_val = req.min_val;
-        resp.resp = 1;
+        resp.resp = 0;
     }
     
 }

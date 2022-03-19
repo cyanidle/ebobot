@@ -208,6 +208,6 @@ void lcdCallback(const ebobot::Lcd_show::Request &req, ebobot::Lcd_show::Respons
     reverseArray(score, n);
     for(uint8_t i; i<n; i++){
         printDigits(score[i],i*4);}
-    resp.resp = 1;
+    resp.resp = 0;
 }
 ros::ServiceServer<ebobot::Lcd_show::Request, ebobot::Lcd_show::Response> lcd_server("lcd_service", &lcdCallback);
