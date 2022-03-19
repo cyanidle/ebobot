@@ -58,15 +58,16 @@ class Calls: #Async
     async def exec(self,args=None):
         "If the call is dynamic, you should pass args to exec() method! Use list, each index corresponds to a service, under each index is a tuple"
         if self.static == True:
-            asyncio.run(self.executeStatic())
+            proc = asyncio.create_task(self.executeStatic())
         else:
-            asyncio.run(self.executeDynamic(args))
+            proc = asyncio.create_task(self.executeDynamic(args))
+        return await proc
     async def executeStatic(self):
             sub_calls = []
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 sub_calls.append(asyncio.create_task(exec(parser(args,self.static))))
             resp = await asyncio.gather(*sub_calls)
-            rospy.loginfo(f"Executing static {self.name}, responces = {resp}")
+            print(f"Executing static {self.name}, responces = {resp}")
             if 1 in resp:
                 return 1
             else:
@@ -77,7 +78,7 @@ class Calls: #Async
             exec, parser = tup
             sub_calls.append(asyncio.create_task(exec(parser(args[num],self.static))))
         resp = await asyncio.gather(*sub_calls)
-        rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
+        print(f"Executing dynamic {self.name}, responces = {resp}")
         if 1 in resp:
             return 1
         else:
@@ -85,12 +86,13 @@ class Calls: #Async
     @staticmethod
     def parseServos(args,static):
         parsed = ServosRequest()
+        print(args)
         if static:
-            parsed.num = args["num"]
-            parsed.state = args["state"]
+            parsed.num = args[0]["num"]
+            parsed.state = bool(args[1]["state"])
         else:
-            parsed.num = args[0]
-            parsed.state = args[1]
+            parsed.num = args["num"]
+            parsed.state = bool(args["state"])
         return parsed
     @staticmethod
     def parseLcd(args,static):

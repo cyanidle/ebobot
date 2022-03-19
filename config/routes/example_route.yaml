@@ -6,31 +6,40 @@ interrupts:
     
   2: 
     - call: "test2"
-# NEVER CALL TWO MOVES SIMOLTAMIOUSLY!!!
+# NEVER CALL TWO MOVES SIMULTANEOUSLY!!!
 tasks:
   Start:
-    - call: "ArmUp"
-    - move: "1/1"
-    - log: "L:Moving to 1m/1m" 
+    - call: ArmUp
+    - dynamic_call: #always use dynamic_call!!
+      - Move_servo
+      - num: 0 #kwargs
+      - state: 1
+    - move: "1/1/2" #x/y/th
+    - log: "W:Moving to 1m/1m" 
     #Prefixes (L:/W:/E:) = (Log, Warn, Error)
   Epic_task:
-    - call: "test3"
     - together: 
-      - move: "1/2"
-      - call: "cbt"
+      - move: 1/2/3
+      - call: ArmDown
+    - sleep: 4 #in secs
     - condition: 
       - if: "calls/ArmUp/1"
       - do: 
           together:
-            - call : "epic"
+            - call : "ArmUp"
             - skip: "3"
       - else: 
-        - skip: "2"
-    - log: "Skipping task 2, bc test3 good"
-    - move: "2/2"
+          skip: "2"
+    - log: "E:Skipping task 2, bc test3 good"
+    - move: "2/2/0"
   Da_vinki??: 
-    - call: "test4"
-    - interrupt: "2"
+    - dynamic_call: #always use dynamic_call!!
+      - Move_servo
+      - num: 0 #kwargs
+      - state: 1
+    #- interrupt: "2"
     - score: 2 #plus
+    #- interrupt_switch_on: 2
+    #- interrupt_switch_off: 2
 
         

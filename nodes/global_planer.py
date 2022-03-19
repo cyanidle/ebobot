@@ -6,7 +6,7 @@ import rospy
 from math import radians, ceil, sin, cos, atan
 import tf
 import numpy as np
-
+from threading import Thread
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
@@ -154,9 +154,7 @@ class Global(): ##Полная жопа
     start_pos = np.array([0,0,0])
     robot_pos = np.array([0,0,0])
     list = []
-    default_costmap_list = []
-    if debug:
-        default_costmap_list = [[0]*101 for _ in range(151)]
+    default_costmap_list = [[0]*101 for _ in range(151)]
     costmap = np.array(default_costmap_list) 
     #costmap_resolution = 0.02 #meters per cell (default param comes from costmap server)
     costmap_width= 151
@@ -441,7 +439,7 @@ class Global(): ##Полная жопа
 
 def main():
     Global.initRotors()
-    rate = rospy.Rate(Global.update_rate)
+   
     while not rospy.is_shutdown():
         ####
         if Global.resend:
@@ -486,18 +484,27 @@ class MoveServer:
     def __init__(self):
         self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
         self.server.start()
-        MoveServer.server = self
+        self._success_flag = 0
+        self._fail_flag = 0
+        MoveServer.server = self.server
     def execute(self,goal):
-        self.server.set_active()
         new_target = PoseStamped()
-        new_target.pose.position.x = goal.x
-        new_target.pose.position.x = goal.x
+        new_target.pose.position.x = goal.x*Global.costmap_resolution
+        new_target.pose.position.y = goal.y*Global.costmap_resolution
         quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
         new_target.pose.orientation.x = quat[0]
         new_target.pose.orientation.y = quat[1]
         new_target.pose.orientation.z = quat[2]
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
+        while not rospy.is_shutdown() and self._success_flag == 0 and self._fail_flag == 0:
+            rospy.loginfo(f"Robot driving to target")
+            rate.sleep()
+        if self._success_flag:
+            self.server.set_succeeded(MoveResult(0))
+        else:
+            self.server.set_aborted(MoveResult(1))
+        self._fail_flag, self._success_flag = 0,0
     def update(self, local=0):
         if local:
             self.server.publish_feedback(f"local/{self.feedback}")
@@ -505,14 +512,13 @@ class MoveServer:
                 self.done(0)
         else:
             self.server.publish_feedback(f"global/{self.feedback}")
-    #@staticmethod
     def done(self,status:int):
         "Status 1 = success, status 0 = fail"
         if status:
-            self.server.set_succeeded(MoveResult(0))
+            self._success_flag = 1
         else:
-            self.server.set_aborted(MoveResult(1))
-
+            self._fail_flag = 1
 if __name__=="__main__":
     move_server = MoveServer()
+    rate = rospy.Rate(Global.update_rate)
     main()
