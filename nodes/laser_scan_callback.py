@@ -6,7 +6,7 @@ from math import cos,sin,atan#,atan2
 import rospy
 import tf
 #####################
-from dorlib import turnVect
+from dorlib import applyRotor, getRotor
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
@@ -120,11 +120,13 @@ class Laser:
     def update(cls):
         new_list = []
         cls.updateTF()
+        rotor = getRotor(-cls.robot_pos[2] + cls.rads_offset)
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
-                meters_pos = np.array((range * y_coeff, range * x_coeff))          
-                prob_meters_pos = np.array(turnVect(meters_pos,  -cls.robot_pos[2] + cls.rads_offset)) + cls.robot_pos[:2]
+                meters_pos = (range * y_coeff, range * x_coeff) 
+                rotated_meters_pos = applyRotor(meters_pos,  rotor)
+                prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     new_list.append((prob_meters_pos,intensity))
@@ -150,12 +152,15 @@ class Laser:
                 elif len(curr_obst) >= cls.min_dots:
                     radius = np.linalg.norm(
                         (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
-                    if Beacons.min_dots < len(curr_obst) < Beacons.dots_thresh:
-                        Beacons.initRelative(cls.getPosition(curr_obst))
+                    pos = cls.getPosition(curr_obst)
+                    if Beacons.min_rad < radius < Beacons.rad_thresh:
+                        for exp in Beacons.expected_list:
+                            if np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] )):
+                                Beacons(pos,exp.num)
                     if Objects.min_dots < len(curr_obst) < Objects.dots_thresh:
                         if radius < Objects.safe_footprint_radius:
                             radius = Objects.safe_footprint_radius
-                        Objects(cls.getPosition(curr_obst), radius*Objects.radius_coeff)
+                        Objects(pos, radius*Objects.radius_coeff)
                     curr_obst.clear()
     @classmethod
     def getPosition(cls,poses):
@@ -173,13 +178,15 @@ class Beacons(Laser):
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 0)
     # /Features
     ###
-    min_dots = rospy.get_param('~beacons/min_dots', 5)
-    dots_thresh = rospy.get_param('~beacons/dots_thresh', 15) #num
+    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
+    min_rad = rospy.get_param('~beacons/min_dots', 0.05) #meters
+    rad_thresh = rospy.get_param('~beacons/dots_thresh', 0.12) #meters
     #############
     raw_list = []
     raw_list.append(rospy.get_param('~beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
     raw_list.append(rospy.get_param('~beacons/beacon2',[154*0.02,2*0.02])) #in meters
     raw_list.append(rospy.get_param('~beacons/beacon3',[-3*0.02,50*0.02])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon',[1,1])) #in meters
     #############
     #/Beacon params
     #Globals
@@ -189,7 +196,8 @@ class Beacons(Laser):
     expected_list = []
     rel_list = []
     #/Globals
-    def __init__(self,pos:tuple,expected:int = 0):
+    def __init__(self,pos:tuple,num:int = 10,expected:int = 0):
+        self.num = num
         self.pose = (pos[0], pos[1])
         if expected:
             Beacons.expected_list.append(self)
@@ -202,15 +210,18 @@ class Beacons(Laser):
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
-            new_beacon = cls(coord,expected = 1)
-    @classmethod
-    def initRelative(cls, pose):   
-        beacon = cls(pose) #initialisation auto-appends objects to their list
+            new_beacon = cls(coord,num,expected = 1)
+    # @classmethod
+    # def initRelative(cls, pose,num):   
+    #     beacon = cls(pose,num) #initialisation auto-appends objects to their list
     @classmethod
     def pubRelative(cls):
         for num,beacon in enumerate(cls.rel_list):
             rel_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",size=0.12,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+        for num,beacon in enumerate(cls.expected_list):
+            exp_pos = (beacon.pose[0],  beacon.pose[1])
+            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
@@ -218,17 +229,21 @@ class Beacons(Laser):
     def update(cls):
         "The most important func in localisation"
         cls.pubRelative()
-        exp_list = cls.expected_list
-        rel_list = cls.rel_list
-        if len(rel_list) < 2:
+        if len(cls.rel_list) < 2:
             cls.rel_list.clear()
         else:
-            rel_line = []
-            exp_line = []
+            exp_list = [] 
+            rel_list = []
+            nums = []
+            for rel in cls.rel_line[:2]:
+                nums.append(rel.num)
+                rel_list.append(rel)
+            for num in nums:
+                exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
             rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
             exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             cls.delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
-            rel_line = turnVect( rel_line, cls.delta_th) #turn both beacons
+            rel_line = applyRotor( rel_line, cls.delta_th) #turn both beacons
             d_x, d_y = 0, 0
             for i in range(2):
                 d_y += rel_list[i].pose[0] - exp_list[i].pose[0]

@@ -1,4 +1,5 @@
 #Available services: servos_service
+"Static":
 "ArmUp":
 - "servos_service":
   - "num": 0
@@ -20,3 +21,11 @@
 - "servos_service":
   - "num": 2
   - "state": 0
+
+"Dynamic": #plain call of service, but one at a time!
+"Example": #with args!
+  - custom_arg1
+  - custom_arg2
+"Move_servo":
+  - "num"
+  - "state"

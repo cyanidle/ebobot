@@ -3,7 +3,7 @@ roslib.load_manifest('ebobot')
 import rospy
 import actionlib
 import yaml
-#import asyncio
+import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponse
@@ -15,19 +15,23 @@ def executer_dict():
 def getMoveClient():
     return Move()
 class Calls: #Async
-    move_servo = rospy.ServiceProxy("servos_service", Servos)
+    #move_servo = rospy.ServiceProxy("servos_service", Servos)
+    @staticmethod
+    def getServoExec():
+        return rospy.ServiceProxy("servos_service", Servos)
     lcd_show = rospy.ServiceProxy("lcd_service", Lcd_show)
-    def __init__(self, name,execs):
+    def __init__(self, name,execs, static = True):
         print(f"Initialising a call {name}")
         self.executables = []
         self.args = []
         self.parsers = []
+        self.static = static
         self.name = name   
         print(f"Parsing through execs...\n{execs}")
         for exec_name in execs:
             print(f"Parsing {exec_name =}")
             args = []
-            self.executables.append(Execute.exec_dict[exec_name])
+            self.executables.append(Execute.exec_dict[exec_name]())
             print(f"Appended executable {self.executables[-1]}")
             self.parsers.append(Execute.parsers_dict[exec_name])
             print(f"Appended parser {self.parsers[-1]}")
@@ -36,15 +40,30 @@ class Calls: #Async
             self.args.append(args)
             print(f"Appended args {self.args[-1]}")
         return self.execute
-    def execute(self):
-        resp = []
-        for exec, args, parser in zip(self.executables, self.args, self.parsers):
-            resp.append(exec(parser(args)))
+    async def execute(self,args=None):
+        if self.static == True:
+            asyncio.run(self.executeStatic())
+        else:
+            asyncio.run(self.executeDynamic(args))
+    @staticmethod
+    async def executeStatic(self):
+            sub_calls = []
+            for exec, args, parser in zip(self.executables, self.args, self.parsers):
+                sub_calls.append(asyncio.create_task(exec(parser(args))))
+            resp = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing {self.name}, responces = {resp}")
+            if 0 in resp:
+                return 1
+            else:
+                return 0
+    async def executeDynamic(self,args):
+        exec, args, parser = self.executables[0], self.args[0], self.parsers[0]
+        resp = asyncio.run(exec(parser(args)))
+        rospy.loginfo(f"Executing {self.name}, responces = {resp}")
         if 0 in resp:
             return 1
         else:
             return 0
-    @staticmethod
     def parseServos(args):
         parsed = ServosRequest()
         parsed.num = args["num"]
@@ -63,7 +82,7 @@ class Execute:
     dict = {}
     raw_dict = {}
     exec_dict = {
-        "servos_service":  Calls.move_servo
+        "servos_service":  Calls.getServoExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos
@@ -79,8 +98,10 @@ class Execute:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for call_name in list(cls.raw_dict.keys()):
+        for call_name in list(cls.raw_dict["Static"].keys()):
             cls.dict[call_name] = Calls(cls.raw_dict[call_name])
+        for call_name in list(cls.raw_dict["Dynamic"].keys()):
+            cls.dict[call_name] = Calls(cls.raw_dict[call_name], static = False)
 
 class Move:
     def __init__(self,cb):

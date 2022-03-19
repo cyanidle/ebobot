@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<robot name="ebobot">
+
+  <material name="extra_dark">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="dark">
+    <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+  <material name="light_black">
+    <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+  <material name="blue">
+    <color rgba="0.1 0.2 0.8 1.0"/>
+  </material>
+  <material name="green">
+    <color rgba="0.0 0.8 0.0 1.0"/>
+  </material>
+  <material name="white">
+    <color rgba="0.9 0.9 0.9 1.0"/>
+  </material>
+  <material name="red">
+    <color rgba="0.9 0.0 0.0 1.0"/>
+  </material>
+
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0.0 0.0 0.025" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="scan_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan"/>
+    <origin xyz="0.0 0 0.2" rpy="0 0 3.1415"/>
+  </joint>
+
+ 
+
+  <joint name="wheel_1_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="wheel_1_link"/>
+    <origin xyz="-0.06 -0.09 0" rpy="0 0 5.759"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <joint name="wheel_2_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="wheel_2_link"/>
+    <origin xyz="-0.06 0.09 0" rpy="0 0 3.665"/>
+    <axis xyz="0 0 1"/>
+  </joint>  
+
+  <joint name="wheel_3_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="wheel_3_link"/>
+    <origin xyz="0.105 0.0 0" rpy="0 0 1.571"/>
+    <axis xyz="0 0 1"/>
+  </joint> 
+
+  <joint name="arm_box_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="arm_box"/>
+    <origin xyz="0.08 0.08 0.1" rpy="0 0 0.785"/>
+  </joint> 
+
+  <joint name="arm_joint" type="revolute">
+    <parent link="arm_box"/>
+    <child link="arm"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 0.0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="1.57" upper="-1.28" effort="1.0" velocity="0.01"/>
+  </joint> 
+
+  <link name="base_footprint"/>
+
+  <link name="base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.10"/>
+      <geometry>
+        <cylinder length="0.2" radius="0.1" />
+      </geometry>
+      <material name="green"/>
+    </visual>
+  </link>
+
+  <link name="base_scan">
+    <visual>
+      <origin xyz="0 0 0.0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder length="0.0515" radius="0.035"/>
+      </geometry>
+      <material name="dark"/>
+    </visual>
+  </link>
+
+  <link name="wheel_1_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <geometry>
+        <cylinder length="0.025" radius="0.03"/>
+      </geometry>
+      <material name="dark"/>
+    </visual>
+  </link>  
+
+  <link name="wheel_2_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <geometry>
+        <cylinder length="0.025" radius="0.03"/>
+      </geometry>
+      <material name="dark"/>
+    </visual>
+  </link>  
+
+    <link name="wheel_3_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <geometry>
+        <cylinder length="0.025" radius="0.03"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+  </link>   
+  
+  <link name="arm_box">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      
+        <geometry>
+          <box size="0.05 0.05 0.05"/>
+        </geometry>
+      <material name="red">
+        
+      </material>
+    </visual>
+  </link>
+
+  <link name="arm">
+    <visual>
+      <origin xyz="0.1 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      
+        <geometry>
+          <box size="0.1 0.05 0.05"/>
+        </geometry>
+      <material name="blue">
+        
+      </material>
+    </visual>
+  </link>
+
+
+</robot>

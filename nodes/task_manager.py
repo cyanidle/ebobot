@@ -83,6 +83,7 @@ class Task:
         class Move:
             counter = 0
             curr_status = None
+            client = None
             def __init__(self,parent,pos:str):
                 self.parent = parent
                 self.num = type(self).counter
@@ -173,7 +174,7 @@ class Task:
                 for micro in self.micro_list:
                     if Manager.debug:
                         rospy.loginfo(f"Executing {micro} in {self}")
-                        task = asyncio.create_task(micro.action.exec)
+                    task = asyncio.create_task(micro.action.exec)
                     subtasks.append(task)
                 await asyncio.gather(*subtasks)
                 
