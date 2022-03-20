@@ -6,7 +6,7 @@ from math import cos,sin,atan#,atan2
 import rospy
 import tf
 #####################
-from dorlib import applyRotor, getRotor
+from dorlib import applyRotor, getRotor, turnVect
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
@@ -67,7 +67,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_minimal = rospy.get_param('~dist_between_dots_minimal', 0.05) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",2) #updates/sec
+    update_rate = rospy.get_param("~update_rate",4) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
     #Topics
@@ -153,9 +153,14 @@ class Laser:
                     radius = np.linalg.norm(
                         (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
                     pos = cls.getPosition(curr_obst)
-                    if Beacons.min_rad < radius < Beacons.rad_thresh:
+                    #rospy.loginfo(f"Found something at {pos} {radius = }")
+                    if Beacons.min_rad < radius < Beacons.max_rad:
+                        #beacon_dist = 
+                        #rospy.loginfo(f"Potential beacon at {pos}, {radius = }")
                         for exp in Beacons.expected_list:
-                            if np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] )):
+                            beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
+                            if beacon_dist < Beacons.max_dist_from_expected:
+                                rospy.logwarn(f"Beacon({exp.num}) accepted with {beacon_dist = }")
                                 Beacons(pos,exp.num)
                     if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
                         Objects.minimal_y < pos[0] < Objects.maximum_y
@@ -172,26 +177,36 @@ class Laser:
             y += pos[0]
             x += pos[1]
         max = len(poses)
-        return = (y/max,x/max)
+        return (y/max,x/max)
 #################################################################
 class Beacons(Laser):
     #Beacon params
     # Features
-    enable_adjust = rospy.get_param('~beacons/enable_adjust', 0)
+    enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
     # /Features
     ###
-    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
-    min_rad = rospy.get_param('~beacons/min_dots', 0.05) #meters
-    rad_thresh = rospy.get_param('~beacons/dots_thresh', 0.12) #meters
+    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 4)
+    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.25) #in meters
+    min_rad = rospy.get_param('~beacons/min_rad', 0.05) #meters
+    max_rad = rospy.get_param('~beacons/max_rad', 0.15) #meters
     #############
     raw_list = []
-    raw_list.append(rospy.get_param('~beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
-    raw_list.append(rospy.get_param('~beacons/beacon2',[154*0.02,2*0.02])) #in meters
-    raw_list.append(rospy.get_param('~beacons/beacon3',[-3*0.02,50*0.02])) #in meters
+    # # Auto-init beacons
+    # num_beacons = rospy.get_param('~beacons/num_beacons', 3)
+    # for n in range(num_beacons):
+    #     raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
+    # #
+    ############# Manual init
+    #raw_list.append(rospy.get_param('~beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
+    #raw_list.append(rospy.get_param('~beacons/beacon2',[154*0.02,2*0.02])) #in meters
+    #raw_list.append(rospy.get_param('~beacons/beacon3',[-3*0.02,50*0.02])) #in meters
     raw_list.append(rospy.get_param('~beacons/test_beacon',[1,1])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.2])) #in meters
     #############
     #/Beacon params
     #Globals
+    deltas = []
+    cycle = 0
     delta_th = 0
     delta_pos = (0,0)
     pose = (0,0)
@@ -220,10 +235,10 @@ class Beacons(Laser):
     def pubRelative(cls):
         for num,beacon in enumerate(cls.rel_list):
             rel_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+            pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
         for num,beacon in enumerate(cls.expected_list):
             exp_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.4,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
@@ -231,32 +246,46 @@ class Beacons(Laser):
     def update(cls):
         "The most important func in localisation"
         cls.pubRelative()
-        if len(cls.rel_list) < 2:
-            cls.rel_list.clear()
+        if cls.cycle >= cls.cycles_per_update:
+            if len(cls.rel_list) < 2:
+                cls.rel_list.clear()
+            else:
+                exp_list = [] 
+                rel_list = []
+                nums = []
+                for rel in cls.rel_list[:2]:
+                    nums.append(rel.num)
+                    rel_list.append(rel)
+                for num in nums:
+                    exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
+                rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+                exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
+                delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
+                rel_line = turnVect( rel_line, -cls.delta_th) #turn both beacons
+                d_x, d_y = 0, 0
+                for i in range(2):
+                    d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
+                    d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
+                d_y = d_y/2
+                d_x = d_x/2
+                cls.deltas.append((d_y, d_x, delta_th))
+                #
+                if cls.enable_adjust:
+                    rospy.logerr(f"Adjusting with {d_x}")
+                    _sum_x,_sum_y, _sum_th = 0,0,0
+                    for _x, _y, _th in cls.deltas:
+                        _sum_x += _x
+                        _sum_y += _y
+                        _sum_th += _th
+                    _max = len(cls.deltas)
+                    cls.delta_th = _sum_th/_max
+                    cls.delta_pos = (_sum_y/_max,_sum_x/_max)
+                    cls.deltas.clear
+                    #cls.publishAdjust()
+                cls.rel_list.clear()
         else:
-            exp_list = [] 
-            rel_list = []
-            nums = []
-            for rel in cls.rel_line[:2]:
-                nums.append(rel.num)
-                rel_list.append(rel)
-            for num in nums:
-                exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
-            rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
-            exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
-            cls.delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
-            rel_line = applyRotor( rel_line, cls.delta_th) #turn both beacons
-            d_x, d_y = 0, 0
-            for i in range(2):
-                d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
-                d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
-            d_y = d_y/2
-            d_x = d_x/2
-            #
-            cls.delta_pos = (d_y,d_x)
-            if cls.enable_adjust:
-                cls.publishAdjust()
-            cls.rel_list.clear()
+                cls.cycle += 1
+            
     @classmethod
     def publishAdjust(cls):
         new = PoseWithCovarianceStamped()

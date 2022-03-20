@@ -1,14 +1,16 @@
 <launch>
 
-<arg name="port" default="/dev/ttyACM0"/>
-<arg name="arduino_baud" default="57600"/>
-<arg name="debug" default="0"/>
-<arg name="footprint_radius" default="0.15"/>
-
-<node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" respawn="true" respawn_delay="10">
-        <param name="port" value="$(arg port)"/>
-        <param name="baud" value="$(arg arduino_baud)"/>
-    </node>
+    <arg name="port" default="/dev/ttyACM0"/>
+    <arg name="arduino_baud" default="57600"/>
+    <arg name="debug" default="0"/>
+    <arg name="footprint_radius" default="0.15"/>
+    <arg name ="arduino_connected" default="true"/>
+    <group if="$(arg arduino_connected)">
+        <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" respawn="false" respawn_delay="10">
+            <param name="port" value="$(arg port)"/>
+            <param name="baud" value="$(arg arduino_baud)"/>
+        </node>
+    </group>
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "footprint_radius" value = "$(arg footprint_radius)"/>

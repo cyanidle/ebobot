@@ -1,7 +1,0 @@
-<launch>
-  <group name="move_base">
-    <include file="$(find ebobot)/launch/arduino_odom.launch"/>
-    <include file="$(find ebobot)/launch/costmap.launch"/>
-    <include file="$(find ebobot)/launch/planers.launch"/>
-  </group>
-</launch>
