@@ -2,13 +2,15 @@
 import roslib
 roslib.load_manifest('ebobot')
 import numpy as np
-from math import cos,sin,atan#,atan2
+from math import cos,sin,acos#,atan2
 import rospy
 import tf
 #####################
 from dorlib import applyRotor, getRotor, turnVect
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
+######################
+from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
 ######################
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry#, OccupancyGrid
@@ -67,7 +69,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_minimal = rospy.get_param('~dist_between_dots_minimal', 0.05) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",2) #updates/sec
+    update_rate = rospy.get_param("~update_rate",6) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
     #Topics
@@ -160,7 +162,6 @@ class Laser:
                         for exp in Beacons.expected_list:
                             beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
                             if beacon_dist < Beacons.max_dist_from_expected:
-                                rospy.logwarn(f"Beacon({exp.num}) accepted with {beacon_dist = }")
                                 Beacons(pos,exp.num)
                     if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
                         Objects.minimal_y < pos[0] < Objects.maximum_y
@@ -179,19 +180,27 @@ class Laser:
         max = len(poses)
         return (y/max,x/max)
 #################################################################
+def adjCB(req):
+        Beacons._adjust_flag = 1
+        rospy.sleep(Beacons.adjust_time)
+        Beacons._adjust_flag = 0
+        return EmptyResponse()
 class Beacons(Laser):
     #Beacon params
     # Features
+    switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
+    adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 1)
     # /Features
     ###
+    adjust_time = rospy.get_param('~beacons/adjust_time', 3) #seconds for adjustment
     cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 4)
-    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.25) #in meters
-    min_rad = rospy.get_param('~beacons/min_rad', 0.05) #meters
+    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.15) #in meters
+    min_rad = rospy.get_param('~beacons/min_rad', 0.03) #meters
     max_rad = rospy.get_param('~beacons/max_rad', 0.15) #meters
-    #############
+    ############# 
     raw_list = []
-    # # Auto-init beacons
+    # # Auto-init beacons 
     # num_beacons = rospy.get_param('~beacons/num_beacons', 3)
     # for n in range(num_beacons):
     #     raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
@@ -200,8 +209,8 @@ class Beacons(Laser):
     #raw_list.append(rospy.get_param('~beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
     #raw_list.append(rospy.get_param('~beacons/beacon2',[154*0.02,2*0.02])) #in meters
     #raw_list.append(rospy.get_param('~beacons/beacon3',[-3*0.02,50*0.02])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon',[1,1])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.2])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon',[1,0.7])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.3])) #in meters
     #############
     #/Beacon params
     #Globals
@@ -212,7 +221,11 @@ class Beacons(Laser):
     pose = (0,0)
     expected_list = []
     rel_list = []
+    _pubbing_rot = 0
+    _adjust_flag = not adjust_on_command
     #/Globals
+    if adjust_on_command:
+        rospy.Service("adjust_pos_service", Empty, adjCB)
     def __init__(self,pos:tuple,num:int = 10,expected:int = 0):
         self.num = num
         self.pose = (pos[0], pos[1])
@@ -238,7 +251,7 @@ class Beacons(Laser):
             pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
         for num,beacon in enumerate(cls.expected_list):
             exp_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.4,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
@@ -248,7 +261,9 @@ class Beacons(Laser):
         cls.pubRelative()
         if len(cls.rel_list) < 2:
             cls.rel_list.clear()
-        else:
+            cls.cycle = 0
+            cls.deltas.clear()
+        elif cls._adjust_flag:
             exp_list = [] 
             rel_list = []
             nums = []
@@ -257,30 +272,53 @@ class Beacons(Laser):
                 rel_list.append(rel)
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
-            rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
-            exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
-            delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
-            rel_line = turnVect( rel_line, -cls.delta_th) #turn both beacons
+            rel_line= np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+            exp_line = np.array((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
+            _sign_precalc = (rel_line[0]-exp_line[0])/ (rel_line[1]-exp_line[1])
+            sign = (_sign_precalc/abs(_sign_precalc))  
+            delta_th = sign * -acos(
+                    ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
+                    (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
+                    ) 
+            #          second variant
+            #           -acos(
+            #         ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
+            #         (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
+            #         ) 
+            # -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
             d_x, d_y = 0, 0
             for i in range(2):
-                d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
-                d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
+                _curr_adj = turnVect(rel_list[i].pose, -cls.delta_th)
+                d_y -= _curr_adj[0] - exp_list[i].pose[0]
+                d_x -= _curr_adj[1] - exp_list[i].pose[1]
             d_y = d_y/2
             d_x = d_x/2
+            if Laser.debug:
+                rospy.logwarn(f"{d_x = } , {d_y = }, {delta_th = }")
             cls.deltas.append((d_y, d_x, delta_th))
-            #
-            if cls.cycle >= cls.cycles_per_update and cls.enable_adjust:
-                rospy.logerr(f"Adjusting with {d_x}")
+            if cls.cycle >= cls.cycles_per_update and cls.enable_adjust and len(cls.deltas):
                 _sum_x,_sum_y, _sum_th = 0,0,0
-                for _x, _y, _th in cls.deltas:
+                for _y, _x, _th in cls.deltas:
                     _sum_x += _x
                     _sum_y += _y
                     _sum_th += _th
                 _max = len(cls.deltas)
                 cls.delta_th = _sum_th/_max
                 cls.delta_pos = (_sum_y/_max,_sum_x/_max)
+                if not -1.5 < cls.delta_th < 1.5:
+                    cls.delta_th = 0
+                    cls.delta_pos = (0,0)
+                rospy.logerr(f"{cls.delta_pos = }|{cls.delta_th = } ")
+                if cls.switching_adjust:
+                    if cls._pubbing_rot:
+                        cls._pubbing_rot = 0
+                        cls.delta_pos = (0,0)
+                    else:
+                        cls._pubbing_rot = 1
+                        cls.delta_th = 0
+                cls.publishAdjust()
+                cls.cycle = 0
                 cls.deltas.clear()
-                #cls.publishAdjust()
             else:
                 cls.cycle += 1
             cls.rel_list.clear()
@@ -304,8 +342,8 @@ class Objects(Laser):
     #Params
     safe_footprint_radius = rospy.get_param('~obstacles/safe_footprint_radius', 0.2)
     radius_coeff = rospy.get_param('~obstacles/radius_coeff', 1.2)
-    min_dots = rospy.get_param('~obstacles/min_dots', 20)
-    dots_thresh = rospy.get_param('~obstacles/dots_thresh', 200) #num
+    min_dots = rospy.get_param('~obstacles/min_dots', 4)
+    dots_thresh = rospy.get_param('~obstacles/dots_thresh', 140) #num
     #
     minimal_x = rospy.get_param('~minimal_x', 0.05)
     maximum_x = rospy.get_param('~maximum_x', 2)
