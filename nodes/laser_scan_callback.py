@@ -140,15 +140,14 @@ class Laser:
             curr_obst.append(Laser.list[0][0])
             Beacons.clearRelative()
             Objects.clear()
-            last_num = 0
-            for scan in Laser.list[1:]:
+            for scan, last_scan in zip(Laser.list[1:],Laser.list[:-1]):
                 pose, intencity = scan
+                last_pose, last_intencity = last_scan
                 try:
-                    dist = np.linalg.norm((pose[0] - Laser.list[last_num][0][0] ,  pose[1] - Laser.list[last_num][0][1]))
+                    dist = np.linalg.norm((pose[0] - last_pose[0] ,  pose[1] - last_pose[1]))
                 except:
-                    rospy.logwarn(f"Laserscan callback overwhelmed!")
+                    rospy.logwarn(f"Misha lox (ya nakosyachil)!")
                     break
-                last_num = last_num +1
                 if dist<cls.dist_between_dots_minimal:
                     curr_obst.append(pose)
                 elif len(curr_obst) >= cls.min_dots:
