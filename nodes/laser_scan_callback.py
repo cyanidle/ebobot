@@ -271,10 +271,10 @@ class Beacons(Laser):
                 rel_list.append(rel)
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
-            rel_line= np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
-            exp_line = np.array((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
+            rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+            exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             _sign_precalc = (rel_line[0]-exp_line[0])/ (rel_line[1]-exp_line[1])
-            sign = (_sign_precalc/abs(_sign_precalc))  
+            sign =   (_sign_precalc/abs(_sign_precalc))
             delta_th = sign * -acos(
                     ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
                     (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
