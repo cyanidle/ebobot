@@ -67,7 +67,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_minimal = rospy.get_param('~dist_between_dots_minimal', 0.05) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",4) #updates/sec
+    update_rate = rospy.get_param("~update_rate",2) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
     #Topics
@@ -246,45 +246,44 @@ class Beacons(Laser):
     def update(cls):
         "The most important func in localisation"
         cls.pubRelative()
-        if cls.cycle >= cls.cycles_per_update:
-            if len(cls.rel_list) < 2:
-                cls.rel_list.clear()
-            else:
-                exp_list = [] 
-                rel_list = []
-                nums = []
-                for rel in cls.rel_list[:2]:
-                    nums.append(rel.num)
-                    rel_list.append(rel)
-                for num in nums:
-                    exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
-                rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
-                exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
-                delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
-                rel_line = turnVect( rel_line, -cls.delta_th) #turn both beacons
-                d_x, d_y = 0, 0
-                for i in range(2):
-                    d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
-                    d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
-                d_y = d_y/2
-                d_x = d_x/2
-                cls.deltas.append((d_y, d_x, delta_th))
-                #
-                if cls.enable_adjust:
-                    rospy.logerr(f"Adjusting with {d_x}")
-                    _sum_x,_sum_y, _sum_th = 0,0,0
-                    for _x, _y, _th in cls.deltas:
-                        _sum_x += _x
-                        _sum_y += _y
-                        _sum_th += _th
-                    _max = len(cls.deltas)
-                    cls.delta_th = _sum_th/_max
-                    cls.delta_pos = (_sum_y/_max,_sum_x/_max)
-                    cls.deltas.clear
-                    #cls.publishAdjust()
-                cls.rel_list.clear()
+        if len(cls.rel_list) < 2:
+            cls.rel_list.clear()
         else:
+            exp_list = [] 
+            rel_list = []
+            nums = []
+            for rel in cls.rel_list[:2]:
+                nums.append(rel.num)
+                rel_list.append(rel)
+            for num in nums:
+                exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
+            rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+            exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
+            delta_th = atan(   (rel_line[1]-exp_line[1]) / (rel_line[1]-exp_line[1])  ) #try changing the order of division and sign if fails
+            rel_line = turnVect( rel_line, -cls.delta_th) #turn both beacons
+            d_x, d_y = 0, 0
+            for i in range(2):
+                d_y += rel_list[i].pose[0] - exp_list[i].pose[0]
+                d_x += rel_list[i].pose[1] - exp_list[i].pose[1]
+            d_y = d_y/2
+            d_x = d_x/2
+            cls.deltas.append((d_y, d_x, delta_th))
+            #
+            if cls.cycle >= cls.cycles_per_update and cls.enable_adjust:
+                rospy.logerr(f"Adjusting with {d_x}")
+                _sum_x,_sum_y, _sum_th = 0,0,0
+                for _x, _y, _th in cls.deltas:
+                    _sum_x += _x
+                    _sum_y += _y
+                    _sum_th += _th
+                _max = len(cls.deltas)
+                cls.delta_th = _sum_th/_max
+                cls.delta_pos = (_sum_y/_max,_sum_x/_max)
+                cls.deltas.clear()
+                #cls.publishAdjust()
+            else:
                 cls.cycle += 1
+            cls.rel_list.clear()
             
     @classmethod
     def publishAdjust(cls):
