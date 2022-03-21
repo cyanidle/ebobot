@@ -280,10 +280,6 @@ class Beacons(Laser):
                     (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
                     ) 
             #          second variant
-            #           -acos(
-            #         ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
-            #         (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
-            #         ) 
             # -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
             d_x, d_y = 0, 0
             for i in range(2):
