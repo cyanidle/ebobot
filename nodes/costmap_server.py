@@ -309,6 +309,6 @@ if __name__=="__main__":
     if Objects.use_default:
         rospy.loginfo(f"Using default obstacles, initialazing...")
         start_time = rospy.Time.now()
-        default_obstacle = Objects((0,0), 20, default=1)
+        default_obstacle = Objects((0,0), 10, default=1)
         rospy.loginfo(f"Done in {(rospy.Time.now()-start_time).to_sec()}!")
     main()
