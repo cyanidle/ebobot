@@ -111,8 +111,18 @@ class Calls: #Async
     def getLcdExec():
         return rospy.ServiceProxy("lcd_service", LcdShow)
     @staticmethod
+    def ohmsExec(args):
+        proxy = rospy.ServiceProxy("ohm_reader_service", OhmReader)
+        resp = round(float(proxy(args))/1000,2)
+        if abs(resp-1) < 0.2:
+            return 1
+        elif resp < 1:
+            return 0
+        else:
+            return 2 
+    @staticmethod
     def getOhmExec():
-        return rospy.ServiceProxy("ohm_reader_service", OhmReader)
+        return Calls.ohmsExec
 def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
