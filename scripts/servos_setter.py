@@ -44,5 +44,5 @@ def client(req):
 
 
 if __name__=="__main__":
-    rospy.sleep(2)
+    rospy.sleep(5)
     main()
