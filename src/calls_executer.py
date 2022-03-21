@@ -6,7 +6,7 @@ import yaml
 import asyncio
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
-from ebobot.srv import Servos, ServosRequest, ServosResponse, Lcd_show, Lcd_showRequest, Lcd_showResponse
+from ebobot.srv import Servos, ServosRequest, ServosResponse, LcdShow, LcdShowRequest, LcdShowResponse, OhmReaderRequest, OhmReader
 from actionlib_msgs.msg import GoalStatus
 #from ebobot.srv import Catcher
 #
@@ -16,12 +16,6 @@ def getMoveClient():
     return Move()
 class Calls: #Async
     #move_servo = rospy.ServiceProxy("servos_service", Servos)
-    @staticmethod
-    def getServoExec():
-        return rospy.ServiceProxy("servos_service", Servos)
-    @staticmethod
-    def getLcdExec():
-        return rospy.ServiceProxy("lcd_service", Lcd_show)
     def __init__(self, name,execs, static = True):
         print(f"Initialising a call {name}")
         self.executables = []
@@ -56,7 +50,7 @@ class Calls: #Async
     def __repr__(self):
         return f"Call {self.name}:\n###{self.executables = }\n###{self.parsers = }\n###{self.args = }\n"
     async def exec(self,args=None):
-        "If the call is dynamic, you should pass args to exec() method! Use list, each index corresponds to a service, under each index is a tuple"
+        "If the call is dynamic, you should pass args to exec() method! Use dict for kwargs of the service"
         if self.static == True:
             proc = asyncio.create_task(self.executeStatic())
         else:
@@ -84,9 +78,9 @@ class Calls: #Async
         else:
             return 0
     @staticmethod
-    def parseServos(args,static):
+    def parseServos(args,static:bool):
         parsed = ServosRequest()
-        print(args)
+        print(f"Parsing args for servo")
         if static:
             parsed.num = args[0]["num"]
             parsed.state = bool(args[1]["state"])
@@ -96,14 +90,32 @@ class Calls: #Async
         return parsed
     @staticmethod
     def parseLcd(args,static):
-        parsed = Lcd_showRequest()
+        parsed = LcdShowRequest()
         if static:
             parsed.num = args["num"]
         else:
             parsed.num = args[0]
         return parsed
+    @staticmethod
+    def parseOhm(args,static:bool):
+        parsed =  OhmReaderRequest()
+        if static:
+            parsed.num = args[0]["pin"]
+        else:
+            parsed.num = args["pin"]
+        return parsed
+    @staticmethod
+    def getServoExec():
+        return rospy.ServiceProxy("servos_service", Servos)
+    @staticmethod
+    def getLcdExec():
+        return rospy.ServiceProxy("lcd_service", LcdShow)
+    @staticmethod
+    def getOhmExec():
+        return rospy.ServiceProxy("ohm_reader_service", OhmReader)
 def showPrediction(num):
-    parsed = Lcd_showRequest()
+    """Костыль)))"""
+    parsed = LcdShowRequest()
     parsed.num = num
     return Calls.lcd_show(parsed)
 #############
@@ -115,11 +127,13 @@ class Execute:
     raw_dict = {}
     exec_dict = {
         "servos_service":  Calls.getServoExec,
-        "prediction_service": Calls.getLcdExec
+        "prediction_service": Calls.getLcdExec,
+        "ohm_reader_service": Calls.getOhmExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos,
-        "prediction_service": Calls.parseLcd
+        "prediction_service": Calls.parseLcd,
+        "ohm_reader_service": Calls.parseOhm
     }
     @classmethod
     def read(cls):

@@ -1,17 +1,9 @@
-interrupts:
-  1:
-    - inter_condition: "calls/epic_service/bad"
-    - call: "test"
-    - move: "1/1"
-    
-  2: 
-    - call: "test2"
 # NEVER CALL TWO MOVES SIMULTANEOUSLY!!!
 tasks:
   Start:
     - call: ArmUp
-    - dynamic_call: #always use dynamic_call!!
-      - Move_servo
+    - dynamic_call:
+      - MoveServo
       - num: 0 #kwargs
       - state: 1
     - move: "1/1/2" #x/y/th
@@ -23,7 +15,7 @@ tasks:
       - call: ArmDown
     - sleep: 4 #in secs
     - condition: 
-      - if: "calls/ArmUp/1"
+      - if: "calls/ArmUp/1/done"
       - do: 
           together:
             - call : "ArmUp"
@@ -34,12 +26,19 @@ tasks:
     - move: "2/2/0"
   Da_vinki??: 
     - dynamic_call: #always use dynamic_call!!
-      - Move_servo
+      - MoveServo
       - num: 0 #kwargs
       - state: 1
     #- interrupt: "2"
     - score: 2 #plus
     #- interrupt_switch_on: 2
     #- interrupt_switch_off: 2
+interrupts:
+  1:
+    - inter_condition: "calls/epic_service/1/bad"
+    - call: "test"
+    - move: "1/1"
+  2: 
+    - call: "test2"
 
         

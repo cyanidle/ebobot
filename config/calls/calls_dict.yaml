@@ -30,3 +30,5 @@
     - "servos_service"
   - "Show_prediction":
     - "lcd_service"
+  - "OhmReader":
+    - "ohm_reader_sevice"

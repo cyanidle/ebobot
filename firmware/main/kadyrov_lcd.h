@@ -1,7 +1,7 @@
 #include <ros.h>
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
-#include <ebobot/Lcd_show.h>
+#include <ebobot/LcdShow.h>
 LiquidCrystal_I2C lcd(0x27,16,2);
 ////////////////////убейте меня//////////////////
 const byte LT[8] = {0x07,0x0F,0x1F,0x1F,0x1F,0x1F,0x1F,0x1F};
@@ -186,7 +186,7 @@ void printDigits(int digits, int x){
     break;
   }
 }
-void lcdCallback(const ebobot::Lcd_show::Request &req, ebobot::Lcd_show::Response &resp){
+void lcdCallback(const ebobot::LcdShow::Request &req, ebobot::LcdShow::Response &resp){
     lcd.clear();
     uint16_t numb = req.num; /////входное число
     uint16_t numba = numb; //распускается на цифры в ходе подсчета
@@ -210,4 +210,4 @@ void lcdCallback(const ebobot::Lcd_show::Request &req, ebobot::Lcd_show::Respons
         printDigits(score[i],i*4);}
     resp.resp = 0;
 }
-ros::ServiceServer<ebobot::Lcd_show::Request, ebobot::Lcd_show::Response> lcd_server("lcd_service", &lcdCallback);
+ros::ServiceServer<ebobot::LcdShow::Request, ebobot::LcdShow::Response> lcd_server("lcd_service", &lcdCallback);

@@ -8,6 +8,7 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from std_msgs.msg import Bool
+from std_srvs.srv import Empty, EmptyResponce
 #
 from markers import pubMarker
 from calls_executer import executer_dict, showPrediction
@@ -16,9 +17,9 @@ from calls_executer import Move as move_client_constructor
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 
-
 def startCallback(start):
-    _execute = start.data
+    Flags._execute = not Flags._execute
+    return EmptyResponce()
 ########## Subclasses
 class Task:
     list =  []
@@ -39,18 +40,16 @@ class Task:
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.check_args = args[0]["if"]
-                self.yes = self.parseDo(args[1])
-                self.no = self.parseElse(args[2])
+                self.yes = self.parseDo(args[1]["do"])
+                self.no = self.parseElse(args[2]["else"])
             def check(self) -> bool:
                 return Status.check(self.check_args)
             def parseDo(self,args):
-                args = args["do"]
                 sub_name = list(args.keys())[0]
                 return Task.Microtasks(self,sub_name,args[sub_name])
             def parseElse(self,args):
-                args = args["else"]
                 sub_name = list(args.keys())[0]
                 return Task.Microtasks(self,sub_name,args[sub_name])
             async def exec(self):
@@ -58,11 +57,17 @@ class Task:
                     proc = asyncio.create_task(self.yes.action.exec())
                 else:
                     proc = asyncio.create_task(self.no.action.exec())
-                return await proc
+                try:
+                    await proc
+                    self.curr_status = "done"
+                except:
+                    rospy.logerr(f"{self} failed!")
+                    self.curr_status = "fail"
+                self.who_checked = []
             def __str__(self):
-                return f"Condition {self.num}"
+                return f"<Condition {self.num}>"
             def __repr__(self):
-                return f"Condition {self.num}"
+                return f"<Condition {self.num}>"
         class Calls:
             counter = 0
             dyn_counter = 0
@@ -73,12 +78,12 @@ class Task:
                     self.num = type(self).counter
                     type(self).counter += 1
                     self.args = args
-                    self.name = f"{name}_{self.num}:{args}"
+                    self.name = name
                     try:
                         self.call = executer_dict()[args]
                     except:
                         raise SyntaxError("No such call name available!")
-                    self.curr_status = None
+                    self.curr_status = "init"
                     Status.add(self)
                 else:
                     key = args[0]
@@ -93,7 +98,7 @@ class Task:
                     self.args = pargs
                     self.name = f"{name}_{self.num}"
                     self.call = executer_dict()[key]
-                    self.curr_status = None
+                    self.curr_status = "init"
                     Status.add(self)
             @classmethod
             def initDynamic(cls,parent,name,args):
@@ -104,16 +109,18 @@ class Task:
                 try:
                     self.curr_status = await proc
                 except:
-                    self.curr_status = "bad"
+                    self.curr_status = "fail"
                     rospy.logerr("Service anavailable!")
+                finally:
+                    self.who_checked = []
             def status(self):
                 return self.curr_status
             def updateStatus(self):
                 pass
             def __str__(self):
-                return f"Call {self.num}: {self.name}"
+                return f"<Call {self.num}: {self.name}>"
             def __repr__(self):
-                return f"Call {self.num}: {self.name}"
+                return f"<Call {self.num}: {self.name}>"
         class Move:
             counter = 0
             curr_status = None
@@ -121,11 +128,12 @@ class Task:
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 parsed = pos.split("/")
                 try:
                     self.pos = (float(parsed[0]),float(parsed[1]))
                     self.th = float(parsed[2])
+                    self.curr_status = "init"
                 except:
                     raise SyntaxError(f"Incorrect move syntax({pos})! Use (x/y/th), th in radians")
             async def exec(self):
@@ -133,6 +141,7 @@ class Task:
                 type(self).client.setTarget(self.pos,self.th)
                 type(self).client.waitResult()
                 self.curr_status = type(self).client.checkResult()
+                self.who_checked = []
             def status(self):
                 return self.curr_status
             def updateStatus(self):
@@ -145,17 +154,18 @@ class Task:
             def feedback(fb):
                 Task.Microtasks.Move.curr_status = fb.status
             def __str__(self):
-                return f"Move {self.num}: {self.pos = }"
+                return f"<Move {self.num}: {self.pos = }>"
             def __repr__(self):
-                return f"Move {self.num}: {self.pos = }"
+                return f"<Move {self.num}: {self.pos = }>"
         class Logs:
             counter = 0
             def __init__(self,parent,name,args:str):
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.text = args
+                self.curr_status = "init"
             async def exec(self):
                 text = self.text
                 pref = text[:2]
@@ -167,71 +177,74 @@ class Task:
                     rospy.logerr(text[2:])
                 else:
                     rospy.logerr(f"(Incorrect log prefix!) {text}")
-                    self.curr_status = "bad"
-                self.curr_status = "good"
+                    self.curr_status = "fail"
+                self.curr_status = "done"
+                self.who_checked = []
             def status(self):
                 return self.curr_status
             def updateStatus(self):
                 pass
             def __str__(self):
-                return f"Log {self.num}: {self.name}"
+                return f"<Log {self.num}: {self.name}>"
             def __repr__(self):
-                return f"Log {self.num}: {self.name}"
+                return f"<Log {self.num}: {self.name}>"
         class Prediction:
             score = 0
             counter = 0
             def __init__(self,parent,name, num):
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.parent = parent
                 self.score = num
             def exec(self):
                 type(self).score += self.score
-                return showPrediction(type(self).score)
+                self.who_checked = []
         class Skip:
             counter = 0
             def __init__(self,parent,name,num):
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.task_num = int(num)
             async def exec(self):
                 Task.list[self.task_num]._skip_flag = 1
+                self.who_checked = []
             def status(self):
                 return "good"
             def updateStatus(self):
                 pass
             def __str__(self):
-                return f"Skip {self.num}: {self.task_num = }"
+                return f"<Skip {self.num}: {self.task_num = }>"
             def __repr__(self):
-                return f"Skip {self.num}: {self.task_num = }"
+                return f"<Skip {self.num}: {self.task_num = }>"
         class Sleep:
             counter = 0
             def __init__(self,parent,name,num):
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.time= float(num)
             async def exec(self):
                 rospy.sleep(self.time)
+                self.who_checked = []
             def status(self):
                 return "good"
             def updateStatus(self):
                 pass
             def __str__(self):
-                return f"Sleep_{self.num}: {self.time= }"
+                return f"<Sleep_{self.num}: {self.time= }>"
             def __repr__(self):
-                return f"Sleep_{self.num}: {self.time = }"
+                return f"<Sleep_{self.num}: {self.time = }>"
         class Together:
             counter = 0
             def __init__(self,parent,name,args):
                 self.parent = parent
                 self.num = type(self).counter
                 type(self).counter += 1
-                self.name = f"{name}_{self.num}"
+                self.name = name
                 self.subtask_list = []
                 self.micro_list = []
                 for sub_dict in args:
@@ -245,15 +258,16 @@ class Task:
                         rospy.loginfo(f"Executing {micro} in {self}")
                     task = asyncio.create_task(micro.action.exec())
                     subtasks.append(task)
-                await asyncio.gather(*subtasks)            
+                await asyncio.gather(*subtasks)       
+                self.who_checked = []     
             def status(self):
                 return "good"
             def updateStatus(self):
                 pass 
             def __str__(self):
-                return f"Together_{self.num}"
+                return f"<Together {self.num}>"
             def __repr__(self):
-                return f"Together'_{self.num}"
+                return f"<Together' {self.num}>"
         ############ Microtask
         counter = 0
         def __init__(self,parent,key,args):
@@ -263,13 +277,13 @@ class Task:
             self.parent_task = parent
             type(self).counter += 1
             # try:
-            self.action = Manager.constructors_dict[key](self,key,args) #parse args correctly, the args of the func are not working!
+            self.action = constructors_dict[key](self,key,args) #parse args correctly, the args of the func are not working!
             # except:
                 # raise SyntaxError(f"Incorrect route syntax({key = }, {args = })")
         def __str__(self):
-            return f"Microtask {self.num}: {self.name}"
+            return f"<Microtask {self.num}: {self.name}>"
         def __repr__(self):
-            return f"Microtask {self.num}: {self.name}"
+            return f"<Microtask {self.num}: {self.name}>"
     ######### Task
     counter = 0
     def __init__(self,name:str, list:list):
@@ -282,26 +296,42 @@ class Task:
         for exec_name, args in self.parseMicroList(list):
             rospy.loginfo(f"Parsing {exec_name} with {args = } in {self}...")
             self.micro_list.append(Task.Microtasks(self,exec_name,args)) #micro is a tuple (key, val) for current dict position
-        Task.list.append(self)
+        if type(self) == Task:
+            Task.list.append(self)
+        self.curr_status = "init"
     async def exec(self):
+        self.curr_status = "executing"
         if not self._skip_flag:
             for micro in self.micro_list:
                 if Manager.debug:
                     rospy.loginfo(f"Executing {micro} in {self}")
                 proc = asyncio.create_task(micro.action.exec())
                 await proc
+                if len(Interrupts.execute_queue):
+                    for inter in Interrupts.execute_queue:
+                        sub_proc = asyncio.create_task(inter.exec())
+                        await sub_proc
+                ###
                 if rospy.is_shutdown():
                     break
+            self.curr_status = "done"
         else:
             rospy.loginfo(f"Skipping {self}")
+            self.curr_status = "skipped"
+        self.who_checked = []
+    def status(self):
+        return self.curr_status
+    def updateStatus(self):
+        pass 
     def __str__(self):
-        return f"Task {self.num} ({self.name})"
+        return f"<Task {self.num} ({self.name})>"
     def __repr__(self):
-        return f"Task {self.num} ({self.name})"
+        return f"<Task {self.num} ({self.name})>"
     #pass
 ######################
 class Interrupts(Task):
     list = []
+    execute_queue = []
     class Switch:
         counter = 0
         def __init__(self,parent,name,num):
@@ -310,16 +340,19 @@ class Interrupts(Task):
             self.num = type(self).counter
             type(self).counter += 1
             self.name = f"{name}_{self.num}"
+            self.curr_status = "init"
+            Status.add(self)
         async def exec(self):
             Task.list[self.inter_num]._skip_flag = 1
+            self.curr_status = "set"
         def status(self):
-            return "good"
+            return self.curr_status
         def updateStatus(self):
             pass
         def __str__(self):
-            return f"Interrupt switch {self.num}: {self.inter_num = }"
+            return f"<Interrupt switch {self.num} for inter {self.inter_num}>"
         def __repr__(self):
-            return f"Interrupt switch {self.num}: {self.inter_num = }"
+            return f"<Interrupt switch {self.num} for inter {self.inter_num}>"
     ########################
     def __init__(self):
         super().__init__(self)
@@ -338,17 +371,29 @@ class Interrupts(Task):
                 proc = asyncio.create_task((micro.action.exec()))
                 await proc
         else:
-            rospy.loginfo(f"Skipping {self}")
-    def parseCond(self,arg):
-        pass
-    @classmethod
-    def update(cls):
-        pass
+            rospy.loginfo_once(f"{self} was called, but switched off!")
+        self.who_checked = []
+    def parseCond(self,args:str):
+        pargs = args.split("/")
+        self.status_to_check = args
+        self.target_status = pargs[-1]
+    def status(self):
+        return self.curr_status
+    def updateStatus(self):
+        if (Status.check(self.status_to_check) == self.target_status
+        and not self in Interrupts.execute_queue):
+            Interrupts.execute_queue.append(self)
+    def __str__(self):
+        return f"<Interrupt {self.num}>"
+    def __repr__(self):
+        return f"<Interrupt {self.num}>"
 ########################
 class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD,
     calls = []  ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
     moves = []
     timers = []
+    interrupts = []
+    
     class Timer:     
         counter = 0
         def __init__(self,main=False) -> None:
@@ -368,52 +413,48 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
             return f"Timer {self.num} (Main = {self.main})"
     @staticmethod
     def add(obj):
-        rospy.loginfo(f"Adding object {obj} to {type(obj)} status tracking list")
+        rospy.loginfo(f"Adding object {obj} to status tracking list")
         t_list = status_dict[type(obj)]
         t_list.append(obj)
     @staticmethod
     def update():
         rate = rospy.Rate(Manager.update_rate)
         while not rospy.is_shutdown():
-            if Manager.debug:
-                start_time = rospy.Time.now()
             for obj in Status.calls:
                 obj.updateStatus()
             for obj in Status.moves:
                 obj.updateStatus()
             for obj in Status.timers:
                 obj.updateStatus()
+            for obj in Status.interrupts:
+                obj.updateStatus()
             rate.sleep()
     @staticmethod
-    def check(string:str):
+    def check(string:str,who):
         parsed = string.split("/")
-        curr = parsed[0]
+        check_type = parsed[0]
         name = parsed[1]
-        cond = parsed[2]
+        num = parsed[2]
+        cond = parsed[3]
         if Manager.debug:
-                rospy.loginfo(f"Checking type {curr} with {name = } for {cond = }!")
-        curr_list = status_check_dict[curr]
-        if name in curr_list:
-            if cond == curr_list[curr_list.index(name)].status():
-                return True
-            else:
-                return False
-        else:
+                rospy.loginfo(f"Checking type {check_type} with {name = } for {cond = }!")
+        curr_list = status_check_dict[check_type]
+        filtered  = []
+        filtered = [_obj for _obj in curr_list if _obj.name == name]
+        try:
+            obj = filtered[num]
+        except:
             if Manager.debug:
                 rospy.loginfo(f"Name {name} not found in tracking list!")
             return False
-####
-status_dict = {           #dict for appending from code
-        Task.Microtasks.Calls: Status.calls,
-        Task.Microtasks.Move: Status.moves,
-        Status.Timer: Status.timers
-    }    
-status_check_dict = {     #dict for syntax in yaml
-        "calls": Status.calls,
-        "moves": Status.moves,
-        "timer": Status.timers
-    }  
-    
+        if not obj.who_checked:
+            obj.who_checked = [who]
+        else:
+            obj.who_checked.append(who)
+        if cond == obj.status() and not who in obj.who_checked:
+            return True
+        else:
+            return False
 ######################
 class Manager:
 
@@ -423,25 +464,14 @@ class Manager:
     update_rate = rospy.get_param("~update_rate", 5)
     file = rospy.get_param("~file", "config/routes/example_route.yaml")
     #
-    start_topic = rospy.get_param("~start_topic", "ebobot/begin")
+    start_service = rospy.get_param("~start_service", "ebobot/begin")
     #
-    start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
+    start_subscriber = rospy.Service(start_service, Empty, startCallback)
     #
     #/Params
     #Globals
     route = {}
-    constructors_dict = {  #syntax for route.yaml
-        "call": Task.Microtasks.Calls,
-        "log": Task.Microtasks.Logs,
-        "move": Task.Microtasks.Move,
-        "condition":Task.Microtasks.Conditions,
-        "together": Task.Microtasks.Together,
-        "interrupt": Interrupts.forceCallParse,
-        "skip": Task.Microtasks.Skip,
-        "score": Task.Microtasks.Prediction,
-        "dynamic_call": Task.Microtasks.Calls.initDynamic,
-        "sleep": Task.Microtasks.Sleep
-        }
+    
     ##################### Manager
     # def __init__(self):
     #     sesdasd
@@ -469,28 +499,42 @@ class Manager:
             if rospy.is_shutdown():
                 break
         Flags._execute = 0
-        Flags._executing = 0
-
+#####################
 class Flags:
     _execute = 0
-    _executing = 0
-    # @staticmethod
-    # async def doneCallback():
-    #     Flags._execute, Flags._executing = 0, 0
 async def main():
-    status_task = Thread(target=Status.update)
-    status_task.start()
-    while not rospy.is_shutdown():
-        if Flags._execute and not Flags._executing :
-            rospy.logwarn(f"Starting route!")
-            Flags._executing = 1
-            main_task = asyncio.create_task(Manager.exec())
-            await main_task
-        rate.sleep()
+    rospy.logwarn(f"Starting route!")
+    main_timer = Status.Timer(main=True)
+    main_task = asyncio.create_task(Manager.exec())
+    await main_task
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")
-
-####
+#################################
+status_dict = {           #dict for appending from code
+        Task.Microtasks.Calls: Status.calls,
+        Task.Microtasks.Move: Status.moves,
+        Status.Timer: Status.timers,
+        Interrupts: Status.interrupts
+    }    
+status_check_dict = {     #dict for syntax in yaml
+        "calls": Status.calls,
+        "moves": Status.moves,
+        "timers": Status.timers,
+        "interrupts": Status.interrupts
+    }  
+constructors_dict = {  #syntax for route.yaml
+        "call": Task.Microtasks.Calls,
+        "log": Task.Microtasks.Logs,
+        "move": Task.Microtasks.Move,
+        "condition":Task.Microtasks.Conditions,
+        "together": Task.Microtasks.Together,
+        "interrupt": Interrupts.forceCallParse,
+        "skip": Task.Microtasks.Skip,
+        "score": Task.Microtasks.Prediction,
+        "dynamic_call": Task.Microtasks.Calls.initDynamic,
+        "sleep": Task.Microtasks.Sleep
+        } 
+#################################
 if __name__=="__main__":
     rospy.on_shutdown(shutdownHook)
     Manager.read()
@@ -499,9 +543,12 @@ if __name__=="__main__":
     Manager.parse()
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
     rate = rospy.Rate(Manager.update_rate)
-    #Task.Microtasks.Move.client = move_client_constructor(Task.Microtasks.Move.feedback)
-    main_timer = Status.Timer(main=True)
-    Flags._execute = 1
-    main_task = asyncio.run(main())
+    status_task = Thread(target=Status.update)
+    status_task.start()
+    while not rospy.is_shutdown():
+        if Flags._execute:
+            asyncio.run(main())
+        rate.sleep()
+    
     
     
