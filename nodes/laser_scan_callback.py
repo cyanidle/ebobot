@@ -283,9 +283,10 @@ class Beacons(Laser):
             # -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
             d_x, d_y = 0, 0
             for i in range(2):
-                _curr_adj = turnVect(rel_list[i].pose, -cls.delta_th)
-                d_y -= _curr_adj[0] - exp_list[i].pose[0]
-                d_x -= _curr_adj[1] - exp_list[i].pose[1]
+                _curr_rel = (rel_list[i].pose[0]-cls.robot_pos[0],rel_list[i].pose[1]-cls.robot_pos[1])
+                _curr_adj = turnVect(_curr_rel,-cls.delta_th)
+                d_y -= _curr_adj[0] - (exp_list[i].pose[0] -cls.robot_pos[0])
+                d_x -= _curr_adj[1] - (exp_list[i].pose[1] -cls.robot_pos[1])
             d_y = d_y/2
             d_x = d_x/2
             if Laser.debug:
