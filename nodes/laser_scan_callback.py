@@ -280,7 +280,7 @@ class Beacons(Laser):
                     if _curr_rel_dist < min_dists[rel.num]:
                         rel._pub = True
                         min_dists[rel.num] = _curr_rel_dist
-                        if len(rel_list) < 2:
+                        if len(rel_list) < 2 and not rel.num in _rel_list_meta:
                             rel_list.append(rel)
                             _rel_list_meta.append(rel.num) #remaps number to the list
                         else: 
@@ -292,7 +292,10 @@ class Beacons(Laser):
             exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             _sign_precalc = (rel_line[0]-exp_line[0])/ (rel_line[1]-exp_line[1])
             sign =   (_sign_precalc/abs(_sign_precalc))
-            delta_th = sign * -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
+            delta_th = sign * -acos(
+                    ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
+                    (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
+                    ) 
             # -acos(
             #         ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
             #         (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))

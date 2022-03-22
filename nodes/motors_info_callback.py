@@ -31,9 +31,9 @@ class Motors():
     wheels_footprint_rad = rospy.get_param('~wheels_footprint_radius',0.15) #in meters
     #/Params
     num = 3
-    theta = 0
-    x = 0
-    y = 0
+    theta = rospy.get_param('~start_theta', 3.1415/2)
+    x = rospy.get_param('~start_x',1)
+    y = rospy.get_param('~start_y',0.1)
     list = []
     last_x = 0
     last_y = 0
