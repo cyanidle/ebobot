@@ -1,15 +1,15 @@
 <launch>
-    <arg name="debug" default="0"/>
-    <arg name="base_inflation_coeff" default="0.0018"/>
+    <arg name="debug" default="1"/>
     <node pkg="ebobot" type="laser_scan_callback.py" name="laser_scan_callback" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "update_rate" value = "8"/>
+        <param name = "update_rate" value = "6"/>
         <param name = "beacons/adjust_on_command" value = "0"/>
         <param name = "beacons/cycles_per_update" value = "4"/>
-        <param name = "beacons/min_rad" value = "0.01"/>
-        <param name = "beacons/max_rad" value = "0.2"/>
+        <param name = "beacons/min_rad" value = "0.005"/>
+        <param name = "beacons/max_rad" value = "0.25"/>
         <param name = "beacons/max_dist_from_expected" value = "0.3"/>
         <param name = "beacons/adjust_time" value = "2"/>
+        <param name = "beacons/pub_all" value = "1"/>
     </node>
     
 </launch>
