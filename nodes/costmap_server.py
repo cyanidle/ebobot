@@ -20,7 +20,7 @@ import os
 ####
 rospy.init_node('costmap_server')
 #####
-rospy.logwarn("If scripts lags, check line 30")
+
 def obstaclesCallback(obst):
     Objects.clear()
     for obj in obst.data:
@@ -38,6 +38,8 @@ class Costmap():
     debug = rospy.get_param('~debug', 1)
     interpolate_enable = rospy.get_param('~interpolate_enable',1)
     inflate_enable = rospy.get_param('~inflate_enable', 0)
+    if inflate_enable:
+        rospy.logwarn("Please wait ~10 seconds, inflating...")
     super_debug = rospy.get_param('~super_debug',0)
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100

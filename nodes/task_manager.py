@@ -464,7 +464,7 @@ class Manager:
     update_rate = rospy.get_param("~update_rate", 5)
     file = rospy.get_param("~file", "config/routes/example_route.yaml")
     #
-    start_service = rospy.get_param("~start_service", "ebobot/begin")
+    start_service = rospy.get_param("~start_service", "/ebobot/begin")
     #
     start_subscriber = rospy.Service(start_service, Empty, startCallback)
     #

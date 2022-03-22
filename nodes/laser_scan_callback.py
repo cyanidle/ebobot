@@ -183,18 +183,25 @@ def adjCB(req):
         Beacons._adjust_flag = 1
         rospy.sleep(Beacons.adjust_time)
         Beacons._adjust_flag = 0
+        Beacons.cycle = 1
+        Beacons.deltas.clear()
         return EmptyResponse()
 class Beacons(Laser):
     #Beacon params
     # Features
+    only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
     adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 0)
     pub_all = rospy.get_param('~beacons/pub_all', 1)
     # /Features
     ###
+    max_th_for_linear_adj = rospy.get_param('~beacons/max_th_for_linear_adj', 0.01)
+    max_th_adj = rospy.get_param('~beacons/max_th_adj', 0.5) #radians
+    max_pos_adj = rospy.get_param('~beacons/max_pos_adj', 0.5) #meters
+    kostyl = rospy.get_param('~beacons/kostyl', 0.05)
     adjust_time = rospy.get_param('~beacons/adjust_time', 2) #seconds for adjustment
-    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 3)
+    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 8)
     max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
     min_rad = rospy.get_param('~beacons/min_rad', 0.01) #meters
     max_rad = rospy.get_param('~beacons/max_rad', 0.2) #meters
@@ -206,11 +213,12 @@ class Beacons(Laser):
     #     raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
     # #
     ############# Manual init
-    raw_list.append(rospy.get_param('~beacons/beacon1',[0.02,1])) #in meters, first beacon is top-left, then - counterclockwise
-    raw_list.append(rospy.get_param('~beacons/beacon2',[2.99,0.01])) #in meters
-    raw_list.append(rospy.get_param('~beacons/beacon3',[2.99,1.99])) #in meters
-    #raw_list.append(rospy.get_param('~beacons/test_beacon',[1,0.7])) #in meters
-    #raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.3])) #in meters
+    # raw_list.append(rospy.get_param('~beacons/beacon0',[0.02,1])) #in meters, first beacon is top-left, then - counterclockwise
+    # raw_list.append(rospy.get_param('~beacons/beacon1',[2.99,0.01])) #in meters
+    # raw_list.append(rospy.get_param('~beacons/beacon2',[2.99,1.99])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon0',[1,0.7])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon1',[1,1.3])) #in meters
+    raw_list.append(rospy.get_param('~beacons/test_beacon2',[0,1])) #in meters
     #############
     #/Beacon params
     #Globals
@@ -295,62 +303,61 @@ class Beacons(Laser):
                 return
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
-            rel_line= np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
+            rel_line = np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
             exp_line = np.array((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
-            rospy.logerr(f"{rel_line = }\n{exp_line = }")
-            _sign_exp = exp_line/np.linalg.norm(exp_line)
-            _sign_rel = rel_line/np.linalg.norm(rel_line)
-            _sign_precalc = (_sign_rel[0]-_sign_exp[0]) * (_sign_rel[1]-_sign_exp[1])
-            sign =   (_sign_precalc/abs(_sign_precalc))
-            delta_th = sign * acos(
-                    ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
-                    (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
-                    ) 
-            # -acos(
-            #         ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
-            #         (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
-            #         ) 
-            #second variant
-            # -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
-            d_x, d_y = 0, 0
-            for i in range(2):
-                _curr_rel = (rel_list[i].pose[0]-cls.robot_pos[0],rel_list[i].pose[1]-cls.robot_pos[1])
-                _curr_adj = turnVect(_curr_rel, -cls.delta_th)
-                d_y -= _curr_adj[0] - (exp_list[i].pose[0] -cls.robot_pos[0])
-                d_x -= _curr_adj[1] - (exp_list[i].pose[1] -cls.robot_pos[1])
-            d_y = d_y/2
-            d_x = d_x/2
+            #rospy.logerr(f"{rel_line = } {exp_line = }")
+            ##################################### Даже не спрашивайте...
+            delta_exp = acos(exp_line[0]/np.linalg.norm(exp_line))
+            delta_exp -=  2*delta_exp*np.linalg.norm(turnVect(rel_line,-delta_exp)) < cls.kostyl
+            delta_rel = acos(rel_line[0]/np.linalg.norm(rel_line))
+            delta_rel -=  2*delta_rel*np.linalg.norm(turnVect(rel_line,-delta_rel)) < cls.kostyl
+            delta_th =   delta_exp - delta_rel
+            #####################################
+            if (abs(delta_th) > cls.max_th_for_linear_adj 
+            and not cls.only_linear_adj):
+                _inter_pos = cls.robot_pos[:2] + np.array(exp_list[0] - rel_list[0])
+                _curr_adj = np.array(turnVect(_inter_pos, delta_th/2)) - cls.robot_pos[:2]
+            else:
+                _curr_adj = np.array(exp_list[0] - rel_list[0])
+                _curr_adj = (_curr_adj+np.array(exp_list[1] - rel_list[1]))/2
+            ####################################
+            d_x,d_y = _curr_adj[1],_curr_adj[0]
             if Laser.debug:
                 rospy.logwarn(f"{d_x = } , {d_y = }, {delta_th = }")
             cls.deltas.append((d_y, d_x, delta_th))
-            if cls.cycle >= cls.cycles_per_update and cls.enable_adjust and len(cls.deltas):
-                _sum_x,_sum_y, _sum_th = 0,0,0
-                for _y, _x, _th in cls.deltas:
-                    _sum_x += _x
-                    _sum_y += _y
-                    _sum_th += _th
-                _max = len(cls.deltas)
-                cls.delta_th = _sum_th/_max
-                cls.delta_pos = (_sum_y/_max,_sum_x/_max)
-                if not -1.5 < cls.delta_th < 1.5:
-                    cls.delta_th = 0
-                    cls.delta_pos = (0,0)
-                if cls.debug:
-                    rospy.logerr(f"{cls.delta_pos = }|{cls.delta_th = } ")
-                if cls.switching_adjust:
-                    if cls._pubbing_rot:
-                        cls._pubbing_rot = 0
-                        cls.delta_pos = (0,0)
-                    else:
-                        cls._pubbing_rot = 1
-                        cls.delta_th = 0
-                cls.publishAdjust()
-                cls.cycle = 0
-                cls.deltas.clear()
-            else:
-                cls.cycle += 1
+            cls.checkCycle()
             cls.rel_list.clear()
-            
+    @classmethod
+    def checkCycle(cls):
+        if cls.cycle >= cls.cycles_per_update and cls.enable_adjust and len(cls.deltas):
+            _sum_x,_sum_y, _sum_th = 0,0,0
+            for _y, _x, _th in cls.deltas:
+                _sum_x += _x
+                _sum_y += _y
+                _sum_th += _th
+            _max = len(cls.deltas)
+            cls.delta_th = _sum_th/_max
+            cls.delta_pos = (_sum_y/_max,_sum_x/_max)
+            if (not -cls.max_th_adj < cls.delta_th < cls.max_th_adj
+             or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
+                cls.delta_th = 0
+                cls.delta_pos = (0,0)
+            if cls.debug:
+                rospy.logerr(f"{cls.delta_pos = }|{cls.delta_th = } ")
+            if cls.switching_adjust:
+                if cls._pubbing_rot:
+                    cls._pubbing_rot = 0
+                    cls.delta_pos = (0,0)
+                else:
+                    cls._pubbing_rot = 1
+                    cls.delta_th = 0
+            cls.publishAdjust()
+            cls.cycle = 1
+            cls.deltas.clear()
+            #raise SyntaxError("Epic")
+        else:
+            cls.cycle += 1
+               
     @classmethod
     def publishAdjust(cls):
         new = PoseWithCovarianceStamped()

@@ -40,6 +40,8 @@ const int loop_delay = 50;
 const int servo_loop_delay = 40;
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs servo_loop(servo_loop_delay, 1, 0);
+TimerMs start_loop(50, 1, 0);
+setStartPin(20);
 ///////////////////////// ENCODER
 
 volatile long X[3];
@@ -312,6 +314,9 @@ void loop(){
   if (servo_loop.tick()){
     //debugServo(0);
     servosUpdate();
+  }
+  if (start_loop.tick()){
+    startUpdate()
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();
