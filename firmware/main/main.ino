@@ -41,7 +41,7 @@ const int servo_loop_delay = 40;
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs servo_loop(servo_loop_delay, 1, 0);
 TimerMs start_loop(50, 1, 0);
-setStartPin(20);
+//setStartPin(20);
 ///////////////////////// ENCODER
 
 volatile long X[3];

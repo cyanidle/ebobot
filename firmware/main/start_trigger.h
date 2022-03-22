@@ -8,7 +8,7 @@ _start_pin = 20
 
 void setStartPin(num){
   _start_pin = num
-  pinMode(num,INPUT);
+  pinMode(num,INPUT_PULLUP);
 }
 void startUpdate(){
   if (start_loop.tick() and not _started){
