@@ -34,7 +34,7 @@ add_action_files(
 add_service_files(
     FILES
     OhmReader.srv
-    Lcd_show.srv
+    LcdShow.srv
     PIDSettings.srv
     Servos.srv
     ServosSettings.srv
@@ -76,6 +76,6 @@ rosserial_configure_client(
   DIRECTORY firmware
   TOOLCHAIN_FILE ${ROSSERIAL_ARDUINO_TOOLCHAIN}
 )
-########
+######## Evil
 #rosserial_add_client_target(firmware main ALL)
 #rosserial_add_client_target(firmware main-upload)

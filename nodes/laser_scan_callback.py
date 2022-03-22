@@ -69,7 +69,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_minimal = rospy.get_param('~dist_between_dots_minimal', 0.05) #in meters
     #
-    update_rate = rospy.get_param("~update_rate",6) #updates/sec
+    update_rate = rospy.get_param("~update_rate",2) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(depends where lidars each scan starts, counterclockwise)
     #/Params
     #Topics
@@ -187,16 +187,16 @@ def adjCB(req):
 class Beacons(Laser):
     #Beacon params
     # Features
-    switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)
+    switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
-    adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 1)
+    adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 0)
     # /Features
     ###
-    adjust_time = rospy.get_param('~beacons/adjust_time', 3) #seconds for adjustment
-    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 4)
-    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.15) #in meters
-    min_rad = rospy.get_param('~beacons/min_rad', 0.03) #meters
-    max_rad = rospy.get_param('~beacons/max_rad', 0.15) #meters
+    adjust_time = rospy.get_param('~beacons/adjust_time', 2) #seconds for adjustment
+    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 3)
+    max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
+    min_rad = rospy.get_param('~beacons/min_rad', 0.01) #meters
+    max_rad = rospy.get_param('~beacons/max_rad', 0.2) #meters
     ############# 
     raw_list = []
     # # Auto-init beacons 
@@ -205,11 +205,11 @@ class Beacons(Laser):
     #     raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
     # #
     ############# Manual init
-    #raw_list.append(rospy.get_param('~beacons/beacon1',[154*0.02,99*0.02])) #in meters, first beacon is top-left, then - counterclockwise
-    #raw_list.append(rospy.get_param('~beacons/beacon2',[154*0.02,2*0.02])) #in meters
-    #raw_list.append(rospy.get_param('~beacons/beacon3',[-3*0.02,50*0.02])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon',[1,0.7])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.3])) #in meters
+    raw_list.append(rospy.get_param('~beacons/beacon1',[0,0])) #in meters, first beacon is top-left, then - counterclockwise
+    raw_list.append(rospy.get_param('~beacons/beacon2',[3,0])) #in meters
+    raw_list.append(rospy.get_param('~beacons/beacon3',[3,2])) #in meters
+    #raw_list.append(rospy.get_param('~beacons/test_beacon',[1,0.7])) #in meters
+    #raw_list.append(rospy.get_param('~beacons/test_beacon2',[1,1.3])) #in meters
     #############
     #/Beacon params
     #Globals
@@ -231,6 +231,7 @@ class Beacons(Laser):
         if expected:
             Beacons.expected_list.append(self)
         else:
+            self._pub = False
             Beacons.rel_list.append(self)
     def __sub__(self,other):
         return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
@@ -246,8 +247,11 @@ class Beacons(Laser):
     @classmethod
     def pubRelative(cls):
         for num,beacon in enumerate(cls.rel_list):
-            rel_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+            if beacon._pub:
+                rel_pos = (beacon.pose[0],  beacon.pose[1])
+                pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+    @classmethod
+    def pubExpected(cls):
         for num,beacon in enumerate(cls.expected_list):
             exp_pos = (beacon.pose[0],  beacon.pose[1])
             pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
@@ -257,7 +261,7 @@ class Beacons(Laser):
     @classmethod
     def update(cls):
         "The most important func in localisation"
-        cls.pubRelative()
+        cls.pubExpected()
         if len(cls.rel_list) < 2:
             cls.rel_list.clear()
             cls.cycle = 0
@@ -265,20 +269,34 @@ class Beacons(Laser):
         elif cls._adjust_flag:
             exp_list = [] 
             rel_list = []
+            _rel_list_meta = []
             nums = []
-            for rel in cls.rel_list[:2]:
-                nums.append(rel.num)
-                rel_list.append(rel)
+            min_dists = [100,100,100]
+            for rel in cls.rel_list:
+                if not rel.num in nums and len(nums) < 2:
+                    nums.append(rel.num)    
+                if rel.num in nums:
+                    _curr_rel_dist = np.linalg.norm(rel - cls.expected_list[rel.num])
+                    if _curr_rel_dist < min_dists[rel.num]:
+                        rel._pub = True
+                        min_dists[rel.num] = _curr_rel_dist
+                        if len(rel_list) < 2:
+                            rel_list.append(rel)
+                            _rel_list_meta.append(rel.num) #remaps number to the list
+                        else: 
+                            rel_list[_rel_list_meta.index(rel.num)] = rel
+            cls.pubRelative()
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
             rel_line= ((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
             exp_line = ((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             _sign_precalc = (rel_line[0]-exp_line[0])/ (rel_line[1]-exp_line[1])
             sign =   (_sign_precalc/abs(_sign_precalc))
-            delta_th = sign * -acos(
-                    ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
-                    (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
-                    ) 
+            delta_th = sign * -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
+            # -acos(
+            #         ((rel_line[0]*exp_line[0]) + (rel_line[1]*exp_line[1])) /
+            #         (np.linalg.norm(rel_line) * np.linalg.norm(exp_line))
+            #         ) 
             #          second variant
             # -acos(np.dot(rel_line, exp_line)/ np.linalg.norm(rel_line) / np.linalg.norm(exp_line))
             d_x, d_y = 0, 0

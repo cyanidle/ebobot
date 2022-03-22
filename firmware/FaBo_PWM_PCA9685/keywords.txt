@@ -1,0 +1,45 @@
+#######################################
+# Syntax Coloring Map For FaBoPWM-PCA9685-Library
+#######################################
+
+#######################################
+# Class (KEYWORD1)
+#######################################
+
+FaBoPWM	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+init	KEYWORD2
+calc_prescale	KEYWORD2
+set_hz	KEYWORD2
+calc_hz	KEYWORD2
+set_channel_value	KEYWORD2
+get_channel_value	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+PCA9685_SLAVE_ADDRESS	LITERAL1
+PCA9685_MODE1 	LITERAL1
+PCA9685_ALL_LED_ON_L_REG	LITERAL1
+PCA9685_ALL_LED_ON_H_REG	LITERAL1
+PCA9685_ALL_LED_OFF_L_REG	LITERAL1
+PCA9685_ALL_LED_OFF_H_REG	LITERAL1
+PCA9685_MODE1_REG	LITERAL1
+PCA9685_MODE2_REG	LITERAL1
+PCA9685_PRE_SCALE_REG	LITERAL1
+PCA9685_LED0_ON_L_REG	LITERAL1
+PCA9685_LED0_ON_H_REG	LITERAL1
+PCA9685_LED0_OFF_L_REG	LITERAL1
+PCA9685_LED0_OFF_H_REG	LITERAL1
+PCA9685_OSC_CLOCK	LITERAL1
+PCA9685_DEFAULT_VALUE	LITERAL1
+PCA9685_RESTART	LITERAL1
+PCA9685_SLEEP	LITERAL1
+PCA9685_ALLCALL	LITERAL1
+PCA9685_OUTDRV	LITERAL1
