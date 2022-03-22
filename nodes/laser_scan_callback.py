@@ -199,9 +199,9 @@ class Beacons(Laser):
     max_th_for_linear_adj = rospy.get_param('~beacons/max_th_for_linear_adj', 0.01)
     max_th_adj = rospy.get_param('~beacons/max_th_adj', 0.5) #radians
     max_pos_adj = rospy.get_param('~beacons/max_pos_adj', 0.5) #meters
-    kostyl = rospy.get_param('~beacons/kostyl', 0.05)
+    kostyl = rospy.get_param('~beacons/kostyl', 0.005)
     adjust_time = rospy.get_param('~beacons/adjust_time', 2) #seconds for adjustment
-    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 8)
+    cycles_per_update = rospy.get_param('~beacons/cycles_per_update', 2)
     max_dist_from_expected = rospy.get_param('~beacons/max_dist_from_expected', 0.3) #in meters
     min_rad = rospy.get_param('~beacons/min_rad', 0.01) #meters
     max_rad = rospy.get_param('~beacons/max_rad', 0.2) #meters
@@ -307,16 +307,26 @@ class Beacons(Laser):
             exp_line = np.array((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
             #rospy.logerr(f"{rel_line = } {exp_line = }")
             ##################################### Даже не спрашивайте...
-            delta_exp = acos(exp_line[0]/np.linalg.norm(exp_line))
-            delta_exp -=  2*delta_exp*np.linalg.norm(turnVect(rel_line,-delta_exp)) < cls.kostyl
-            delta_rel = acos(rel_line[0]/np.linalg.norm(rel_line))
-            delta_rel -=  2*delta_rel*np.linalg.norm(turnVect(rel_line,-delta_rel)) < cls.kostyl
-            delta_th =   delta_exp - delta_rel
+            #rospy.logerr(f"---")
+            #####################################
+            delta_exp = acos(exp_line[1]/np.linalg.norm(exp_line))
+            if (np.array(turnVect(exp_line,-delta_exp))[0] < cls.kostyl):
+                delta_exp =  -delta_exp
+                #rospy.logerr("exp is negative")
+            delta_rel = acos(rel_line[1]/np.linalg.norm(rel_line))
+            if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
+                delta_rel =  -delta_rel
+                #rospy.logerr("rel is negative")
+            delta_th =   -(delta_exp - delta_rel)
+            #rospy.logerr(f"{delta_exp =}")
+            #rospy.logerr(f"{delta_rel =}")
+            #rospy.logerr(f"{delta_th =}")
             #####################################
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):
-                _inter_pos = cls.robot_pos[:2] + np.array(exp_list[0] - rel_list[0])
-                _curr_adj = np.array(turnVect(_inter_pos, delta_th/2)) - cls.robot_pos[:2]
+                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose, -delta_th/2)) #- cls.robot_pos[:2]
+                #_curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose, -delta_th))
+                #_curr_adj /= 2
             else:
                 _curr_adj = np.array(exp_list[0] - rel_list[0])
                 _curr_adj = (_curr_adj+np.array(exp_list[1] - rel_list[1]))/2
@@ -342,6 +352,7 @@ class Beacons(Laser):
              or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
                 cls.delta_th = 0
                 cls.delta_pos = (0,0)
+                rospy.logerr("Adjustment error!")
             if cls.debug:
                 rospy.logerr(f"{cls.delta_pos = }|{cls.delta_th = } ")
             if cls.switching_adjust:
