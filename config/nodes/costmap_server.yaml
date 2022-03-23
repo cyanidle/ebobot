@@ -14,6 +14,8 @@ costmap_server:
   interpolation_radius: 1 #in cells
   #################################
   obstacles:
-    base_infaltion_coeff: 150
     use_default: 1
+    #
+    base_infaltion_coeff: 150
+    resolution: 15 #how round the obstacles are
   

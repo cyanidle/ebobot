@@ -39,4 +39,31 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 
 ##################################
 local_planer:
-  safe_footprint_radius: 0.40
+  # Important
+  cost_threshhold: 10000 #100 are walls, then there is inflation
+  safe_footprint_radius: 0.20
+  update_rate: 20 # in Hz
+  rotate_at_end: 1
+  get_lowest_cost: 0 #correct targets to follow lowest cost route
+  #Params
+  #Features
+  cost_coeff_enable: 0
+  path_coeff_enable:  0
+  #
+  pause_before_turn: 0.2 #seconds
+  turn_threshhold: 0.05 
+  cells_per_radian: 5
+  turn_coeff: 0.25
+  min_turn_coeff: 0.28 #final!
+  #speed coeffs
+  static_coeff:  0.4
+  min_path_coeff: 0.2 #Final!!
+  path_speed_coeff: 0.3 #В тугриках. Robot slows down at start and finish of the route
+  cost_speed_coeff: 0.0002
+  threshhold: 2 #in cells
+  # Circles on which planer tries to find lowest cost position
+  num_of_circles: 2
+  circles_dist: 1 #in cells
+  circles_step_radians_resolution: 6 #number of points on each circle
+  #### Params for footprint cost calc
+   

@@ -71,7 +71,6 @@ class Local():
     #Features
     rotate_at_end = rospy.get_param('~rotate_at_end', 1)
     get_lowest_cost = rospy.get_param('~get_lowest_cost', 0)
-    #delta_thetas_enable =  rospy.get_param('~delta_thetas_enable', 0)
     cost_coeff_enable = rospy.get_param('~cost_coeff_enable', 0)
     path_coeff_enable = rospy.get_param('~path_coeff_enable', 0)
     debug = rospy.get_param('~debug', 1)
@@ -90,7 +89,6 @@ class Local():
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
     #planer
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
-    num_of_steps_between_clss = rospy.get_param('~num_of_steps_between_clss', 4)
     update_rate = rospy.get_param('~update_rate', 20) # in Hz
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
@@ -102,7 +100,6 @@ class Local():
     circles_dist = rospy.get_param('~circles_dist', 1) #in cells
     circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
     #### Params for footprint cost calc
-    #calculate_base_cost = rospy.get_param('~calculate_base_cost', 1)
     base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
@@ -266,8 +263,7 @@ class Local():
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
     @classmethod
-    def fetchPoint(cls,current_pos):     #dist to target should be checked in updateDist()
-        
+    def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
         if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
@@ -347,9 +343,6 @@ class Local():
             rospy.sleep(1/cls.update_rate)
         return
     ####################################################
-   
-    
-
 # import os
 # import cv2
 def main():
@@ -368,8 +361,8 @@ def main():
                 #Local.current_target = len(Local.targets)-1
         rate.sleep()
 
-    # os.chdir("/home/alexej/catkin_ws/src/ebobot/nodes/costmap")
-    # cv2.imwrite("recieved_map.png", Local.costmap)
+    # os.chdir("~/catkin_ws/src/ebobot/config/costmap")
+    # cv2.imwrite("local_recieved_map.png", Local.costmap)
     # rospy.sleep(5)
 
 if __name__=="__main__":
