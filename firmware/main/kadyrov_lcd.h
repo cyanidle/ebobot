@@ -19,7 +19,7 @@ void lcdSetup(){
   lcd.backlight();
   lcd.home();
   lcd.clear();
-  lcd.print("Ebobot V1.0.1");
+  lcd.print("Ebobot V1.1.1");
   lcd.createChar(0,LT);
   lcd.createChar(1,UB);
   lcd.createChar(2,RT);

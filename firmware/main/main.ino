@@ -11,6 +11,7 @@
 #include "servos.h"
 #include "kadyrov_lcd.h"
 #include "ohm_reader.h"
+#include "start_trigger.h"
 ////////////////////////////Все скорости в мм/с
 
 ////////////////////////////ROS init
@@ -316,7 +317,7 @@ void loop(){
     servosUpdate();
   }
   if (start_loop.tick()){
-    startUpdate()
+    startUpdate();
   }
   motors_info.publish(&motors_msg);
   nh.spinOnce();

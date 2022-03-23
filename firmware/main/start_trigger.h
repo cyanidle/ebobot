@@ -1,20 +1,21 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <std_srvs/Empty.h>
-#include <TimerMS.h>
 ros::ServiceClient<std_srvs::Empty::Request, std_srvs::Empty::Response> start_client("/ebobot/begin");
-_started = false;
-_start_pin = 20
+bool _started = false;
+int _start_pin = 20;
 
-void setStartPin(num){
-  _start_pin = num
+void setStartPin(int num){
+  _start_pin = num;
   pinMode(num,INPUT_PULLUP);
 }
 void startUpdate(){
-  if (start_loop.tick() and not _started){
+  if (not _started){
     if (digitalRead(20) == HIGH){
-      _started = true
-      start_client.call(std_srvs::Empty::Request req(),std_srvs::Empty::Response resp());
+      _started = true;
+      std_srvs::Empty::Request req;
+      std_srvs::Empty::Response resp;
+      start_client.call(req,resp);
     }
   }
 }
