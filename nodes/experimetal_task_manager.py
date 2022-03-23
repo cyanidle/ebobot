@@ -19,6 +19,7 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 from abc import ABC, abstractmethod
 
 class Template(ABC):
+    type_name = "Template"
     @abstractmethod
     def __init__(self,parent,name,args):
         self.parent = parent
@@ -29,7 +30,8 @@ class Template(ABC):
     @abstractmethod
     def getStatus(self):
         return self.status
-
+    def __repr__(self):
+        return f"<{type(self).type_name} {self.num}: {self.name}>"
 
 
 class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD,

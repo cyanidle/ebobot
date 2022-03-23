@@ -19,9 +19,12 @@ import cv2
 import os
 ####
 rospy.init_node('costmap_server')
+_node_ready =0
 #####
 
 def obstaclesCallback(obst):
+    if not _node_ready:
+        return
     Objects.clear()
     for obj in obst.data:
         if Costmap.debug:
@@ -309,6 +312,7 @@ def main():
 
 if __name__=="__main__":
     Costmap.initCostmap()
+    _node_ready = 1
     if Objects.use_default:
         rospy.loginfo(f"Using default obstacles, initialazing...")
         start_time = rospy.Time.now()

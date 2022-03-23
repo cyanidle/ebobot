@@ -8,10 +8,12 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from std_msgs.msg import Bool
-from std_srvs.srv import Empty, EmptyResponce
+from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
+rospy.logwarn(f"Script won`t start without 'Move' server (Global_planer)")
 from calls_executer import executer_dict, showPrediction
+rospy.logwarn(f"Server found, calls parsed")
 from calls_executer import Move as move_client_constructor
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
@@ -19,7 +21,7 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 
 def startCallback(start):
     Flags._execute = not Flags._execute
-    return EmptyResponce()
+    return EmptyResponse()
 ########## Subclasses
 class Task:
     list =  []
@@ -393,7 +395,9 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
     moves = []
     timers = []
     interrupts = []
-    
+    #
+    update_rate = rospy.get_param("~status/update_rate", 5)
+    #
     class Timer:     
         counter = 0
         def __init__(self,main=False) -> None:
@@ -418,7 +422,7 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
         t_list.append(obj)
     @staticmethod
     def update():
-        rate = rospy.Rate(Manager.update_rate)
+        rate = rospy.Rate(Status.update_rate)
         while not rospy.is_shutdown():
             for obj in Status.calls:
                 obj.updateStatus()
@@ -461,7 +465,7 @@ class Manager:
     #Params
     debug = rospy.get_param("~debug", 1)
     #
-    update_rate = rospy.get_param("~update_rate", 5)
+    
     file = rospy.get_param("~file", "config/routes/example_route.yaml")
     #
     start_service = rospy.get_param("~start_service", "/ebobot/begin")
@@ -502,7 +506,25 @@ class Manager:
 #####################
 class Flags:
     _execute = 0
-async def main():
+def main():
+    rospy.on_shutdown(shutdownHook)
+    Manager.read()
+    if not Manager.route:
+        rospy.logerr(f"Route is empty or missing!")
+        return
+    start_time = rospy.Time.now()
+    rospy.logwarn("Parsing route...")
+    Manager.parse()
+    rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
+    rate = rospy.Rate(Status.update_rate)
+    status_task = Thread(target=Status.update)
+    status_task.start()
+    null_timer = Status.Timer()
+    while not rospy.is_shutdown():
+        if Flags._execute:
+            asyncio.run(executeRoute())
+        rate.sleep()
+async def executeRoute():
     rospy.logwarn(f"Starting route!")
     main_timer = Status.Timer(main=True)
     main_task = asyncio.create_task(Manager.exec())
@@ -536,19 +558,7 @@ constructors_dict = {  #syntax for route.yaml
         } 
 #################################
 if __name__=="__main__":
-    rospy.on_shutdown(shutdownHook)
-    Manager.read()
-    start_time = rospy.Time.now()
-    rospy.logwarn("Parsing route...")
-    Manager.parse()
-    rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-    rate = rospy.Rate(Manager.update_rate)
-    status_task = Thread(target=Status.update)
-    status_task.start()
-    while not rospy.is_shutdown():
-        if Flags._execute:
-            asyncio.run(main())
-        rate.sleep()
+    main()
     
     
     

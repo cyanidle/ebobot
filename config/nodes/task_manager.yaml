@@ -1,0 +1,3 @@
+task_manager:
+  start_service: /ebobot/begin
+  status/update_rate: 5
