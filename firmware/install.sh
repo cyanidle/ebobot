@@ -21,8 +21,12 @@ if [  "$1" = "-port" ];then
     else
     echo "Using default port ($port)"
 fi
-echo "Using sketch main in $(pwd)/main"
+echo "Using sketch main.ino in $(pwd)/main"
+if [ "$3" = "-upload" ] || [ "$1" = "-upload" ];then
 arduino --board arduino:avr:mega:cpu=atmega2560 --port $port --upload main/main.ino
+else
+echo "Not uploading, enable by '-upload' option"
+fi
 else
 echo "Arduino dir not found!"
 fi

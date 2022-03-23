@@ -64,7 +64,8 @@ catkin_install_python(PROGRAMS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 message("INSTALLING FIRMWARE...")   
-execute_process(COMMAND bash -c "${PROJECT_SOURCE_DIR}/firmware/install.sh")
+exec_program("${PROJECT_SOURCE_DIR}/firmware/install.sh")
+#exec_program(bash "${PROJECT_SOURCE_DIR}/firmware/" "install.sh")
 ########### Данная часть не нужна
 # ################# В этом месте мы опять получаем по ебалу от негров
 # rosserial_generate_ros_lib(
