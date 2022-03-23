@@ -317,8 +317,8 @@ class Beacons(Laser):
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):
                 rospy.logwarn_once(f"Change lines 320-322 if fails")
-                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose- cls.robot_pos[:2], -delta_th/2)) - cls.robot_pos[:2] 
-                _curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose- cls.robot_pos[:2], -delta_th/2)) - cls.robot_pos[:2] 
+                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose- cls.robot_pos[:2], -delta_th)) + cls.robot_pos[:2] 
+                _curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose- cls.robot_pos[:2], -delta_th)) + cls.robot_pos[:2] 
                 _curr_adj /= 2
             else:
                 _curr_adj = np.array(exp_list[0] - rel_list[0])
