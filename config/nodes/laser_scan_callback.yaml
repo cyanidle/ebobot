@@ -1,0 +1,9 @@
+laser_scan_callback:
+  update_rate: 10
+  beacons/adjust_on_command: 0
+  beacons/cycles_per_update: 4
+  beacons/min_rad: 0.005
+  beacons/max_rad: 0.25
+  beacons/max_dist_from_expected: 0.3
+  beacons/adjust_time: 2
+  beacons/pub_all: 1

@@ -1,0 +1,6 @@
+#rosserial_arduino: #pkg
+
+motors_info_callback:
+  start_x: 1
+  start_y: 0.18
+  footprint_radius: 0.15

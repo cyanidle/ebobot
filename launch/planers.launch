@@ -1,17 +1,13 @@
 <launch>
-
-    <arg name="safe_footprint_radius" default="0.40"/>
     <arg name="debug" default = "0"/>
+    <rosparam file="$(find ebobot)/config/nodes/planers.yaml" />
+    
 
     <node pkg="ebobot" type="global_planer.py" name="global_planer" output="log" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "maximum_cost" value = "80"/>
-        <param name = "cleanup_repeats_threshhold" value = "9.5"/>
-        <param name = "cleanup_repeats_len" value = "9"/>
-        
     </node>
+
     <node pkg="ebobot" type="local_planer.py" name="local_planer" output="log" respawn="true" respawn_delay="1">
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "safe_footprint_radius" value = "$(arg safe_footprint_radius)"/>
     </node>
 </launch>

@@ -3,22 +3,24 @@
     <arg name="port" default="/dev/ttyACM0"/>
     <arg name="arduino_baud" default="57600"/>
     <arg name="debug" default="0"/>
-    <arg name="footprint_radius" default="0.15"/>
+    <rosparam file="$(find ebobot)/config/nodes/arduino_odom.yaml" />
+
     <arg name ="arduino_connected" default="true"/>
+    
     <group if="$(arg arduino_connected)">
         <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" respawn="false" respawn_delay="10">
             <param name="port" value="$(arg port)"/>
             <param name="baud" value="$(arg arduino_baud)"/>
         </node>
     </group>
+
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "footprint_radius" value = "$(arg footprint_radius)"/>
     </node>
     <node pkg="ebobot" type="pid_setter.py" name="pid_setter">
-        <param name = "path" value = "$(find ebobot)/config/pid_settings.txt"/>
+        <param name = "path" value = "$(find ebobot)/config/scripts/pid_settings.txt"/>
     </node>
     <node pkg="ebobot" type="servos_setter.py" name="servos_setter">
-        <param name = "file" value = "$(find ebobot)/config/servos.yaml"/>
+        <param name = "file" value = "$(find ebobot)/config/scripts/servos.yaml"/>
     </node>
 </launch>

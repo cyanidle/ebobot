@@ -1,0 +1,8 @@
+costmap_server:
+  inflation_rad: 30
+  base_inflation_coeff: 0.0027
+  inflate_enable: 1
+  write_map_enable: 1
+  update_rate: 2
+  obstacles/base_infaltion_coeff: 150
+  obstacles/use_default: 1

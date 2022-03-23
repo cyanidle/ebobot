@@ -1,0 +1,7 @@
+global_planer:
+  maximum_cost: 80
+  cleanup_repeats_len: 9
+  cleanup_repeats_threshhold: 9.5
+
+local_planer:
+  safe_footprint_radius: 0.40

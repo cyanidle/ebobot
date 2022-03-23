@@ -1,21 +1,14 @@
 <launch>
-    <arg name="inflation_rad" default="0.30"/>
+    
     <arg name="debug" default="0"/>
-    <arg name="base_inflation_coeff" default="0.0018"/>
 
-
+    <rosparam file="$(find ebobot)/config/nodes/costmap_server.yaml" />
     
 
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "file_dir" value = "$(find ebobot)/config/costmap"/>
         <param name = "file" value = "$(find ebobot)/config/costmap/costmap.png"/>
-        <param name = "base_inflation_coeff" value = "0.0027"/>
-        <param name = "inflate_enable" value = "1"/>
-        <param name = "write_map_enable" value = "0"/>
-        <param name = "update_rate" value = "2"/>
-        <param name = "obstacles/base_infaltion_coeff" value = "200"/>
-        <param name = "obstacles/use_default" value = "1"/>
     </node>
     
 </launch>
