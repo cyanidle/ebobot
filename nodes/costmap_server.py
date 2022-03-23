@@ -23,14 +23,13 @@ _node_ready =0
 #####
 
 def obstaclesCallback(obst):
-    if not _node_ready:
-        return
-    Objects.clear()
-    for obj in obst.data:
-        if Costmap.debug:
-            print(f"Got new object {obj.y =} {obj.x =}")
-        Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),
-        obj.radius/Costmap.resolution)
+    if _node_ready:
+        Objects.clear()
+        for obj in obst.data:
+            if Costmap.debug:
+                print(f"Got new object {obj.y =} {obj.x =}")
+            Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),
+            obj.radius/Costmap.resolution)
     Objects.updateMask() # AHAHAHAHAHAAHAHA H AHAHAHAHHAHAHAHAAHHAHAHHAHAHAAHAHAHAHAHAHAHAHAHAHAHAHHAHAHA Питон момент
         #короче здесь был лишний обступ и он обновлял и пересылал карту НА КАЖДОМ объекте, а.к.а. они появлялись по очереди и планер не всегда их видел вовремя))))
 class Costmap():
