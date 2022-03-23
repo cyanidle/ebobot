@@ -305,28 +305,21 @@ class Beacons(Laser):
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
             rel_line = np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
             exp_line = np.array((exp_list[1].pose[0] - exp_list[0].pose[0],    exp_list[1].pose[1] - exp_list[0].pose[1] ))
-            #rospy.logerr(f"{rel_line = } {exp_line = }")
             ##################################### Даже не спрашивайте...
-            #rospy.logerr(f"---")
-            #####################################
             delta_exp = acos(exp_line[1]/np.linalg.norm(exp_line))
             if (np.array(turnVect(exp_line,-delta_exp))[0] < cls.kostyl):
                 delta_exp =  -delta_exp
-                #rospy.logerr("exp is negative")
             delta_rel = acos(rel_line[1]/np.linalg.norm(rel_line))
             if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
                 delta_rel =  -delta_rel
-                #rospy.logerr("rel is negative")
             delta_th =   -(delta_exp - delta_rel)
-            #rospy.logerr(f"{delta_exp =}")
-            #rospy.logerr(f"{delta_rel =}")
-            #rospy.logerr(f"{delta_th =}")
             #####################################
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):
-                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose, -delta_th/2)) #- cls.robot_pos[:2]
-                #_curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose, -delta_th))
-                #_curr_adj /= 2
+                rospy.logwarn_once(f"Change lines 320-322 if fails")
+                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose- cls.robot_pos[:2], -delta_th/2)) - cls.robot_pos[:2] 
+                _curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose- cls.robot_pos[:2], -delta_th/2)) - cls.robot_pos[:2] 
+                _curr_adj /= 2
             else:
                 _curr_adj = np.array(exp_list[0] - rel_list[0])
                 _curr_adj = (_curr_adj+np.array(exp_list[1] - rel_list[1]))/2
