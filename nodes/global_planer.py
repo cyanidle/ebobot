@@ -72,13 +72,13 @@ def costmapCallback(costmap):
     Global.costmap= np.reshape(costmap.data,(Global.costmap_height, Global.costmap_width))  
     Global.debug_map = Global.costmap
     
-def costmapUpdateCallback(update):
-    rospy.loginfo("Got new map update")
+def costmapUpdateCallback(update): #not used
+    rospy.loginfo("Got new map update") 
     origin_x = update.x
     origin_y = update.y
-    for x in range (update.width):
-        for y in range (update.height):
-            Global.costmap[origin_x + x][origin_y + y] = update.data[x+y]
+    for y in range (update.height):
+        for x in range (update.width):
+            Global.costmap[origin_y + y][origin_x + y] = update.data[x+y]
 
     
 

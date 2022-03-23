@@ -19,4 +19,8 @@
     </include>
 
     <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+
+    <include file="$(find ebobot)/launch/laser_callback.launch">
+      <arg name="debug" default = "0"/>
+    </include>
 </launch>

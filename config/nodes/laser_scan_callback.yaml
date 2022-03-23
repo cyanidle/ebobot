@@ -1,9 +1,19 @@
 laser_scan_callback:
   update_rate: 10
-  beacons/adjust_on_command: 0
+  beacons/adjust_on_command: 1
   beacons/cycles_per_update: 4
   beacons/min_rad: 0.005
   beacons/max_rad: 0.25
   beacons/max_dist_from_expected: 0.3
   beacons/adjust_time: 2
   beacons/pub_all: 1
+  beacons/num_beacons: 3 #needed for proper auto-init
+  beacons/beacon0:
+  - 0.02 #meters, y
+  - 1    #meters, x
+  beacons/beacon1:
+  - 2.99
+  - 0.01
+  beacons/beacon2:
+  - 2.99
+  - 1.99

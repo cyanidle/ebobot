@@ -41,11 +41,12 @@ class Costmap():
     if inflate_enable:
         rospy.logwarn("Please wait ~10 seconds, inflating...")
     super_debug = rospy.get_param('~super_debug',0)
+    inflation_nonlinear_enable = rospy.get_param('~inflation_nonlinear_enable',0) 
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
     interpolation_radius = rospy.get_param('~interpolation_radius',2) #in cells
     base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) #VERY DANGEROUS
-    inflation_nonlinear_enable = rospy.get_param('~inflation_nonlinear_enable',0) 
+    
     inflation_nonlinear_power = rospy.get_param('~inflation_nonlinear_power',1)
     update_rate = rospy.get_param('~update_rate',0.55)
     inflation_radius = rospy.get_param('~inflation_radius',0.45)
@@ -137,8 +138,8 @@ class Costmap():
         new_grid = np.array([[0]*cls.width for _ in range(cls.height)])
         rospy.loginfo_once('Interpolating...')
         interpolation_list = []
-        for i in range(cls.interpolation_radius+1):
-            for j in range(cls.interpolation_radius+1):
+        for i in range(-cls.interpolation_radius,cls.interpolation_radius+1):
+            for j in range(-cls.interpolation_radius,cls.interpolation_radius+1):
                 if not (i==0 and j==0):
                     interpolation_list.append((i,j))
         new_grid = cls.grid
@@ -148,8 +149,8 @@ class Costmap():
             for dy, dx in interpolation_list:
                 rospy.loginfo_once('Interpolation working...')
                 new_y,new_x = y+dy,x+dx
-                if (new_x <= cls.width-cls.interpolation_radius and new_x > cls.interpolation_radius
-                 and new_y  <= cls.height-cls.interpolation_radius and new_y  > cls.interpolation_radius):
+                if (cls.interpolation_radius < new_x < cls.width-cls.interpolation_radius-1 and new_x 
+                 and cls.interpolation_radius < new_y  < cls.height-cls.interpolation_radius-1 and new_y):
                     sum += cls.grid[new_y][new_x]
                     num += 1
             if num:
@@ -160,8 +161,8 @@ class Costmap():
         #new_grid.clear()
     @classmethod
     def inflate(cls,y,x):
-        if cls.pixels[y][x] > cls.inflation_threshhold:
-            if x > 1 and y > 1 and x < cls.width -1 and y < cls.height - 1: #check if surrounded
+        if cls.pixels[y][x] > cls.inflation_threshhold and not rospy.is_shutdown():
+            if  cls.width -1 > x > 1 and  1 < y < cls.height - 1: #check if surrounded
                 sum = 0
                 for dy in range(-1,2):
                     for dx in range(-1,2):
@@ -311,6 +312,6 @@ if __name__=="__main__":
     if Objects.use_default:
         rospy.loginfo(f"Using default obstacles, initialazing...")
         start_time = rospy.Time.now()
-        default_obstacle = Objects((0,0), 10, default=1)
+        default_obstacle = Objects((-10,-10), 10, default=1)
         rospy.loginfo(f"Done in {(rospy.Time.now()-start_time).to_sec()}!")
     main()

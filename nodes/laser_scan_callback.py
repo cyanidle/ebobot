@@ -207,18 +207,18 @@ class Beacons(Laser):
     max_rad = rospy.get_param('~beacons/max_rad', 0.2) #meters
     ############# 
     raw_list = []
-    # # Auto-init beacons 
-    # num_beacons = rospy.get_param('~beacons/num_beacons', 3)
-    # for n in range(num_beacons):
-    #     raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
-    # #
+    # Auto-init beacons 
+    num_beacons = rospy.get_param('~beacons/num_beacons', 3)
+    for n in range(num_beacons):
+        raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
+    #
     ############# Manual init
     # raw_list.append(rospy.get_param('~beacons/beacon0',[0.02,1])) #in meters, first beacon is top-left, then - counterclockwise
     # raw_list.append(rospy.get_param('~beacons/beacon1',[2.99,0.01])) #in meters
     # raw_list.append(rospy.get_param('~beacons/beacon2',[2.99,1.99])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon0',[1,0.7])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon1',[1,1.3])) #in meters
-    raw_list.append(rospy.get_param('~beacons/test_beacon2',[0,1])) #in meters
+    # raw_list.append(rospy.get_param('~beacons/test_beacon0',[1,0.7])) #in meters
+    # raw_list.append(rospy.get_param('~beacons/test_beacon1',[1,1.3])) #in meters
+    # raw_list.append(rospy.get_param('~beacons/test_beacon2',[0,1])) #in meters
     #############
     #/Beacon params
     #Globals

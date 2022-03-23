@@ -56,7 +56,7 @@ def costmapCallback(costmap):
     Local.costmap_width = costmap.info.width
     rospy.loginfo_once(f"Got new map, height = {Local.costmap_height}, width= {Local.costmap_width}")
     Local.costmap= np.reshape(costmap.data,(Local.costmap_height, Local.costmap_width))
-def costmapUpdateCallback(update):
+def costmapUpdateCallback(update): #not used currently
     origin_x = update.x
     origin_y = update.y
     for y in range (update.height):
