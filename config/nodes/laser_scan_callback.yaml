@@ -1,9 +1,9 @@
 laser_scan_callback:
-  update_rate: 1
+  update_rate: 10
   rads_offset: 0
   beacons:
     adjust_on_command: 1
-    cycles_per_update: 4
+    cycles_per_update: 2
     min_rad: 0.005
     max_rad: 0.25
     max_dist_from_expected: 0.3
