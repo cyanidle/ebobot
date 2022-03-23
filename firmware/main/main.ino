@@ -249,11 +249,13 @@ void setup(){
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
+  nh.advertise(start_trigger);
   //
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
   nh.advertiseService(ohm_reader_server);
+  
   //
   servos_shield.begin();
   servos_shield.set_hz(1526);

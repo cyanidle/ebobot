@@ -8,7 +8,7 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from std_msgs.msg import Bool
-from std_srvs.srv import Empty, EmptyResponse
+#from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
 rospy.logwarn(f"Script won`t start without 'Move' server (Global_planer)")
@@ -20,8 +20,7 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 
 def startCallback(start):
-    Flags._execute = not Flags._execute
-    return EmptyResponse()
+    Flags._execute = start.data
 ########## Subclasses
 class Task:
     list =  []
@@ -468,9 +467,9 @@ class Manager:
     
     file = rospy.get_param("~file", "config/routes/example_route.yaml")
     #
-    start_service = rospy.get_param("~start_service", "/ebobot/begin")
+    start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    start_subscriber = rospy.Service(start_service, Empty, startCallback)
+    start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
     #
     #/Params
     #Globals
