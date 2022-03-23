@@ -50,7 +50,7 @@ class Costmap():
     base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) #VERY DANGEROUS
     
     inflation_nonlinear_power = rospy.get_param('~inflation_nonlinear_power',1)
-    update_rate = rospy.get_param('~update_rate',0.55)
+    update_rate = rospy.get_param('~update_rate',2)
     inflation_radius = rospy.get_param('~inflation_radius',0.45)
     inflation_step_radians_resolution = rospy.get_param('~inflation_step_radians_resolution',5)
     resolution = rospy.get_param('~resolution',0.02)

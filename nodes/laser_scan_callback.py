@@ -384,10 +384,10 @@ class Objects(Laser):
     min_dots = rospy.get_param('~obstacles/min_dots', 4)
     dots_thresh = rospy.get_param('~obstacles/dots_thresh', 140) #num
     #
-    minimal_x = rospy.get_param('~minimal_x', 0.05)
-    maximum_x = rospy.get_param('~maximum_x', 2)
-    minimal_y = rospy.get_param('~minimal_y ', 0.05)
-    maximum_y = rospy.get_param('~maximum_y', 3)
+    minimal_x = rospy.get_param('~obstacles/minimal_x', 0.05)
+    maximum_x = rospy.get_param('~obstacles/maximum_x', 2)
+    minimal_y = rospy.get_param('~obstacles/minimal_y ', 0.05)
+    maximum_y = rospy.get_param('~obstacles/maximum_y', 3)
     #/Params
 
     #Topics

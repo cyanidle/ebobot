@@ -1,6 +1,4 @@
-########
 port="/dev/ttyACM0"
-########
 firmware_dir=$(find ~/ -type d | grep /ebobot/firmware/main | xargs dirname)
 echo "Found firmware directory - $firmware_dir"
 arduino_dir=$(find ~/ Arduino/libraries/ | grep /Arduino/libraries | head -n 1 | xargs dirname)
@@ -19,7 +17,7 @@ if [  "$1" = "-port" ];then
     port=$2
     echo "Using port $port"
     else
-    echo "Using default port ($port)"
+    echo "Using default port ($port), change with '-port' option"
 fi
 echo "Using sketch main.ino in $(pwd)/main"
 if [ "$3" = "-upload" ] || [ "$1" = "-upload" ];then

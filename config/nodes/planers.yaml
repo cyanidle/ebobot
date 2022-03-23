@@ -1,7 +1,42 @@
-global_planer:
-  maximum_cost: 80
-  cleanup_repeats_len: 9
-  cleanup_repeats_threshhold: 9.5
+global_planer: #almost everything is in cells, which depends on costmap resolution
+  maximum_cost: 80 #Most important
+  maximum_jumps: 1000
+  # Features
+  cleanup_feature: 1
+  resend: 1
+  stuck_check_feature: 1
+  experimental_cleanup_enable: 1
+  #
+  consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
+  update_stop_thresh: 8 # Dist from target, when stops updating route
+  step: 2
+  step_radians_resolution: 20
+  dist_to_target_threshhold: 3
+  update_rate: 1
+  #!!! DANGEROUS
+  accelerate_coeff: 0.00015
+  #!!!
+  dead_end_dist_diff_threshhold: 3 #if planer backtracks this number of cells, 
+  #the last point is removed (considered a dead end)
+                                  
+  ##### dir locking
+  stuck_check_jumps: 4 #checks for 'stuck' per 'n' jumps
+  stuck_dist_threshhold: 5 #dist which should be reached in (stuck_check_jumps)
+  lock_dirs: #directions which get tried one after another if planer is stuck
+    - 0
+    - left
+    - left
+    - right
+    - right
+    - top
+    - bot
+#### Cleanup
+  cleanup_power: 1         # number of cleanups, ussualy one is enough
+  #################################
+  cleanup_repeats_len: 8          # These two are important. Enabled by experimental cleanup.
+  cleanup_repeats_threshhold: 9.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
+  ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
 
+##################################
 local_planer:
   safe_footprint_radius: 0.40

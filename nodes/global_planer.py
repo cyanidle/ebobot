@@ -164,7 +164,8 @@ class Global(): ##Полная жопа
     consecutive_jumps = 0
     #####################################
     lock_dir = False
-    lock_dirs = [0,  'left','left', 'right',  'right', 'top', 'bot'] #these directions decide in which order robot tries different lock directions
+    lock_dirs = rospy.get_param( "~lock_dirs", 
+    [0,  'left','left', 'right',  'right', 'top', 'bot']) #these directions decide in which order robot tries different lock directions
     lock_dir_num = 0
     
 
