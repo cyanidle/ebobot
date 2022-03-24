@@ -171,6 +171,16 @@ class Log(Template):
             return
         self.status.set("done")
 ########################################################
+class Prediction(Template):
+    class_name = "Prediction"
+    score = 0
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.score = int(args)
+    def midExec(self) -> None:
+        Prediction.score += self.score
+        showPrediction(Prediction.score)
+########################################################
 class Condition(Template):
     class_name = "Condition"
     def __init__(self, parent, name, args):
@@ -196,12 +206,31 @@ class Condition(Template):
             rospy.logerr(f"{self} failed!")
             self.status.set("fail")
 ########################################################
+class Sleep(Template):
+    class_name = "Sleep"
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.time = float(args)
+    def midExec(self) -> None:
+        rospy.sleep(self.time)
+########################################################
 class Group(Template):
     class_name = "Group"  
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-    async def exec(self) -> None:
-        await super().exec()          
+        self.subtask_list = []
+        for sub_dict in args:
+            subtask_name = list(sub_dict.keys())[0]
+            sub_args = sub_dict[subtask_name]
+            self.subtask_list.append(Task(self,subtask_name,sub_args))
+    async def midExec(self) -> None:
+        subtasks = []
+        for micro in self.subtask_list:
+            if Manager.debug:
+                rospy.loginfo(f"Executing {micro} in {self}")
+            task = asyncio.create_task(micro.action.exec())
+            subtasks.append(task)
+        await asyncio.gather(*subtasks)           
 ########################################################
 class Task(Template):
     class_name = "Task"
@@ -274,7 +303,7 @@ constructors_dict = {  #syntax for route.yaml
         "interrupt": Interrupt.forceCall,
         "interrupt_condition": Interrupt.parseCond,
         "skip": Skip,
-        "score": Score,
+        "score": Prediction,
         "dynamic_call": DynamicCall,
         "sleep": Sleep,
         "goto": Goto,
