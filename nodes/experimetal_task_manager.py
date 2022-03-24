@@ -39,8 +39,8 @@ class Status:
                 dep.trigger()
     @staticmethod
     def getRawString(obj):
-        return str(obj)
-        #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num)
+        return str(obj) + obj.status.get()
+        #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num) + "/"+ str(obj.status.get())
     @staticmethod
     def registerDependency(obj, condition:str):
         rospy.loginfo(f"Adding dependecy of {obj} from condition {condition}")
@@ -58,6 +58,7 @@ class Status:
 class Template(ABC):
     list = []
     class_name = "<NameNotSet>"
+    ############################## MUST be overridden
     @abstractmethod
     def __init__(self,parent,name,args):
         rospy.loginfo(f"Initialising {name} with args {args}, inside of {parent}")
@@ -72,18 +73,18 @@ class Template(ABC):
         type(self).list.append(self)
         self.name = name
         self.status = Status(self)
+    @abstractmethod
+    async def midExec(self)-> None:
+        raise NotImplementedError(self.midExec)
     ############################ Should not be overriden
     async def exec(self)->None:
         self.status.set("executing")
+        rospy.loginfo(f"Executing {self}")
         ############### Done before ^^^
         self.midExec()
         ############### Done after main exec
         self._activate_flag = False
         Status.checkDeps(self)
-    ############################
-    @abstractmethod
-    async def midExec(self)-> None:
-        raise NotImplementedError(self.midExec)
     ####### Not neccessary to override
     def trigger(self) -> None:
         self._activate_flag = True
@@ -94,18 +95,81 @@ class Template(ABC):
     def __repr__(self):
         return f"<{type(self).class_name} {self.num}: {self.name}>"
 ########################################################
+class Skip(Template):
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.task_num = int(args)
+    async def midExec(self) -> None:
+        Task.list[self.task_num]._skip_flag = 1
+
+##############################################
 class Call(Template):
     class_name = "Call"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        try:
+            self.call = executer_dict()[args]
+        except:
+            raise SyntaxError("No such call name available!")
     async def midExec(self) -> None:
-        pass
+        proc = asyncio.create_task(self.call.exec(self.args))
+        try:
+            self.status.set(await proc)
+        except:
+            self.status.set("fail")
+            rospy.logerr("Service anavailable!")
 class DynamicCall(Call):
     class_name = "Dynamic call"
     def __init__(self, parent, name, args):
+        super(Template).__init__(parent, name, args)
+        key = args[0]
+        sub_list = args[1:]
+        pargs = {}
+        for sub_dict in sub_list:
+            pargs = {**pargs, **sub_dict}
+        rospy.loginfo(f"Dynamic call init! {parent = }, {name = }, {pargs = }")
+        self.args = pargs
+        self.call = executer_dict()[key]
+########################################################
+class Move(Template):
+    class_name = "Move client"
+    def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-    async def midExec(self) -> None:
-        pass
+        parsed = args.split("/")
+        try:
+            self.pos = (float(parsed[0]),float(parsed[1]))
+            self.th = float(parsed[2])
+        except:
+            raise SyntaxError(f"Incorrect move syntax({args})! Use (x/y/th), th in radians")
+    def midExec(self) -> None:
+        type(self).client.setTarget(self.pos,self.th)
+        type(self).client.waitResult()
+        self.status.set(type(self).client.checkResult()) 
+    ####
+    @staticmethod
+    def cb(fb):
+        Move.list[-1].status.set(fb.status) 
+    client = move_client_constructor(cb)
+########################################################
+class Log(Template):
+    class_name = "Log"
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.text = args    
+    def midExec(self) -> None:
+        text = self.text
+        pref = text[:2]
+        if pref == "L:":
+            rospy.loginfo(text[2:])
+        elif pref == "W:":
+            rospy.logwarn(text[2:])
+        elif pref == "E:":
+            rospy.logerr(text[2:])
+        else:
+            rospy.logerr(f"(Incorrect log prefix!) {text}")
+            self.status.set("fail") 
+            return
+        self.status.set("done")
 ########################################################
 class Condition(Template):
     class_name = "Condition"
