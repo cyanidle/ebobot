@@ -18,43 +18,64 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 from abc import ABC, abstractmethod
 
+
+class Status:
+    list = []
+    def __init__(self, parent):
+        self._status = "init"
+        self.parent = parent
+    def update(self):
+        self._status = self.parent.updateStatus()
+    def get(self):
+        return self._status
+    def set(self, text):
+        self._status = text
 class Template(ABC):
-    type_name = "Template"
+    list = []
+    class_name = "<NameNotSet>"
     @abstractmethod
     def __init__(self,parent,name,args):
         self.parent = parent
         self.num = type(self).counter
         type(self).counter += 1
         self.name = name
-        self.status = "init"
+        self.status = Status(self)
+        type(self).list.append(self)
     @abstractmethod
-    def getStatus(self):
-        return self.status
+    def exec(self):
+        self.status.set("executing")
+    def updateStatus(self):
+        return self.status.get()  
     def __repr__(self):
-        return f"<{type(self).type_name} {self.num}: {self.name}>"
+        return f"<{type(self).class_name} {self.num}: {self.name}>"
 
+class Task(Template):
+    class_name = "Task"
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+    def exec(self):
+        super().exec()
+        for micro in self.micros_list:
+            micro.exec()
+            while Interrupts.todo_list:
+                inter = Interrupts.todo_list.pop()
+                inter.exec()
+class Timer(Template):
+    class_name = "Timer"
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        
 
-class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A STATUS AND UPDATE STATUS METHOD,
-    calls = []  ### STATUS RETURNS THE DESIRED VALUE, WHILE UPDATE JUST GETS CALLED EACH STATUS SERVER UPDATE CYCLE
-    moves = []
-    timers = []
-    interrupts = []
-    
-    class Timer(Template):     
-        counter = 0
-        def __init__(self,main=False) -> None:
-            self.main = main
-            self.num = type(self).counter
-            type(self).counter += 1
-            self.time = 0
-            self.ros_time = rospy.Time.now()
-            Status.add(self)
-        def status(self):
-            return self.time
-        def updateStatus(self):
-            self.time = (rospy.Time.now() - self.ros_time).to_sec()
-        def __str__(self):
-            return f"Timer {self.num} (Main = {self.main})"
-        def __repr__(self):
-            return f"Timer {self.num} (Main = {self.main})"
-   
+constructors_dict = {  #syntax for route.yaml
+        "call":Call,
+        "log": Log,
+        "move": Move,
+        "condition":Condition,
+        "group": Group,
+        "interrupt": Interrupt.forceCallParse,
+        "skip": Skip,
+        "score": Prediction,
+        "dynamic_call": Dyn_call,
+        "sleep": Sleep,
+        "goto": Jump
+        } 

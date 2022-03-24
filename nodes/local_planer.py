@@ -267,7 +267,7 @@ class Local():
         #current = cls.robot_pos 
         if cls.skipped + cls.current_target >= len(cls.targets):
             rospy.loginfo(f"Goal failed! Sending Stop!")
-            cls.status_publisher.publish(String('error/goal'))
+            cls.status_publisher.publish(String('fail'))
             cls.goal_reached = 1
             cls.skipped = 0
             shutdownHook()
@@ -356,6 +356,7 @@ def main():
                 if Local.rotate_at_end:
                     Local.rotateAtEnd()
                 rospy.loginfo(f'Goal reached!')
+                Local.status_publisher.publish(String('done'))
                 Local.goal_reached = 1
                 shutdownHook()
                 #Local.current_target = len(Local.targets)-1

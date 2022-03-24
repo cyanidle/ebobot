@@ -487,6 +487,7 @@ class MoveServer:
         self.server.start()
         self._success_flag = 0
         self._fail_flag = 0
+        self.fail_times = rospy.get_param("~move_server/fail_times", 1)
         MoveServer.server = self.server
     def execute(self,goal):
         new_target = PoseStamped()
@@ -498,7 +499,7 @@ class MoveServer:
         new_target.pose.orientation.z = quat[2]
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
-        while not rospy.is_shutdown() and self._success_flag == 0 and self._fail_flag == 0:
+        while not rospy.is_shutdown() and self._success_flag == 0 and self._fail_flag < self.fail_times:
             rospy.loginfo(f"Robot driving to target")
             rate.sleep()
         if self._success_flag:
@@ -509,8 +510,10 @@ class MoveServer:
     def update(self, local=0):
         if local:
             self.server.publish_feedback(f"local/{self.feedback}")
-            if self.feedback == "error/goal":
+            if self.feedback == "fail":
                 self.done(0)
+            elif self.feedback == "done":
+                self.done(1)
         else:
             self.server.publish_feedback(f"global/{self.feedback}")
     def done(self,status:int):
@@ -518,7 +521,7 @@ class MoveServer:
         if status:
             self._success_flag = 1
         else:
-            self._fail_flag = 1
+            self._fail_flag += 1
 if __name__=="__main__":
     move_server = MoveServer()
     rate = rospy.Rate(Global.update_rate)

@@ -36,7 +36,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_len: 8          # These two are important. Enabled by experimental cleanup.
   cleanup_repeats_threshhold: 9.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
-
+  move_server:
+    fail_times: 3
 ##################################
 local_planer:
   # Important
