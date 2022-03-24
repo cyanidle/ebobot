@@ -460,19 +460,14 @@ class Status:   ### EACH OBJECT WHICH IS ADDED TO STATUS SERVER SHOULD HAVE A ST
             return False
 ######################
 class Manager:
-
     #Params
     debug = rospy.get_param("~debug", 1)
     #
-    
-    file = rospy.get_param("~file", "config/routes/example_route.yaml")
+    file = rospy.get_param("~file", "config/routes/test_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
     start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
-    #
-    #/Params
-    #Globals
     route = {}
     @classmethod
     def read(cls):
