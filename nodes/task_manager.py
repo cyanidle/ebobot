@@ -474,10 +474,6 @@ class Manager:
     #/Params
     #Globals
     route = {}
-    
-    ##################### Manager
-    # def __init__(self):
-    #     sesdasd
     @classmethod
     def read(cls):
         with open(cls.file, "r") as stream:
@@ -485,7 +481,6 @@ class Manager:
                 cls.route = (yaml.safe_load(stream))
             except yaml.YAMLError as exc:
                 rospy.logerr(f"Loading failed ({exc})")
-
     @classmethod
     def parse(cls):
         for interrupt_name in cls.route["interrupts"]:
