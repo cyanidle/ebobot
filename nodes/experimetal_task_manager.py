@@ -171,7 +171,7 @@ class Interrupt(Task):
         for micro in self.micros_list:
             await micro.exec()
     def trigger(self):
-        super().trigger()
+        super(Template).trigger()
         Interrupt.queue.append(self)
     @staticmethod
     def parseCond():
