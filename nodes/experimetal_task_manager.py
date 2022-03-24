@@ -241,11 +241,15 @@ class Task(Template):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
     async def midExec(self) -> None:
+        Task.checkForInterrupt()
         for micro in self.micros_list:
             await micro.exec()
-            while Interrupt.queue:
-                inter = Interrupt.queue.pop()
-                await inter.exec()
+            Task.checkForInterrupt()
+    @staticmethod
+    def checkForInterrupt():
+        while Interrupt.queue:
+            inter = Interrupt.queue.pop()
+            await inter.exec()
     @staticmethod
     def parseMicroList(unparsed:list) -> list:
         for dict in unparsed:
