@@ -127,7 +127,7 @@ def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
     parsed.num = num
-    return Calls.lcd_show(parsed)
+    return Calls.getLcdExec()(parsed)
 #############
 class Execute:
     file = rospy.get_param("/task_manager/calls_file", "config/calls/calls_dict.yaml")

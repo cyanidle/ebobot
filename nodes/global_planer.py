@@ -507,15 +507,16 @@ class MoveServer:
         else:
             self.server.set_aborted(MoveResult(1))
         self._fail_flag, self._success_flag = 0,0
-    def update(self, local=0):
+    def update(self, fb, local=0):
+        self.feedback = fb
         if local:
-            self.server.publish_feedback(f"local/{self.feedback}")
+            self.server.publish_feedback(MoveFeedback(f"local/{self.feedback}"))
             if self.feedback == "fail":
                 self.done(0)
             elif self.feedback == "done":
                 self.done(1)
         else:
-            self.server.publish_feedback(f"global/{self.feedback}")
+            self.server.publish_feedback(MoveFeedback(f"global/{self.feedback}"))
     def done(self,status:int):
         "Status 1 = success, status 0 = fail"
         if status:
