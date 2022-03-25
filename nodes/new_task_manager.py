@@ -176,7 +176,7 @@ class Move(Template):
             else:
                 _ended = 1
                 self.status.set(Status.int_dict[_stat])
-            rospy.sleep(Status.update_rate)
+            rospy.sleep(1/Status.update_rate)
         self.status.set(type(self).client.checkResult()) 
     client = move_client_constructor(mv_cb)
     
