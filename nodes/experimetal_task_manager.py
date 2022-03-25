@@ -66,8 +66,7 @@ class Template(ABC):
         self._activate_flag = False
         self.num = 0
         if type(parent) == Task:
-            for self.name in self.parent.micros_list:
-                self.num += 1
+            [self.num += 1 for obj in self.parent.micros_list if obj.name == self.name]
         else:
             self.num = len(type(self).list)
         type(self).list.append(self)
@@ -93,7 +92,7 @@ class Template(ABC):
     def __str__(self) -> str:
         return f"{self.parent.name}/{self.name}/{self.num}"
     def __repr__(self):
-        return f"<{type(self).class_name} {self.num}: {self.name}>"
+        return f"<{type(self).class_name} {self.num}: args - {self.args}>"
 ########################################################
 class Skip(Template):
     def __init__(self, parent, name, args):
