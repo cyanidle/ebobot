@@ -27,7 +27,7 @@ class Status:
         self.parent = parent
     def update(self):
         self._status = self.parent.updateStatus()
-    def get(self):
+    def get(self) -> str:
         return self._status
     def set(self, text):
         self._status = text
