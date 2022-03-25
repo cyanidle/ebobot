@@ -61,6 +61,7 @@ catkin_install_python(PROGRAMS
   nodes/local_planer.py
   nodes/laser_scan_callback.py
   nodes/task_manager.py
+  nodes/new_task_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 message("INSTALLING FIRMWARE...")   

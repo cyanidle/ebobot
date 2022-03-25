@@ -29,15 +29,15 @@
     - "servos_service":
       - "num": 4
       - "state": 1
-    - "ohm_reader_sevice":
+    - "ohm_reader_service":
       - "pin": 1
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!
     - service1
     - service2
-  - "Move_servo":
+  - "MoveServo":
     - "servos_service"
-  - "Show_prediction":
-    - "lcd_service"
+  - "ShowPrediction":
+    - "prediction_service"
   - "OhmReader":
-    - "ohm_reader_sevice"
+    - "ohm_reader_service"

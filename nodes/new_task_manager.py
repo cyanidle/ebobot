@@ -8,7 +8,7 @@ import asyncio
 rospy.init_node("task_manager")
 #
 from std_msgs.msg import Bool
-from std_srvs.srv import Empty, EmptyResponce
+from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
 from calls_executer import executer_dict, showPrediction
@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 
 
 class Status:
+    update_rate = rospy.get_param("~/status/update_rate", 4)
     list = []
     deps_dict = {}
     def __init__(self, parent):
@@ -34,12 +35,12 @@ class Status:
     @staticmethod
     def checkDeps(obj):
         obj_str = Status.getRawString(obj)
-        if Status.deps_dict[obj_str]:
+        if obj_str in Status.deps_dict.keys():
             for dep in Status.deps_dict[obj_str]:
                 dep.trigger()
     @staticmethod
     def getRawString(obj):
-        return str(obj) + obj.status.get()
+        return obj.__repr__() + obj.status.get()
         #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num) + "/"+ str(obj.status.get())
     @staticmethod
     def registerDependency(obj, condition:str):
@@ -57,7 +58,6 @@ class Status:
 #######################################################
 class Template(ABC):
     list = []
-    class_name = "<NameNotSet>"
     ############################## MUST be overridden
     @abstractmethod
     def __init__(self,parent,name,args):
@@ -65,12 +65,14 @@ class Template(ABC):
         self.parent = parent
         self._activate_flag = False
         self.num = 0
+        self.name = name
         if type(parent) == Task:
-            [self.num += 1 for obj in self.parent.micros_list if obj.name == self.name]
+            for obj in self.parent.micros_list:
+                if obj.name == self.name:
+                    self.num += 1
         else:
             self.num = len(type(self).list)
         type(self).list.append(self)
-        self.name = name
         self.status = Status(self)
     @abstractmethod
     async def midExec(self)-> None:
@@ -80,7 +82,7 @@ class Template(ABC):
         self.status.set("executing")
         rospy.loginfo(f"Executing {self}")
         ############### Done before ^^^
-        self.midExec()
+        await self.midExec()
         ############### Done after main exec
         self._activate_flag = False
         Status.checkDeps(self)
@@ -90,9 +92,10 @@ class Template(ABC):
     def updateStatus(self):
         return self.status.get()  
     def __str__(self) -> str:
-        return f"{self.parent.name}/{self.name}/{self.num}"
+        return f"<{type(self).__name__} {self.num}|status:{self.status.get()}>"
     def __repr__(self):
-        return f"<{type(self).class_name} {self.num}: args - {self.args}>"
+        return f"{self.parent.name}/{self.name}/{self.num}"
+        
 ########################################################
 class Skip(Template):
     def __init__(self, parent, name, args):
@@ -103,11 +106,10 @@ class Skip(Template):
 
 ##############################################
 class Call(Template):
-    class_name = "Call"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         try:
-            self.call = executer_dict()[args]
+            self.call = executer_dict()[name]
         except:
             raise SyntaxError("No such call name available!")
     async def midExec(self) -> None:
@@ -118,9 +120,8 @@ class Call(Template):
             self.status.set("fail")
             rospy.logerr("Service anavailable!")
 class DynamicCall(Call):
-    class_name = "Dynamic call"
     def __init__(self, parent, name, args):
-        super(Template).__init__(parent, name, args)
+        super(Call,self).__init__(parent, name, args)
         key = args[0]
         sub_list = args[1:]
         pargs = {}
@@ -131,7 +132,6 @@ class DynamicCall(Call):
         self.call = executer_dict()[key]
 ########################################################
 class Move(Template):
-    class_name = "Move client"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         parsed = args.split("/")
@@ -151,7 +151,6 @@ class Move(Template):
     client = move_client_constructor(cb)
 ########################################################
 class Log(Template):
-    class_name = "Log"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.text = args    
@@ -171,7 +170,6 @@ class Log(Template):
         self.status.set("done")
 ########################################################
 class Prediction(Template):
-    class_name = "Prediction"
     score = 0
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
@@ -181,7 +179,6 @@ class Prediction(Template):
         showPrediction(Prediction.score)
 ########################################################
 class Condition(Template):
-    class_name = "Condition"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         check_args = args[0]["if"]
@@ -206,7 +203,6 @@ class Condition(Template):
             self.status.set("fail")
 ########################################################
 class Sleep(Template):
-    class_name = "Sleep"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.time = float(args)
@@ -214,7 +210,6 @@ class Sleep(Template):
         rospy.sleep(self.time)
 ########################################################
 class Group(Template):
-    class_name = "Group"  
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.subtask_list = []
@@ -232,20 +227,20 @@ class Group(Template):
         await asyncio.gather(*subtasks)           
 ########################################################
 class Task(Template):
-    class_name = "Task"
-    def __init__(self, parent, name, args):
-        super().__init__(parent, name, args)
+    def __init__(self, name, args):
+        super().__init__(Manager, name, args)
         self.micros_list = list()
+        #self.name = f"{type(self).__name__} '{self.name}'"
         for exec, subargs in Task.parseMicroList(args):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
     async def midExec(self) -> None:
-        Task.checkForInterrupt()
+        await type(self).checkForInterrupt()
         for micro in self.micros_list:
             await micro.exec()
-            Task.checkForInterrupt()
+            await type(self).checkForInterrupt()
     @staticmethod
-    def checkForInterrupt():
+    async def checkForInterrupt():
         while Interrupt.queue:
             inter = Interrupt.queue.pop()
             await inter.exec()
@@ -259,10 +254,9 @@ class Task(Template):
         return f"{self.name}"
 ########################################################
 class Interrupt(Task):
-    class_name = "Interrupt"
     queue = list()
-    def __init__(self, parent, name, args):
-        super().__init__(parent, name, args)
+    def __init__(self, name, args):
+        super().__init__(name, args)
     async def midExec(self) -> None:
         for micro in self.micros_list:
             await micro.exec()
@@ -277,21 +271,20 @@ class Interrupt(Task):
         return Interrupt.list[int(args)]
 ########################################################
 class Timer(Template):
-    class_name = "Timer"
-    def __init__(self, parent, name, args):
-        super().__init__(parent, name, args)
+    def __init__(self, name):
+        super().__init__(Status, "Timer", name)
     async def midExec(self) -> None:
         pass
+    def delete(self):
+        Timer.list.remove(self)
 
 ##########################################################
 class Goto(Template):
-    class_name = "Goto"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
     async def midExec(self) -> None:
         pass
 class Schedule(Template):
-    class_name = "Schedule"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
     async def midExec(self) -> None:
@@ -319,6 +312,7 @@ def startCallback(start):
     Flags._execute = start.data
 ##############
 class Manager:
+    name = "Tasks"
     #Params
     debug = rospy.get_param("~debug", 1)
     #
@@ -341,10 +335,11 @@ class Manager:
             pass
         for task_name in cls.route["tasks"]:
             unparsed_list = cls.route["tasks"][task_name]
+            rospy.logerr(f"{unparsed_list = }")
             new_task = Task(task_name,unparsed_list)
     @staticmethod
     async def exec():
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         for task in Task.list:
             proc = asyncio.create_task(task.exec())
             await proc
@@ -357,6 +352,7 @@ class Flags:
 def main():
     rospy.on_shutdown(shutdownHook)
     Manager.read()
+    rospy.loginfo(f"Got dict! {Manager.route = }")
     if not Manager.route:
         rospy.logerr(f"Route is empty or missing!")
         return
@@ -364,19 +360,23 @@ def main():
     rospy.logwarn("Parsing route...")
     Manager.parse()
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
+    rospy.loginfo("Waiting for start topic...")
     rate = rospy.Rate(Status.update_rate)
-    status_task = Thread(target=Status.update)
-    status_task.start()
+    #status_task = Thread(target=Status.updateC)
+    #status_task.start()
     while not rospy.is_shutdown():
         if Flags._execute:
             asyncio.run(executeRoute())
         rate.sleep()
+##################
 async def executeRoute():
     rospy.logwarn(f"Starting route!")
-    main_timer = Timer()
+    main_timer = Timer("main")
     main_task = asyncio.create_task(Manager.exec())
     await main_task
+##################
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")
+##################
 if __name__=="__main__":
     main()
