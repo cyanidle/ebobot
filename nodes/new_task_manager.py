@@ -52,7 +52,7 @@ class Status:
                 dep.trigger()
     @staticmethod
     def getRawString(obj):
-        return f"{obj.__repr__()}/{obj.status.get()}"
+        return f"{obj.rawString()}/{obj.status.get()}"
         #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num) + "/"+ str(obj.status.get())
     @staticmethod
     def registerDependency(obj, condition:str):
@@ -70,7 +70,6 @@ class Status:
 #######################################################
 class Template(ABC):
     list = []
-    
     ############################## MUST be overridden
     @abstractmethod
     def __init__(self,parent,name,args):
@@ -96,11 +95,13 @@ class Template(ABC):
         raise NotImplementedError(self.midExec)
     ############################ Should not be overriden
     async def exec(self)->None:
+        await Task.checkForInterrupt()
         self.status.set("executing")
         rospy.loginfo(f"{self}")
         ############### Done before ^^^
         await self.midExec()
         ############### Done after main exec
+        await Task.checkForInterrupt()
         self._activate_flag = False
         Status.checkDeps(self)
     ####### Not neccessary to override
@@ -110,7 +111,7 @@ class Template(ABC):
         return self.status.get()  
     def __str__(self) -> str:
         return f"<{type(self).__name__} {self.num}|status:{self.status.get()}>"
-    def __repr__(self):
+    def rawString(self):
         return f"{self.parent.name}/{self.name}/{self.num}"
         
 ########################################################
@@ -157,7 +158,7 @@ class Move(Template):
         super().__init__(parent, name, args)
         parsed = args.split("/")
         try:
-            self.pos = (float(parsed[0]),float(parsed[1]))
+            self.pos = (float(parsed[1]),float(parsed[0]))
             self.th = float(parsed[2])
         except:
             raise SyntaxError(f"Incorrect move syntax({args})! Use (x/y/th), th in radians")
@@ -166,9 +167,11 @@ class Move(Template):
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
         while not _stat == 1 and not _stat == 0 and not rospy.is_shutdown():
+            await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
+            rospy.logwarn(f"{_stat = }")
             rospy.loginfo(f"Move server feedback {_stat}")
-            if _stat == 2 or _stat == 4:
+            if _stat == "2" or _stat == "4":
                 await Task.checkForInterrupt()
                 type(self).client.setTarget(self.pos,self.th)
             else:
@@ -205,7 +208,7 @@ class Prediction(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.score = int(args)
-    def midExec(self) -> None:
+    async def midExec(self) -> None:
         Prediction.score += self.score
         try:
             showPrediction(Prediction.score)
@@ -240,7 +243,7 @@ class Sleep(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.time = float(args)
-    def midExec(self) -> None:
+    async def midExec(self) -> None:
         rospy.sleep(self.time)
 ########################################################
 class Group(Template):
@@ -264,16 +267,20 @@ class Task(Template):
     def __init__(self, name, args):
         super().__init__(Manager, name, args)
         self.micros_list = list()
+        self._fail_flag = 0
         #self.name = f"{type(self).__name__} '{self.name}'"
         for exec, subargs in Task.parseMicroList(args):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
     async def midExec(self) -> None:
-        await type(self).checkForInterrupt()
         rospy.logwarn(f"Micros in task {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            await type(self).checkForInterrupt()
+            if self._fail_flag:
+                self.status.set("fail")
+                break
+        if not self._fail_flag:
+            self.status.set("done")
     @staticmethod
     async def checkForInterrupt():
         rospy.loginfo(f"Checking for interrupts")
@@ -288,6 +295,8 @@ class Task(Template):
             yield (entry_name, entry_value)
     def __str__(self) -> str:
         return f"{self.name}"
+    def rawString(self): #Used to get status
+        return f"{self.parent.name}/{self.name}"
 ########################################################
 class Interrupt(Template):
     queue = list()
@@ -325,11 +334,9 @@ class Timer(Template):
         pass
     def delete(self):
         Timer.list.remove(self)
-    def __repr__(self):
-        return f"timer/{self.name}"
     def updateStatus(self):
-        print (f"{self.time = }")
-        print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
+        #print (f"{self.time = }")
+        #print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
         self.time += round((rospy.Time.now() - self.last_time).to_sec())
         self.last_time = rospy.Time.now()
         if not self.status.get() == str(self.time):
@@ -337,7 +344,7 @@ class Timer(Template):
         return str(self.time)
     def __str__(self) -> str:
         return f"{self.name}|status: {self.status.get()}"
-    def __repr__(self):
+    def rawString(self):
         return f"timer/{self.name}"
 ##########################################################
 class Goto(Template):
@@ -373,6 +380,7 @@ def startCallback(start):
     Flags._execute = start.data
 ##############
 class Manager:
+    current_task = 0
     obj_dict = {}
     name = "Tasks"
     #Params
@@ -384,6 +392,7 @@ class Manager:
     #
     start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
     route = {}
+    rate = rospy.Rate(Status.update_rate)
     @classmethod
     def read(cls):
         with open(cls.file, "r") as stream:
@@ -405,12 +414,17 @@ class Manager:
     async def exec():
         rospy.sleep(0.5)
         #rospy.logerr(f"{Task.list = }")
-        for task in Manager.obj_dict["Task"]:
-            proc = asyncio.create_task(task.exec())
-            await proc
-            if rospy.is_shutdown():
-                break
+        while not rospy.is_shutdown() and Flags._execute:
+            await Task.checkForInterrupt()
+            if Manager.current_task<len(Manager.obj_dict["Task"]):
+                task = Manager.obj_dict["Task"][Manager.current_task]
+                proc = asyncio.create_task(task.exec())
+                await proc
+                Manager.current_task += 1
+            Manager.rate.sleep()
+        Manager.current_task = 0
         Flags._execute = 0
+        Manager.rate.sleep()
 ##############################
 class Flags:
     _execute = 0
@@ -427,13 +441,13 @@ def main():
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
     rospy.loginfo(f"{Manager.obj_dict = }")
     rospy.loginfo("Waiting for start topic...")
-    rate = rospy.Rate(Status.update_rate)
+    
     status_task = Thread(target=Status.updateCycle)
     status_task.start()
     while not rospy.is_shutdown():
         if Flags._execute:
             asyncio.run(executeRoute())
-        rate.sleep()
+        
 ##################
 async def executeRoute():
     rospy.logwarn(f"Starting route!")

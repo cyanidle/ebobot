@@ -262,6 +262,8 @@ class Local():
             #if cls.debug:
                 #rospy.loginfo(f"Turn checked {cls.robot_pos[2] - cls.actual_target[2]}\n{abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold}")
             diff =  (cls.last_target[2] - cls.robot_pos[2])
+            if abs(diff) > 3.1415:
+                diff = (-6.283 - diff)%6.283
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1
