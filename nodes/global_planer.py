@@ -490,6 +490,7 @@ class MoveServer:
         self.fail_times = rospy.get_param("~move_server/fail_times", 1)
         MoveServer.server = self.server
     def execute(self,goal):
+        rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
         new_target = PoseStamped()
         new_target.pose.position.x = goal.x*Global.costmap_resolution
         new_target.pose.position.y = goal.y*Global.costmap_resolution

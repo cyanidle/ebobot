@@ -1,5 +1,5 @@
 <launch>
-    <arg name="debug" default="0"/>
+    <arg name="debug" default="1"/>
     <rosparam file="$(find ebobot)/config/nodes/laser_scan_callback.yaml" />
     <node pkg="ebobot" type="laser_scan_callback.py" name="laser_scan_callback" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>

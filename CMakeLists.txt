@@ -64,8 +64,8 @@ catkin_install_python(PROGRAMS
   nodes/new_task_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-message("INSTALLING FIRMWARE...")   
-exec_program("${PROJECT_SOURCE_DIR}/firmware/install.sh")
+message("Pls install firmware with firmware/install.sh script...")   
+#exec_program("${PROJECT_SOURCE_DIR}/firmware/install.sh")
 #exec_program(bash "${PROJECT_SOURCE_DIR}/firmware/" "install.sh")
 ########### Данная часть не нужна
 # ################# В этом месте мы опять получаем по ебалу от негров

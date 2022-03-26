@@ -103,7 +103,7 @@ class Laser:
     def precalcCoeffs(cls):
         for num in range(int(round(Laser.angle_min/cls.angle_increment)),
          int(round(Laser.angle_max/cls.angle_increment))):
-            Laser.coeffs.append((sin(Laser.angle_increment*num),cos(Laser.angle_increment*num))) 
+            Laser.coeffs.append((sin(Laser.angle_increment*num -cls.rads_offset),cos(Laser.angle_increment*num-cls.rads_offset))) 
         cls.angles_done = 1
     #####################
     @classmethod
@@ -154,6 +154,7 @@ class Laser:
                     radius = np.linalg.norm(
                         (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
                     pos = cls.getPosition(curr_obst)
+                    
                     #rospy.loginfo(f"Found something at {pos} {radius = }")
                     if Beacons.min_rad < radius < Beacons.max_rad:
                         #beacon_dist = 
@@ -165,12 +166,15 @@ class Laser:
                     if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
                         Objects.minimal_y < pos[0] < Objects.maximum_y
                         and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
+                        #rospy.logwarn(f"Found obstacle {pos = }")
+                        #pubMarker((curr_obst[-1][0],curr_obst[-1][1]),2*len(Objects.list), 1/cls.update_rate,frame_name="obstacle_pos",type="cube",size = 0.05)
+                        #pubMarker((curr_obst[0][0],curr_obst[0][1]),len(Objects.list), 1/cls.update_rate,frame_name="obstacle_pos",type="cube",size = 0.05)
                         if radius < Objects.safe_footprint_radius:
                             radius = Objects.safe_footprint_radius
                         Objects(pos, radius*Objects.radius_coeff)
                     curr_obst.clear()
     @classmethod
-    def getPosition(cls,poses):
+    def getPosition(cls,poses: list)-> tuple:
         "(from class Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x, y = 0,0
         for pos in poses:
@@ -309,16 +313,23 @@ class Beacons(Laser):
             delta_exp = acos(exp_line[1]/np.linalg.norm(exp_line))
             if (np.array(turnVect(exp_line,-delta_exp))[0] < cls.kostyl):
                 delta_exp =  -delta_exp
+                #rospy.logwarn(f"-exp!")
+
             delta_rel = acos(rel_line[1]/np.linalg.norm(rel_line))
             if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
                 delta_rel =  -delta_rel
+                #rospy.logwarn(f"-rel!")
+            #rospy.logerr(f"{delta_exp = }, {delta_rel = }")
             delta_th =   -(delta_exp - delta_rel)
             #####################################
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):
                 rospy.logwarn_once(f"Change lines 320-322 if fails")
-                _curr_adj = np.array(exp_list[0].pose) - np.array(turnVect(rel_list[0].pose- cls.robot_pos[:2], -delta_th)) + cls.robot_pos[:2] 
-                _curr_adj += np.array(exp_list[1].pose) - np.array(turnVect(rel_list[1].pose- cls.robot_pos[:2], -delta_th)) + cls.robot_pos[:2] 
+                #rospy.logwarn(f"{exp_list[0].pose = }|{rel_list[0].pose}")
+                _curr_adj = np.array(exp_list[0].pose) - (np.array(turnVect(rel_list[0].pose - cls.robot_pos[:2], delta_th)) + cls.robot_pos[:2])
+                rospy.logwarn(f"{_curr_adj}")
+                _curr_adj += np.array(exp_list[1].pose) - (np.array(turnVect(rel_list[1].pose - cls.robot_pos[:2], delta_th)) + cls.robot_pos[:2])
+                rospy.logwarn(f"{_curr_adj}")
                 _curr_adj /= 2
             else:
                 _curr_adj = np.array(exp_list[0] - rel_list[0])

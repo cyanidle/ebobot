@@ -166,17 +166,17 @@ class Move(Template):
     async def midExec(self) -> None:
         type(self).client.setTarget(self.pos,self.th)
         _ended = 0
-        #type(self).client.waitResult()
-        while not _ended and not rospy.is_shutdown():
-            _stat = type(self).client.checkResult()
-            rospy.loginfo(f"Move server feedback {_stat}")
-            if _stat == 2 or _stat == 4:
-                await Task.checkForInterrupt()
-                type(self).client.setTarget(self.pos,self.th)
-            else:
-                _ended = 1
-                self.status.set(Status.int_dict[_stat])
-            rospy.sleep(1/Status.update_rate)
+        type(self).client.waitResult()
+        #while not _ended and not rospy.is_shutdown():
+            #_stat = type(self).client.checkResult()
+            #rospy.loginfo(f"Move server feedback {_stat}")
+            #if _stat == 2 or _stat == 4:
+            #    await Task.checkForInterrupt()
+            #   type(self).client.setTarget(self.pos,self.th)
+            #else:
+            #    _ended = 1
+            #    self.status.set(Status.int_dict[_stat])
+            #rospy.sleep(1/Status.update_rate)
         self.status.set(type(self).client.checkResult()) 
     client = move_client_constructor(mv_cb)
     

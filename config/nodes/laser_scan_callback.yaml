@@ -1,6 +1,7 @@
 laser_scan_callback:
-  update_rate: 10
-  rads_offset: 0
+  update_rate: 8
+  rads_offset: 2.09
+  ###############
   minimal_x: -0.2
   minimal_y: -0.2
   maximum_x: 2.4
@@ -8,20 +9,21 @@ laser_scan_callback:
   skip_scans: 0
   ################
   obstacles:
-    minimal_x: 0.05
-    minimal_y: 0.05
-    maximum_x: 2
-    maximum_y: 3
+    minimal_x: 0.1
+    minimal_y: 0.1
+    maximum_x: 1.9
+    maximum_y: 2.9
     ####
-    radius_coeff: 1.2
+    radius_coeff: 1
     dots_thresh: 140
-    min_dots: 4
-    safe_footprint_radius: 0.2 #Minimal raidius around obstacles (if not default)
+    min_dots: 5
+    safe_footprint_radius: 0.2 #Minimal radius around obstacles (if not default)
   ################
   beacons:
     ## Features
     max_th_for_linear_adj: 0.01
-    adjust_on_command: 1
+    adjust_on_command: 0
+    enable_adjust: 1
     pub_all: 1
     only_linear_adj: 0
     ##
@@ -30,14 +32,15 @@ laser_scan_callback:
     max_rad: 0.25
     max_dist_from_expected: 0.3
     adjust_time: 2
-    
+    #####################
     num_beacons: 3 #needed for proper auto-init
+    ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (biggest x --> last beacon)
     beacon0:
-      - 0.02 #meters, y
-      - 1    #meters, x
+      - 3
+      - 0.02
     beacon1:
-      - 2.99
-      - 0.01
+      - 0.05 #meters, y
+      - 1    #meters, x
     beacon2:
-      - 2.99
-      - 1.99
+      - 3
+      - 1.98
