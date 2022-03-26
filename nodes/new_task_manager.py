@@ -20,12 +20,6 @@ from abc import ABC, abstractmethod
 
 
 class Status:
-    int_dict = {0: "done",
-    1: "fail",
-    2: "executing",
-    3: "fail",
-    4: "preempted"
-    }
     update_rate = rospy.get_param("~/status/update_rate", 1)
     list = []
     deps_dict = {}
@@ -46,6 +40,8 @@ class Status:
             if "Timer" in Manager.obj_dict.keys():
                 for timer in Manager.obj_dict["Timer"]:
                     timer.status.update()
+            else:
+                rospy.logwarn(f"No timers found!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):
@@ -153,8 +149,10 @@ class DynamicCall(Call):
         self.call = executer_dict()[key]
 ########################################################
 def mv_cb(fb):
-    Manager.obj_dict["Move"][-1].status.set(fb.status) 
+    rospy.loginfo(f"Move server status: {fb.status}")
+    Move.curr_obj.status.set(fb.status) 
 class Move(Template):
+    curr_obj = None
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         parsed = args.split("/")
@@ -164,20 +162,20 @@ class Move(Template):
         except:
             raise SyntaxError(f"Incorrect move syntax({args})! Use (x/y/th), th in radians")
     async def midExec(self) -> None:
+        Move.curr_obj = self
         type(self).client.setTarget(self.pos,self.th)
-        _ended = 0
-        type(self).client.waitResult()
-        #while not _ended and not rospy.is_shutdown():
-            #_stat = type(self).client.checkResult()
-            #rospy.loginfo(f"Move server feedback {_stat}")
-            #if _stat == 2 or _stat == 4:
-            #    await Task.checkForInterrupt()
-            #   type(self).client.setTarget(self.pos,self.th)
-            #else:
-            #    _ended = 1
-            #    self.status.set(Status.int_dict[_stat])
-            #rospy.sleep(1/Status.update_rate)
-        self.status.set(type(self).client.checkResult()) 
+        _stat = self.status.get()
+        while not _stat == 1 and not _stat == 0 and not rospy.is_shutdown():
+            _stat = type(self).client.checkResult()
+            rospy.loginfo(f"Move server feedback {_stat}")
+            if _stat == 2 or _stat == 4:
+                await Task.checkForInterrupt()
+                type(self).client.setTarget(self.pos,self.th)
+            else:
+               _ended = 1
+               self.status.set(_stat)
+            rospy.sleep(1/Status.update_rate)
+        self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     
 

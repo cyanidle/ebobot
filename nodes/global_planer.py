@@ -61,7 +61,7 @@ def targetCallback(target):
     Global.consecutive_jumps = 0
     Global.target_set = 1
     if Global.rviz_enable:
-        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target',debug=Global.debug)
+        #markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target',debug=Global.debug)
         markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target',debug=Global.debug)
     #!!!!!!!!!!!!!!
 def costmapCallback(costmap):
@@ -482,25 +482,29 @@ def main():
         rate.sleep()
 class MoveServer:
     feedback = MoveFeedback('good')
+    _preemted = 0
     def __init__(self):
         self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
         self.server.start()
         self._success_flag = 0
         self._fail_flag = 0
         self.fail_times = rospy.get_param("~move_server/fail_times", 1)
-        MoveServer.server = self.server
     def execute(self,goal):
+        #MoveServer._preemted +=1
         rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
+        ###################
         new_target = PoseStamped()
-        new_target.pose.position.x = goal.x*Global.costmap_resolution
-        new_target.pose.position.y = goal.y*Global.costmap_resolution
+        new_target.pose.position.x = goal.x
+        new_target.pose.position.y = goal.y
         quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
         new_target.pose.orientation.x = quat[0]
         new_target.pose.orientation.y = quat[1]
         new_target.pose.orientation.z = quat[2]
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
-        while not rospy.is_shutdown() and self._success_flag == 0 and self._fail_flag < self.fail_times:
+        ###################
+        while (not rospy.is_shutdown() and self._success_flag == 0 
+         and self._fail_flag < self.fail_times):
             rospy.loginfo(f"Robot driving to target")
             rate.sleep()
         if self._success_flag:
@@ -511,13 +515,13 @@ class MoveServer:
     def update(self, fb, local=0):
         self.feedback = fb
         if local:
-            self.server.publish_feedback(MoveFeedback(f"local/{self.feedback}"))
+            self.server.publish_feedback(MoveFeedback(self.feedback))
             if self.feedback == "fail":
                 self.done(0)
             elif self.feedback == "done":
                 self.done(1)
         else:
-            self.server.publish_feedback(MoveFeedback(f"global/{self.feedback}"))
+            self.server.publish_feedback(MoveFeedback(self.feedback))
     def done(self,status:int):
         "Status 1 = success, status 0 = fail"
         if status:
