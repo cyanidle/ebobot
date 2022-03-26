@@ -173,7 +173,7 @@ void PID(int mot)
   inter_term[mot] += dtime * error;
   pwm[mot] = error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] -
              (error - last_error[mot]) / dtime * diff_coeff[mot];
-  constrain(inter_term[mot], -30000, 30000);
+  inter_term[mot] = constrain(inter_term[mot], -30000, 30000);
   last_error[mot] = error;
   pwm[mot] = constrain(pwm[mot], -255, 255);
 }
