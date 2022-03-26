@@ -39,7 +39,7 @@ class Motors():
     last_y = 0
     spd_x = 0
     spd_y = 0
-    Hz = 20 #default updates/second
+    Hz = rospy.get_param('~update_rate',20) #default updates/second
     vturn = 0
     spd_turn = 0
     current_time = rospy.Time.now()
@@ -68,8 +68,8 @@ class Motors():
             if mot.ddist != 0:
                 Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num /2 * Motors.x_coeff#temporary
                 Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / Motors.num /2 * Motors.y_coeff#temporary
+        Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) / delta_secs, (Motors.y - Motors.last_y)/delta_secs
         Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
-        Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) * delta_secs * Motors.Hz, (Motors.y - Motors.last_y) * delta_secs * Motors.Hz #multiplies change in coords by change in time                                                                         #and number of updates/s
         Motors.spd_turn = Motors.theta - Motors.last_theta
         Motors.theta = Motors.theta % (2 * math.pi)
       

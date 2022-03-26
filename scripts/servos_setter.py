@@ -16,19 +16,20 @@ def read(file):
             except yaml.YAMLError as exc:
                 rospy.logerr(f"Loading failed ({exc})")
 def main():
-    print(f"Setting values for servos...")
+    rospy.loginfo(f"Setting values for servos...")
     file = rospy.get_param("~file", "config/servos.yaml")
     dict = read(file)
     for num in dict:
         vals = dict[num]
         req = ServosSettingsRequest()
-        print(f"Servo {num}, settings - {vals}")
+        rospy.loginfo(f"Servo {num}, settings - {vals}")
         req.num = num
         req.channel = vals[0]
         req.speed = vals[1]
         req.min_val = vals[2]
         req.max_val = vals[3]
         client(req)
+        rospy.sleep(0.5)
 
 
 def client(req):

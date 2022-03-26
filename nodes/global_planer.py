@@ -45,7 +45,11 @@ import os
 def robotPosCallback(odom):
     euler = tf.transformations.euler_from_quaternion([odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w])
     Global.robot_pos = np.array([odom.pose.pose.position.y/Global.costmap_resolution,    odom.pose.pose.position.x/Global.costmap_resolution,    euler[2]%(3.1415*2)]) 
-
+    Global.robot_twist = Global.twist_amplify_coeff * (np.array([odom.twist.twist.linear.y,
+    odom.twist.twist.linear.x,
+    odom.twist.twist.angular.z]) /
+    Global.costmap_resolution
+    )
 def localStatusCallback(status):
     if move_server.server.is_active():
         move_server.update(status.data,local=1)
@@ -57,7 +61,7 @@ def targetCallback(target):
     Global.goal_reached = 0
     Global.target = np.array(goal)
     Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
-    Global.start_pos = Global.robot_pos
+    Global.start_pos = Global.robot_pos + Global.robot_twist
     Global.consecutive_jumps = 0
     Global.target_set = 1
     if Global.rviz_enable:
@@ -105,9 +109,10 @@ class Global(): ##Полная жопа
     costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
     maximum_cost = rospy.get_param('~maximum_cost',40)  
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
-    stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold ',6) #in cells (if havent moved in the last (stuck check jumps))
-    
-    
+    stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',6) #in cells (if havent moved in the last (stuck check jumps))
+    #
+    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff',2)
+    #
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
@@ -146,6 +151,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    robot_twist = np.array([0,0,0])
     target_set = 0
     last_stuck = np.array([0,0])
     debug_map = []
@@ -448,15 +454,13 @@ def main():
             Global.list.clear()
             #Global.list.append(Global.target)
             Global.list.append((np.array(Global.robot_pos[:2]),0))
-            Global.start_pos = Global.robot_pos #Здесь нужно получить по ебалу от негров!s
+            Global.start_pos = Global.robot_pos+Global.robot_twist #Здесь нужно получить по ебалу от негров!s
             Global.consecutive_jumps = 0
         ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
-            if Global.goal_reached and not Global.target_set:
-                move_server.done(status=1)
             if len(Global.list):
                 rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 

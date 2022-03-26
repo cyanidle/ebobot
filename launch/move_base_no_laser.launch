@@ -1,5 +1,5 @@
 <launch>
-      <arg name="arduino" default="false"/>
+      <arg name="arduino" default="true"/>
     <include file="$(find ebobot)/launch/arduino_odom.launch">
       <arg name="port" default="/dev/ttyACM0"/>
       <arg name="debug" default="0"/>
@@ -17,7 +17,5 @@
     <include file="$(find ebobot)/launch/robot_model.launch">
       <arg name="fake_joint" default = "true"/>
     </include>
-
-    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
 
 </launch>

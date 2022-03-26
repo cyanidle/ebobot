@@ -12,10 +12,9 @@
 #include "kadyrov_lcd.h"
 #include "ohm_reader.h"
 #include "start_trigger.h"
-////////////////////////////Все скорости в мм/с
-
+////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh; //1532 for publish and 1024 receive
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1624, 1400> nh; //receive/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -42,7 +41,7 @@ const int servo_loop_delay = 40;
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs servo_loop(servo_loop_delay, 1, 0);
 TimerMs start_loop(50, 1, 0);
-//setStartPin(20);
+
 ///////////////////////// ENCODER
 
 volatile long X[3];
@@ -210,11 +209,17 @@ void update_mot(int mot)
     }
   }
 }
-
-
-
 //////////////////////////////////////////////////////
-
+void debugServo(int num){
+    struct Servo_mot *servo = ptr_list[num];
+    char buffer[40];
+    int target;
+    if (servo->target_state) target = 1;
+    else target = 0;
+    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
+    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
+    nh.loginfo(buffer);
+}
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -232,17 +237,7 @@ void encoder2()
   bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
   X[2] += (temp * 1) + (!temp * -1);
 }
-/////////////////////////////////////////////////
-void debugServo(int num){
-    struct Servo_mot *servo = ptr_list[num];
-    char buffer[40];
-    int target;
-    if (servo->target_state) target = 1;
-    else target = 0;
-    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
-    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
-    nh.loginfo(buffer);
-}
+
 /////////////////////////////////////////////////
 void setup(){
   nh.initNode();
@@ -255,18 +250,12 @@ void setup(){
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
   nh.advertiseService(ohm_reader_server);
-  
-  //
-  servos_shield.begin();
-  servos_shield.set_hz(1526);
-  createNewServo(0,9,5,90,500,90); //speed is by what amount servo moves each update (num, ch, spd, min, max, curr_pos)
-  createNewServo(1,1,5,0,200,0); //with servo_loop being 10ms and speed 5 
-  createNewServo(2,2,5,0,200,0); //it will move full 200 in 40 loops, or 0.4 seconds
-  //createNewServo(3,3,5,0,200,0);
-  //createNewServo(4,4,5,0,200,0);
-  //
+  // Инициализация наших хедеров
+  pinMode(A0, INPUT_PULLUP);
+  setStartPin(25);
   lcdSetup();
   if (servosSetup()) nh.logwarn("Servos shield found");
+  else nh.logerror("Servos shield not found!");
   //
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -317,6 +306,8 @@ void loop(){
   if (servo_loop.tick()){
     //debugServo(0);
     servosUpdate();
+    if (not servos_debugged) nh.loginfo(servos_debug);
+    servos_debugged = true;
   }
   if (start_loop.tick()){
     startUpdate();

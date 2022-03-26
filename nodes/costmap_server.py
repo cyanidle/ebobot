@@ -163,6 +163,7 @@ class Costmap():
         #new_grid.clear()
     @classmethod
     def inflate(cls,y,x):
+        #new_grid = np.array([[0]*cls.width for _ in range(cls.height)])
         if cls.pixels[y][x] > cls.inflation_threshhold and not rospy.is_shutdown():
             if  cls.width -1 > x > 1 and  1 < y < cls.height - 1: #check if surrounded
                 sum = 0

@@ -4,17 +4,13 @@
 #include <ebobot/Servos.h>
 #include <ebobot/ServosSettings.h>
 //
+//ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh;
 #define MAX_SERVOS 16
 FaBoPWM servos_shield;
 bool servosSetup(){
   if (servos_shield.begin()){
     servos_shield.init(300);
-    servos_shield.set_hz(50);
-    ////
-    ////servos_shield.set_channel_value(9,90);
-    //delay(500);
-    servos_shield.set_channel_value(9,300);
-    ////
+    servos_shield.set_hz(1516);
     return true;
   }
 }
@@ -30,9 +26,12 @@ struct Servo_mot{
     bool state;
     };
 //
+char servos_debug[50] = "Servos ready for debug!";
+bool servos_debugged = false;
 int max_num = 0;
 struct Servo_mot *ptr_list[MAX_SERVOS];
 //
+
 void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response &resp)
 {
     if (req.state){
@@ -50,9 +49,6 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
         resp.resp = 0;
     } 
 }
-//
-//ebobot::ServosSettings::
-
 void createNewServo(int num,  int channel, int speed, int min_val, int max_val, int curr_val){
     struct Servo_mot *ptr = (struct Servo_mot*) malloc(sizeof(struct Servo_mot));
     ptr_list[num] = ptr;
@@ -69,9 +65,17 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
 }
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
 {
+    
+    //char buffer[50];
+    sprintf(servos_debug, "Servo set! serv %d: ch %d, spd %d, min %d, max %d", req.num ,req.channel, req.speed, req.min_val, req.max_val);
+    servos_debugged = false;
+    //nh.loginfo(buffer);
+
+    
     if (req.num > MAX_SERVOS) resp.resp = 1;
     else if (req.num > max_num){
         createNewServo(req.num,req.channel,req.speed,req.min_val,req.max_val,0);
+        resp.resp = 0;
     }
     else{
         struct Servo_mot *servo = ptr_list[req.num];

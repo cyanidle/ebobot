@@ -29,7 +29,13 @@ def shutdownHook():
 def robotPosCallback(robot):
     quat = [robot.pose.pose.orientation.x,robot.pose.pose.orientation.y,
     robot.pose.pose.orientation.z,robot.pose.pose.orientation.w]
-    Local.robot_twist = np.array([robot.twist.twist.linear.y,robot.twist.twist.linear.x,robot.twist.twist.angular.z])
+    Local.robot_twist = (Local.twist_amplify_coeff * 
+    np.array([robot.twist.twist.linear.y,
+    robot.twist.twist.linear.x,
+    robot.twist.twist.angular.z]) /
+    Local.costmap_resolution
+    )
+    #rospy.logwarn(f"{robot.twist.twist.linear.x = }")
     Local.robot_pos = np.array(
         [robot.pose.pose.position.y/ Local.costmap_resolution, 
         robot.pose.pose.position.x/Local.costmap_resolution,
@@ -41,7 +47,7 @@ def pathCallback(path):################Доделать
     #Local.targets.clear()
     Local.new_targets.clear()
     Local.goal_reached = 1
-    Local.current_target = 0 
+    #Local.current_target = 0 
     #rospy.loginfo_once(f"Got path, poses = {path.poses}")
     for pose in path.poses:
         quat = [pose.pose.orientation.x,pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w]
@@ -79,8 +85,8 @@ class Local():
     pause_before_turn = rospy.get_param('~pause_before_turn', 0.2) #seconds
     turn_threshhold = rospy.get_param('~turn_threshhold', 0.05) 
     cells_per_radian = rospy.get_param('~cells_per_radian', 5)
-    turn_coeff = rospy.get_param('~cells_per_radian', 0.25)
-    min_turn_coeff = rospy.get_param('~cells_per_radian', 0.28) #final!
+    turn_coeff = rospy.get_param('~turn_coeff', 0.25)
+    min_turn_coeff = rospy.get_param('~min_turn_coeff', 0.28) #final!
     #
    
     #speed coeffs
@@ -105,6 +111,7 @@ class Local():
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
 
+    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 20)
     inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params
 
@@ -176,9 +183,10 @@ class Local():
             dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
             if dist < min_dist:
                 min_dist = dist
-                cls.current_target = int(num + 1)
-        new_parsed_targets.append(final_target)
+                _current_target = int(num + 1)
         cls.targets = new_parsed_targets #IMPORTANT
+        cls.current_target = _current_target
+        new_parsed_targets.append(final_target)  
         cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
@@ -289,7 +297,7 @@ class Local():
             if cls.debug:
                 rospy.loginfo(f"Best subpoint = {point}({point_cost})")
             if point_cost > cls.cost_threshhold: 
-                cls.status_publisher.publish(String('warn/cost'))
+                cls.status_publisher.publish(String('warn'))
                 if cls.debug:
                     rospy.loginfo(f"Point failed cost check({point_cost})! Recursing...")
                 cls.skipped += 1
@@ -313,7 +321,8 @@ class Local():
     
     @classmethod
     def updateTarget(cls):
-        cls.status_publisher.publish(String('info/ok'))
+        #rospy.logwarn(f"{cls.current_target =  }|{cls.robot_twist = }")
+        cls.status_publisher.publish(String('ok'))
         if Local.debug:
             rospy.loginfo(f"robot pos {cls.robot_pos}")
         if cls.debug:
@@ -329,7 +338,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
-        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=1)
+        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="arrow",size=0.1,debug=0,duration=1,add=1)
         rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()

@@ -8,13 +8,13 @@
     <arg name ="arduino_connected" default="true"/>
     
     <group if="$(arg arduino_connected)">
-        <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" respawn="false" respawn_delay="10">
+        <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" output="screen">
             <param name="port" value="$(arg port)"/>
             <param name="baud" value="$(arg arduino_baud)"/>
         </node>
     </group>
 
-    <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="log" respawn="true" respawn_delay="10"> 
+    <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="screen" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
     </node>
     <node pkg="ebobot" type="pid_setter.py" name="pid_setter">

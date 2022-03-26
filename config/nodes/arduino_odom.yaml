@@ -4,3 +4,4 @@ motors_info_callback:
   start_y: 0.18
   start_theta: deg(90)
   footprint_radius: 0.15
+  update_rate: 20

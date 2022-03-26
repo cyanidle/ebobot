@@ -4,7 +4,7 @@
 std_msgs::Bool start_msg;
 ros::Publisher start_trigger("/ebobot/begin", &start_msg);
 bool _started = false;
-int _start_pin = 20;
+int _start_pin = 25;
 
 void setStartPin(int num){
   _start_pin = num;
@@ -13,7 +13,7 @@ void setStartPin(int num){
 
 void startUpdate(){
   if (not _started){
-    if (digitalRead(20) == HIGH){
+    if (digitalRead(_start_pin) == HIGH){
      _started = true;
       start_msg.data = true;
       start_trigger.publish(&start_msg);
