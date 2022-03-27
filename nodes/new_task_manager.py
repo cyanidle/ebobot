@@ -365,6 +365,7 @@ class Goto(Template):
         for task in Manager.obj_dict["Task"]:
             if task.name == self._task_name:
                 Manager.current_task = self.num
+                Flags._goto = True
                 return
         rospy.logerr(f"Jump to {self._task_name} fail! (No such task)!")
 class Schedule(Template):
@@ -435,7 +436,10 @@ class Manager:
                 task = Manager.obj_dict["Task"][Manager.current_task]
                 proc = asyncio.create_task(task.exec())
                 await proc
-                Manager.current_task += 1
+                if Flags._goto:
+                    Flags._goto = False
+                else:
+                    Manager.current_task += 1
             else:
                 rospy.logwarn("No tasks left!")
             rospy.sleep(0.1)
@@ -445,6 +449,7 @@ class Manager:
 ##############################
 class Flags:
     _execute = 0
+    _goto = False
 def main():
     rospy.on_shutdown(shutdownHook)
     Manager.read()

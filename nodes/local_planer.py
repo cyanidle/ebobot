@@ -238,7 +238,7 @@ class Local():
     @classmethod
     def getPathSpdCoeff(cls): 
         if len(cls.targets):
-            final_coeff = (cls.max_dist/(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])+0.1)) *cls.path_speed_coeff
+            final_coeff = (1-(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])/cls.max_dist)) *cls.path_speed_coeff
         else:
             final_coeff = 0
         #rospy.loginfo(f"{final_coeff = }, {cls.max_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
@@ -259,8 +259,6 @@ class Local():
         shutdownHook()
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
-            #if cls.debug:
-                #rospy.loginfo(f"Turn checked {cls.robot_pos[2] - cls.actual_target[2]}\n{abs(cls.robot_pos[2] - cls.actual_target[2]) > cls.turn_threshhold}")
             diff =  (cls.last_target[2] - cls.robot_pos[2])
             if abs(diff) > 3.1415:
                 diff = (-6.283 - diff)%6.283
