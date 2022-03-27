@@ -107,7 +107,11 @@ class Global(): ##Полная жопа
     if experimental_cleanup_enable:
         accelerate_coeff = 0
     costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
-    maximum_cost = rospy.get_param('~maximum_cost',40)  
+    #
+    maximum_cost = rospy.get_param('~maximum_cost',40) 
+    _default_max_cost = maximum_cost
+    recovery_cost_step = rospy.get_param('~recovery_cost_step',5) 
+    #
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',6) #in cells (if havent moved in the last (stuck check jumps))
     #
@@ -251,7 +255,9 @@ class Global(): ##Полная жопа
             rospy.loginfo(f"\nnext_pos = {next_pos}\ncurrent_pos = {current_pos}\ntarget_vect = {target_vect}\ndelta_vect = {delta_vect}")
             rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
             #rospy.loginfo(f"next_pos = {next_pos[0]}")
+        
         for num in range(len(Global.rotors_list)):
+            
             for coords in Global.dirGenerator(delta_vect,num):
                 y,x = coords
                 next_pos_y,next_pos_x = round(float(next_pos[0])),round(float(next_pos[1])) #updated later
@@ -303,6 +309,7 @@ class Global(): ##Полная жопа
                     if np.linalg.norm(Global.target[:2] - current_pos) < Global.dist_to_target_threshhold:#its checked to be close enough to the goal
                         Global.num_jumps = 0                                                              #if too close - ignored, last target added
                         Global.goal_reached = 1
+                        Global.maximum_cost = Global._default_max_cost #For recovery
                         if not Global.resend:
                             Global.target_set = 0
                         Global.appendToList(Global.target,np.linalg.norm(Global.target - Global.start_pos))
@@ -329,7 +336,8 @@ class Global(): ##Полная жопа
                     if Global.debug:
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:
-            rospy.logerr ("All start points failed! Goal ignored")
+            rospy.logerr (f"All start points failed! Goal ignored| Current max cost {Global.maximum_cost}")
+            Global.maximum_cost += Global.recovery_cost_step
             Global.goal_reached = 1
         else:
             if Global.debug:
@@ -464,6 +472,7 @@ def main():
             if len(Global.list):
                 rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
+            
             ######
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):

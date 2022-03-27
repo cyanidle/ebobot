@@ -34,6 +34,8 @@ struct Servo_mot *ptr_list[MAX_SERVOS];
 
 void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response &resp)
 {
+    sprintf(servos_debug, "Servo moved! serv %d: state %d", req.num ,req.state);
+    servos_debugged = false;
     if (req.state){
         struct Servo_mot *servo = ptr_list[req.num];
         servo->target_state = true;

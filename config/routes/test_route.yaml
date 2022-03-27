@@ -4,8 +4,16 @@ tasks:
     - score: 10
     - sleep: 1
   top:
-    - move: 1.5/1/3.14
+    - move: 1.5/1/1
+    - log: "E: EPIC TEST INCOMING"
+    - condition:
+      - if: "start/sleep/0/fail"
+      - do: 
+        - log: "W: EPIC TEST PASSED!"
+      - else: 
+        - log: "W: EPIC TEST FAILED!!"
     - score: -5
+    - call: ArmUp
     - dynamic_call:
       - MoveServo
       - num: 0
@@ -18,6 +26,7 @@ tasks:
   return:
     - move: 1/1.5/0
     - score: 9
+    #- goto: start
 
 interrupts: 
   return_to_base:

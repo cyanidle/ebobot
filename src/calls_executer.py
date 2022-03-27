@@ -17,7 +17,7 @@ def getMoveClient():
 class Calls: #Async
     #move_servo = rospy.ServiceProxy("servos_service", Servos)
     def __init__(self, name,execs, static = True):
-        rospy.loginfo(f"Initialising a call {name}")
+        rospy.logwarn(f"Initialising a call {name}, {static = }")
         self.executables = []
         self.args = []
         self.parsers = []
@@ -51,26 +51,30 @@ class Calls: #Async
         return f"Call {self.name}:\n###{self.executables = }\n###{self.parsers = }\n###{self.args = }\n"
     async def exec(self,args=None):
         "If the call is dynamic, you should pass args to exec() method! Use dict for kwargs of the service"
-        if self.static == True:
+        rospy.loginfo(f"{self.static = }")
+        if self.static:
             proc = asyncio.create_task(self.executeStatic())
         else:
             proc = asyncio.create_task(self.executeDynamic(args))
         return await proc
     async def executeStatic(self):
-            sub_calls = []
+            resps = []
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
-                sub_calls.append(asyncio.create_task(exec(parser(args,self.static))))
-            resp = await asyncio.gather(*sub_calls)
-            rospy.loginfo(f"Executing static {self.name}, responces = {resp}")
-            if 1 in resp:
+                _corout = exec(parser(args,self.static))
+                resps.append(await _corout)
+                #sub_calls.append(asyncio.create_task(_corout))
+            #resp = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing static {self.name}, responces = {resps}")
+            if 1 in resps:
                 return 1
             else:
                 return 0
     async def executeDynamic(self,args):
         sub_calls = []
-        for num,tup in enumerate(zip(self.executables, self.parsers)):
+        for tup in zip(self.executables, self.parsers):
             exec, parser = tup
-            sub_calls.append(asyncio.create_task(exec(parser(args[num],self.static))))
+            _corout = exec(parser(args,self.static))
+            sub_calls.append(asyncio.create_task(_corout))
         resp = await asyncio.gather(*sub_calls)
         rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
         if 1 in resp:
@@ -106,14 +110,24 @@ class Calls: #Async
         return parsed
     @staticmethod
     def getServoExec():
-        return rospy.ServiceProxy("servos_service", Servos)
+        return Calls.ServoExec
+    @staticmethod
+    async def ServoExec(args):
+        rospy.sleep(0.2)
+        proxy = rospy.ServiceProxy("servos_service", Servos)
+        rospy.logwarn(f"Calling servos_service with {args = }")
+        return proxy(args).resp
     @staticmethod
     def getLcdExec():
-        return rospy.ServiceProxy("lcd_service", LcdShow)
+        return Calls.LcdExec
     @staticmethod
-    def ohmsExec(args):
+    async def LcdExec(args):
+        proxy = rospy.ServiceProxy("lcd_service", LcdShow)
+        return proxy(args).resp
+    @staticmethod
+    async def ohmsExec(args):
         proxy = rospy.ServiceProxy("ohm_reader_service", OhmReader)
-        resp = round(float(proxy(args))/1000,2)
+        resp = round(float(proxy(args).ohms)/1000,2)
         if abs(resp-1) < 0.2:
             return 1
         elif resp < 1:
@@ -123,11 +137,11 @@ class Calls: #Async
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
-def showPrediction(num):
+async def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
     parsed.num = num
-    return Calls.getLcdExec()(parsed)
+    return await Calls.LcdExec(parsed)
 #############
 class Execute:
     file = rospy.get_param("/task_manager/calls_file", "config/calls/calls_dict.yaml")

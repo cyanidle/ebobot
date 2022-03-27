@@ -7,13 +7,14 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
   #
+  recovery_cost_step: 5 #if stuck in beginnig increases allowed cost
   twist_amplify_coeff: 0.5
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
   update_stop_thresh: 8 # Dist from target, when stops updating route
   step: 2
   step_radians_resolution: 20
   dist_to_target_threshhold: 3
-  update_rate: 1
+  update_rate: 0.6
   #!!! DANGEROUS
   accelerate_coeff: 0.00015
   #!!!
@@ -35,13 +36,13 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_power: 1         # number of cleanups, ussualy one is enough
   #################################
   cleanup_repeats_len: 8          # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 9.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_threshhold: 7.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
   move_server:
-    fail_times: 3
+    fail_times: 1
 ##################################
 local_planer:
-  twist_amplify_coeff: 0.5 #depends on resolution, allows to skip points behind
+  twist_amplify_coeff: 0.7 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
   cost_threshhold: 10000 #100 are walls, then there is inflation
@@ -52,7 +53,7 @@ local_planer:
   #Params
   #Features
   cost_coeff_enable: 0
-  path_coeff_enable:  0
+  path_coeff_enable:  1
   #
   pause_before_turn: 0.2 #seconds
   turn_threshhold: 0.05 
@@ -60,7 +61,7 @@ local_planer:
   turn_coeff: 0.35
   min_turn_coeff: 0.28 #final!
   #speed coeffs
-  static_coeff:  0.4
+  static_coeff:  0.3
   min_path_coeff: 0.2 #Final!!
   path_speed_coeff: 0.3 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002

@@ -72,6 +72,7 @@ class Costmap():
     color_image = cv2.imread(file)
     gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)       
     pixels = np.around(np.divide(gray_image, 255.0/100), decimals=1)#np.rot90(np.around(np.divide(gray_image, 255.0/100), decimals=1))
+    del gray_image
     # cv2.imwrite("map_read.png", pixels)
     # print(f"pixels = {pixels[0][0], pixels[0][1],pixels[1][0],pixels[1][1]}")
     # rospy.sleep(1)
@@ -100,13 +101,18 @@ class Costmap():
     @classmethod
     def initCostmap(cls):
         start_time = rospy.Time.now()
-        cls.grid = cls.pixels#new_grid
+        cls.grid = np.array([[0]*cls.width for _ in range(cls.height)])#cls.pixels#new_grid
         #if cls.debug:
             #rospy.loginfo(f"Map read \n(First row = {cls.grid[0]})\n(Row 40 = {cls.grid[39]})")
         if cls.inflate_enable:
             rospy.loginfo_once('Inflating...')
-            for y,x in cls.grid_parser:
+            for num, _tup in enumerate(cls.grid_parser):
+                y,x = _tup
+                #if y/50 >= 1.5 and x/50 >= 1.5:
+                    #raise SyntaxError()
                 cls.inflate(y,x)
+                if not (num%100):
+                    cls.publish() 
         if cls.interpolate_enable:
             cls.interpolateGrid()
         if cls.write_map_enable:
@@ -119,7 +125,7 @@ class Costmap():
                 cv2.imwrite("last_inflation_mask.png", mask)
             rospy.loginfo(f"Saving map into {cls.file_dir}\n map = {cls.grid}")
             
-        rospy.loginfo(f"Costmap init done in {(rospy.Time.now() - start_time).to_sec()}")
+        rospy.logwarn(f"Costmap init done in {(rospy.Time.now() - start_time).to_sec()}")
     @classmethod
     def getInflation(cls,dist,y,x): ###dist in cells from origin x,y
         inflation = 0
@@ -128,8 +134,8 @@ class Costmap():
                 inflation = cls.pixels[y][x] * cls.base_inflation_coeff * 1/(dist/cls.inflation_radius_in_cells)**cls.inflation_nonlinear_power
             else:
                 inflation = cls.pixels[y][x] * cls.base_inflation_coeff * 1/(dist/cls.inflation_radius_in_cells)
-        #else:
-            #inflation = 100
+        else:
+            inflation = 100
         if inflation > 100:
             inflation = 100
         elif inflation < 0:
@@ -174,7 +180,7 @@ class Costmap():
                     return  
             for d_y, d_x in cls.inflation_coords_list:
                 next_y, next_x = y+d_y, x + d_x
-                if (next_x > 0 and next_x < cls.width) and (next_y>0 and next_y <cls.height):    
+                if (next_x >= 0 and next_x < cls.width) and (next_y>=0 and next_y <cls.height):    
                     dist = np.linalg.norm(np.array([next_y,next_x]-np.array([y,x])))
                     inflation = cls.getInflation(dist,y,x)
                     cls.grid[next_y][next_x] += inflation

@@ -50,6 +50,7 @@ class Status:
         if obj_str in Status.deps_dict.keys():
             for dep in Status.deps_dict[obj_str]:
                 dep.trigger()
+                rospy.logwarn(f"{dep} was triggered!")
     @staticmethod
     def getRawString(obj):
         return f"{obj.rawString()}/{obj.status.get()}"
@@ -126,17 +127,19 @@ class Skip(Template):
 class Call(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        self.args = None
         try:
-            self.call = executer_dict()[name]
+            self.call = executer_dict()[args]
         except:
             raise SyntaxError(f"No such call name available ({name}), check calls_dict!")
     async def midExec(self) -> None:
         proc = asyncio.create_task(self.call.exec(self.args))
-        try:
-            self.status.set(await proc)
-        except:
-            self.status.set("fail")
-            rospy.logerr("Service anavailable!")
+        self.status.set(await proc)
+        # try:
+        #     self.status.set(await proc)
+        # except:
+        #     self.status.set("fail")
+        #     rospy.logerr("Service anavailable!")
 class DynamicCall(Call):
     def __init__(self, parent, name, args):
         super(Call,self).__init__(parent, name, args)
@@ -167,7 +170,7 @@ class Move(Template):
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
         while not _stat == 1 and not _stat == 0 and not rospy.is_shutdown():
-            await Task.checkForInterrupt()
+            #await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
             rospy.logwarn(f"{_stat = }")
             rospy.loginfo(f"Move server feedback {_stat}")
@@ -188,7 +191,7 @@ class Log(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.text = args    
-    def midExec(self) -> None:
+    async def midExec(self) -> None:
         text = self.text
         pref = text[:2]
         if pref == "L:":
@@ -211,7 +214,7 @@ class Prediction(Template):
     async def midExec(self) -> None:
         Prediction.score += self.score
         try:
-            showPrediction(Prediction.score)
+            await showPrediction(Prediction.score)
         except:
             rospy.logerr(f"Service for {self} unavailable!")
 ########################################################
@@ -223,10 +226,10 @@ class Condition(Template):
         self.no = self.parse(args[2]["else"])
         Status.registerDependency(self,check_args)
     def parse(self,args):
-        sub_name, sub_args = Task.parseMicroList(args)
-        return Task(self,sub_name,sub_args)
+        for sub_name, sub_args in Task.parseMicroList(args):
+            return constructors_dict[sub_name](self,sub_name,sub_args)
     def trigger(self):
-        self._activate_flag= True
+        self._activate_flag = True
     async def midExec(self) -> None:
         if self._activate_flag:
             proc = asyncio.create_task(self.yes.exec())
@@ -245,6 +248,7 @@ class Sleep(Template):
         self.time = float(args)
     async def midExec(self) -> None:
         rospy.sleep(self.time)
+        self.status.set("done")
 ########################################################
 class Group(Template):
     def __init__(self, parent, name, args):
@@ -289,14 +293,16 @@ class Task(Template):
             await inter.exec()
     @staticmethod
     def parseMicroList(unparsed:list) -> list:
+        #rospy.loginfo(f"Parsing list {unparsed}")
         for dict in unparsed:
             entry_name = list(dict.keys())[0]
             entry_value = dict[entry_name]
+            #print(f"{dict}, {entry_name}, {entry_value}")
             yield (entry_name, entry_value)
     def __str__(self) -> str:
         return f"{self.name}"
     def rawString(self): #Used to get status
-        return f"{self.parent.name}/{self.name}"
+        return f"Tasks/{self.name}"
 ########################################################
 class Interrupt(Template):
     queue = list()
@@ -322,6 +328,8 @@ class Interrupt(Template):
         return Interrupt.list[int(args)]
     def __str__(self) -> str:
         return f"{self.name}"
+    def rawString(self): #Used to get status
+        return f"Interrupts/{self.name}"
 ########################################################
 class Timer(Template):
     name = "timer"
@@ -350,13 +358,20 @@ class Timer(Template):
 class Goto(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        self._task_name = args
     async def midExec(self) -> None:
-        pass
+        if not "Task" in Manager.obj_dict.keys():
+            return
+        for task in Manager.obj_dict["Task"]:
+            if task.name == self._task_name:
+                Manager.current_task = self.num
+                return
+        rospy.logerr(f"Jump to {self._task_name} fail! (No such task)!")
 class Schedule(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
     async def midExec(self) -> None:
-        pass
+        rospy.logerr("SCHEDULE NOT YET IMPLEMENTED")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
         "call":Call,
@@ -421,7 +436,9 @@ class Manager:
                 proc = asyncio.create_task(task.exec())
                 await proc
                 Manager.current_task += 1
-            Manager.rate.sleep()
+            else:
+                rospy.logwarn("No tasks left!")
+            rospy.sleep(0.1)
         Manager.current_task = 0
         Flags._execute = 0
         Manager.rate.sleep()
