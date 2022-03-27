@@ -302,7 +302,7 @@ class Task(Template):
     def __str__(self) -> str:
         return f"{self.name}"
     def rawString(self): #Used to get status
-        return f"Tasks/{self.name}"
+        return f"tasks/{self.name}"
 ########################################################
 class Interrupt(Template):
     queue = list()
@@ -329,7 +329,7 @@ class Interrupt(Template):
     def __str__(self) -> str:
         return f"{self.name}"
     def rawString(self): #Used to get status
-        return f"Interrupts/{self.name}"
+        return f"interrupts/{self.name}"
 ########################################################
 class Timer(Template):
     name = "timer"
@@ -371,8 +371,14 @@ class Goto(Template):
 class Schedule(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        self._interrupt_name = args
     async def midExec(self) -> None:
-        rospy.logerr("SCHEDULE NOT YET IMPLEMENTED")
+        if not "Interrupt" in Manager.obj_dict.keys():
+            return
+        for inter in Manager.obj_dict["Interrupt"]:
+            if inter.name == self._interrupt_name:
+                inter.trigger()
+        rospy.logerr(f"Interrupt {self._interrupt_name} trigger failed! (No such interrupt)!")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
         "call":Call,
@@ -387,7 +393,8 @@ constructors_dict = {  #syntax for route.yaml
         "dynamic_call": DynamicCall,
         "sleep": Sleep,
         "goto": Goto,
-        "schedule": Schedule
+        "schedule_interrupt": Schedule,
+        "new_timer": Timer
         } 
 
 
