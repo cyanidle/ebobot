@@ -169,7 +169,8 @@ class Move(Template):
         Move.curr_obj = self
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
-        while not _stat == 1 and not _stat == 0 and not rospy.is_shutdown():
+        _ended = 0
+        while not _ended and not rospy.is_shutdown():
             #await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
             rospy.logwarn(f"{_stat = }")
