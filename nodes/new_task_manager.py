@@ -310,11 +310,14 @@ class Interrupt(Template):
     def __init__(self, name, args):
         super().__init__(Manager, name, args)
         self.micros_list = list()
+        num_of_conds = 0
         #self.name = f"{type(self).__name__} '{self.name}'"
         for exec, subargs in Task.parseMicroList(args):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
-        self.micros_list = self.micros_list[1:]
+            if exec == "interrupt_condition":
+                num_of_conds += 1
+        self.micros_list = self.micros_list[num_of_conds:]
     async def midExec(self) -> None:
         rospy.logwarn(f"Micros in interrupt {self} - {self.micros_list}")
         for micro in self.micros_list:
