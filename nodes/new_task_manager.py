@@ -180,7 +180,7 @@ class Move(Template):
             else:
                _ended = 1
                self.status.set(_stat)
-            rospy.sleep(1/Status.update_rate)
+            await asyncio.sleep((1/Status.update_rate) / 4)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     
@@ -247,7 +247,7 @@ class Sleep(Template):
         super().__init__(parent, name, args)
         self.time = float(args)
     async def midExec(self) -> None:
-        rospy.sleep(self.time)
+        await asyncio.sleep(self.time)
         self.status.set("done")
 ########################################################
 class Group(Template):
@@ -428,7 +428,7 @@ class Manager:
             new_task = Task(task_name,unparsed_list)
     @staticmethod
     async def exec():
-        rospy.sleep(0.5)
+        await asyncio.sleep(0.5)
         #rospy.logerr(f"{Task.list = }")
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
@@ -442,7 +442,7 @@ class Manager:
                     Manager.current_task += 1
             else:
                 rospy.logwarn("No tasks left!")
-            rospy.sleep(0.1)
+            await asyncio.sleep(0.1)
         Manager.current_task = 0
         Flags._execute = 0
         Manager.rate.sleep()
