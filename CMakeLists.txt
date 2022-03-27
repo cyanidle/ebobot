@@ -64,6 +64,7 @@ catkin_install_python(PROGRAMS
   nodes/new_task_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+set(ENV{EBOBOT_ROUTE} "test_route")
 message("#########################################################")
 message("Pls install firmware with 'bash firmware/install.sh' script...")
 message("#########################################################")
