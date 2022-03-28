@@ -87,10 +87,10 @@ class Calls: #Async
         rospy.loginfo(f"Parsing args for servo")
         if static:
             parsed.num = args[0]["num"]
-            parsed.state = bool(args[1]["state"])
+            parsed.state = int(args[1]["state"])
         else:
             parsed.num = args["num"]
-            parsed.state = bool(args["state"])
+            parsed.state = int(args["state"])
         return parsed
     @staticmethod
     def parseLcd(args,static):
@@ -144,7 +144,7 @@ async def showPrediction(num):
     return await Calls.LcdExec(parsed)
 #############
 class Execute:
-    file = rospy.get_param("/task_manager/calls_file", "config/calls/calls_dict.yaml")
+    file = rospy.get_param("/new_task_manager/calls_file", "config/calls/calls_dict.yaml")
     #/Params
     #Globals
     dict = {}
@@ -205,7 +205,7 @@ class Move:
         goal.theta = target_th
         self.client.send_goal(goal, feedback_cb=self.cb)
     def fetchResult(self):
-        return self.client.get_result().result
+        return self.client.get_result()
     def checkResult(self)->int:
         "ACTIVE = 0, SUCCESS = 1, ABORTED = 2, LOST = 3, ELSE = 4"
         state = self.client.get_state()

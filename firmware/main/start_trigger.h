@@ -14,9 +14,15 @@ void setStartPin(int num){
 void startUpdate(){
   if (not _started){
     if (digitalRead(_start_pin) == HIGH){
-     _started = true;
+      _started = true;
       start_msg.data = true;
       start_trigger.publish(&start_msg);
     }
   }
+  else
+    if (digitalRead(_start_pin) == LOW){
+      _started = false;
+      start_msg.data = false;
+      start_trigger.publish(&start_msg);
+    }
 }

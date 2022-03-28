@@ -21,6 +21,8 @@ from abc import ABC, abstractmethod
 
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
+    amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
+    #
     list = []
     deps_dict = {}
     _cycle_rate = rospy.Rate(update_rate)
@@ -173,15 +175,16 @@ class Move(Template):
         while not _ended and not rospy.is_shutdown():
             #await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
-            rospy.logwarn(f"{_stat = }")
+            #rospy.logwarn(f"{_stat = }| {type(_stat) = }")
             rospy.loginfo(f"Move server feedback {_stat}")
-            if _stat == "2" or _stat == "4":
-                await Task.checkForInterrupt()
-                type(self).client.setTarget(self.pos,self.th)
+            if _stat == 2 or _stat == 4:
+                if await Task.checkForInterrupt():
+                    await asyncio.sleep(0.1)
+                    type(self).client.setTarget(self.pos,self.th)
             else:
                _ended = 1
                self.status.set(_stat)
-            await asyncio.sleep((1/Status.update_rate) / 4)
+            await asyncio.sleep((1/Status.update_rate) / Status.amplify_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     
@@ -196,11 +199,11 @@ class Log(Template):
         text = self.text
         pref = text[:2]
         if pref == "L:":
-            rospy.loginfo(text[2:])
+            rospy.loginfo(f"Log:{text[2:]}")
         elif pref == "W:":
-            rospy.logwarn(text[2:])
+            rospy.logwarn(f"Log:{text[2:]}")
         elif pref == "E:":
-            rospy.logerr(text[2:])
+            rospy.logerr(f"Log:{text[2:]}")
         else:
             rospy.logerr(f"(Incorrect log prefix!) {text}")
             self.status.set("fail") 
@@ -289,9 +292,13 @@ class Task(Template):
     @staticmethod
     async def checkForInterrupt():
         rospy.loginfo(f"Checking for interrupts")
+        _return = 0
+        if Interrupt.queue:
+            _return = 1
         while Interrupt.queue:
             inter = Interrupt.queue.pop()
             await inter.exec()
+        return _return
     @staticmethod
     def parseMicroList(unparsed:list) -> list:
         #rospy.loginfo(f"Parsing list {unparsed}")

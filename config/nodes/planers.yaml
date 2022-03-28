@@ -1,6 +1,7 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
   maximum_cost: 12 #Most important
   maximum_jumps: 1000
+  fail_count_threshhold: 5
   # Features
   cleanup_feature: 1
   resend: 1
@@ -38,11 +39,10 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_len: 8          # These two are important. Enabled by experimental cleanup.
   cleanup_repeats_threshhold: 7.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
-  move_server:
-    fail_times: 1
+
 ##################################
 local_planer:
-  twist_amplify_coeff: 0.7 #depends on resolution, allows to skip points behind
+  twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
   cost_threshhold: 10000 #100 are walls, then there is inflation
@@ -61,9 +61,9 @@ local_planer:
   turn_coeff: 0.35
   min_turn_coeff: 0.28 #final!
   #speed coeffs
-  static_coeff:  0.4
-  min_path_coeff: 0.2 #Final!!
-  path_speed_coeff: 1 #В тугриках. Robot slows down at start and finish of the route
+  static_coeff:  1.2
+  min_path_coeff: 0.3 #Final!!
+  path_speed_coeff: 2 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002
   threshhold: 2 #in cells
   # Circles on which planer tries to find lowest cost position

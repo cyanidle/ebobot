@@ -120,7 +120,7 @@ class Global(): ##Полная жопа
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
-    
+    fail_count_threshhold = rospy.get_param('~fail_count_threshhold',5)
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
@@ -155,6 +155,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    _fail_count = 0
     robot_twist = np.array([0,0,0])
     target_set = 0
     last_stuck = np.array([0,0])
@@ -309,7 +310,10 @@ class Global(): ##Полная жопа
                     if np.linalg.norm(Global.target[:2] - current_pos) < Global.dist_to_target_threshhold:#its checked to be close enough to the goal
                         Global.num_jumps = 0                                                              #if too close - ignored, last target added
                         Global.goal_reached = 1
+                        #
                         Global.maximum_cost = Global._default_max_cost #For recovery
+                        Global._fail_count = 0
+                        #
                         if not Global.resend:
                             Global.target_set = 0
                         Global.appendToList(Global.target,np.linalg.norm(Global.target - Global.start_pos))
@@ -339,10 +343,25 @@ class Global(): ##Полная жопа
             rospy.logerr (f"All start points failed! Goal ignored| Current max cost {Global.maximum_cost}")
             Global.maximum_cost += Global.recovery_cost_step
             Global.goal_reached = 1
+            Global.checkFail()
         else:
+            Global.checkFail()
             if Global.debug:
                 rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
-        
+    @classmethod
+    def checkFail(cls):
+        cls._fail_count += 1
+        rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
+        if cls._fail_count >= cls.fail_count_threshhold:
+            rospy.logerr(f"Global planer cancels current goal!!")
+            if cls.resend:
+                cls.target_set = 0
+                cls.goal_reached = 1
+            else:
+                cls.goal_reached = 1
+            move_server.done(0)
+            cls._fail_count = 0
+            cls.error = 1
     @staticmethod 
     def cleanupDeadEnds():
         list_to_remove = []
@@ -501,7 +520,6 @@ class MoveServer:
         self.server.start()
         self._success_flag = 0
         self._fail_flag = 0
-        self.fail_times = rospy.get_param("~move_server/fail_times", 1)
     def execute(self,goal):
         #MoveServer._preemted +=1
         rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
@@ -516,9 +534,11 @@ class MoveServer:
         new_target.pose.orientation.w = quat[3]
         targetCallback(new_target)
         ###################
+        #rospy.logerr(f"Global {self._success_flag = }|{self._fail_flag = }")
+        #
         while (not rospy.is_shutdown() and self._success_flag == 0 
-         and self._fail_flag < self.fail_times):
-            rospy.loginfo(f"Robot driving to target")
+         and self._fail_flag == 0):
+            rospy.logwarn(f"Robot driving to target")
             rate.sleep()
         if self._success_flag:
             self.server.set_succeeded(MoveResult(0))
@@ -540,7 +560,7 @@ class MoveServer:
         if status:
             self._success_flag = 1
         else:
-            self._fail_flag += 1
+            self._fail_flag = 1
 if __name__=="__main__":
     move_server = MoveServer()
     rate = rospy.Rate(Global.update_rate)

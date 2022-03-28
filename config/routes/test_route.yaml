@@ -31,4 +31,4 @@ tasks:
 interrupts: 
   return_to_base:
     - interrupt_condition: "timer/main/35"
-    - move: 1/0.2/1.5 
+    - move: 1/0.4/1.5 

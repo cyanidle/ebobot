@@ -21,35 +21,23 @@ struct Servo_mot{
     int speed;
     int min_val;
     int max_val;
-    int curr_val;
-    bool target_state;
-    bool state;
+    int8_t curr_val;
+    int8_t target_state;
     };
 //
 char servos_debug[50] = "Servos ready for debug!";
-bool servos_debugged = false;
+bool servos_debugged = true;
 int max_num = 0;
 struct Servo_mot *ptr_list[MAX_SERVOS];
 //
 
 void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response &resp)
 {
-    sprintf(servos_debug, "Servo moved! serv %d: state %d", req.num ,req.state);
+    sprintf(servos_debug, "Servo moved! serv %d: state %d%", req.num ,req.state);
     servos_debugged = false;
-    if (req.state){
-        struct Servo_mot *servo = ptr_list[req.num];
-        servo->target_state = true;
-        //char buffer[40];
-        //sprintf(buffer, "Servo %d moving to %d, max%d, spd %d", req.num ,servo->max_val);
-        resp.resp = 1;
-    } 
-    else{
-        struct Servo_mot *servo = ptr_list[req.num];
-        servo->target_state = false;
-        //char buffer[40];
-        //sprintf(buffer, "Servo %d moving to %d, max%d, spd %d", req.num ,servo->min_val);
-        resp.resp = 0;
-    } 
+    struct Servo_mot *servo = ptr_list[req.num];
+    servo->target_state = req.state;
+    resp.resp = 0;
 }
 void createNewServo(int num,  int channel, int speed, int min_val, int max_val, int curr_val){
     struct Servo_mot *ptr = (struct Servo_mot*) malloc(sizeof(struct Servo_mot));
@@ -60,8 +48,7 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->max_val = max_val;
     ptr->min_val = min_val;
     ptr->curr_val = curr_val;
-    ptr->state = false;
-    ptr->target_state = false;
+    ptr->target_state = min_val;
     //struct Servo_mot new_servo{num,channel,speed,min_val,max_val,curr_val,false,false};
     if (num > max_num) max_num = num;
 }
@@ -91,23 +78,23 @@ void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::S
 }
 void servoUp(struct Servo_mot *servo){
     //nh.logerror("UP");
-    int max = servo->max_val;
+    int target = (servo->max_val - servo->min_val) * servo->target_state / 100;
     //int curr = servo->curr_val;
-    if ((max - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
+    if (abs(target - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
     else {
-        servo->curr_val = max;
-        servo->state = true;
+        servo->curr_val = target;
+        servo->curr_val = target;
     }
     servos_shield.set_channel_value(servo->channel,servo->curr_val);
     //return servo->max_val;
 }
 void servoDown(struct Servo_mot *servo){
-    int min = servo->min_val;
+    int target = (servo->max_val - servo->min_val) * servo->target_state / 100;
     //int curr = servo->curr_val;
-    if (abs(min - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
+    if (abs(target - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
     else {
-        servo->curr_val = min;
-        servo->state = false;
+        servo->curr_val = target;
+        servo->curr_val = target;
     }
     servos_shield.set_channel_value(servo->channel,servo->curr_val);
     //return servo->min_val;
@@ -115,7 +102,7 @@ void servoDown(struct Servo_mot *servo){
 void servosUpdate(){
     for (int num=0;num<max_num;num++){
         struct Servo_mot *servo = ptr_list[num];
-        if (servo->target_state) servoUp(servo); 
+        if (servo->target_state > servo->curr_val) servoUp(servo); 
         else servoDown(servo);
         }       
     }

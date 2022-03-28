@@ -1,5 +1,5 @@
 #Сервис для переключения сервы (num) со скоростью (speed)
 int8 num
-bool state #up/down
+int8 state # % of max
 ---
 int8 resp  #arbitrary
