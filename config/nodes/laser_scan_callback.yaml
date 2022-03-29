@@ -8,7 +8,7 @@ laser_scan_callback:
   maximum_y: 3.4
   skip_scans: 0
   #############
-  objects_centre_coeff: 1
+  objects_centre_coeff: 0.16
   radius_thresh: 0.6
   ################
   obstacles:

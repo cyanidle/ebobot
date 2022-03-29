@@ -2,7 +2,10 @@ tasks:
   start: 
     - move: 1/1.5/0
     - score: 10
-    - sleep: 1
+    # - group:
+    #   - log: "W:Testing group"
+    #   - log: "E:Testing group"
+    - call: Adjust
   top:
     - move: 1.5/1/1
     - log: "E: EPIC TEST INCOMING"
@@ -11,7 +14,7 @@ tasks:
       - do: 
         - log: "W: EPIC TEST PASSED!"
       - else: 
-        - log: "W: EPIC TEST FAILED!!"
+        - log: "E: EPIC TEST FAILED!!"
     - score: -5
     - call: ArmUp
     - dynamic_call:

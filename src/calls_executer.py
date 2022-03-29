@@ -8,6 +8,7 @@ import asyncio
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import Servos, ServosRequest, ServosResponse, LcdShow, LcdShowRequest, LcdShowResponse, OhmReaderRequest, OhmReader
 from actionlib_msgs.msg import GoalStatus
+from std_srvs.srv import Empty, EmptyRequest
 #from ebobot.srv import Catcher
 #
 def executer_dict():
@@ -137,6 +138,14 @@ class Calls: #Async
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
+    ####
+    @staticmethod
+    def getAdjExec():
+        return rospy.ServiceProxy("adjust_pos_service", Empty)
+    @staticmethod
+    def parseAdj(args = None):
+        return EmptyRequest()
+    ####
 async def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
@@ -152,12 +161,14 @@ class Execute:
     exec_dict = {
         "servos_service":  Calls.getServoExec,
         "prediction_service": Calls.getLcdExec,
-        "ohm_reader_service": Calls.getOhmExec
+        "ohm_reader_service": Calls.getOhmExec,
+        "adjust_pos_service": Calls.getAdjExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos,
         "prediction_service": Calls.parseLcd,
-        "ohm_reader_service": Calls.parseOhm
+        "ohm_reader_service": Calls.parseOhm,
+        "adjust_pos_service": Calls.parseAdj
     }
     @classmethod
     def read(cls):

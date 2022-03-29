@@ -35,7 +35,7 @@ class Status:
     def get(self) -> str:
         return self._status
     def set(self, text):
-        self._status = text
+        self._status = str(text)
     @staticmethod
     def updateCycle():
         while not rospy.is_shutdown():

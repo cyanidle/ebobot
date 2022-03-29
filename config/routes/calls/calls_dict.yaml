@@ -1,5 +1,9 @@
-#Available services: servos_service, lcd_service
+# Available services: 
+# servos_service, prediction_service
+# ohm_reader_service, adjust_pos_service
 "Static":
+  - "Adjust":
+    - "adjust_pos_service"
   - "ArmUp":
     - "servos_service":
       - "num": 0
@@ -33,8 +37,7 @@
       - "pin": 1
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!
-    - service1
-    - service2
+    - service_name # call with args passed as: {service_arg_1: arg1, service_arg_2: arg2}
   - "MoveServo":
     - "servos_service"
   - "ShowPrediction":

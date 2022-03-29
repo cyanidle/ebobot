@@ -10,7 +10,7 @@ cp -rf "$firmware_dir/TimerMs" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/main" "$arduino_dir/"
 echo "Libraries copied successfully"
 
-cd ""$arduino_dir/libraries""
+cd "$arduino_dir/libraries"
 rosrun rosserial_arduino make_libraries.py .
 cd ..
 if [  "$1" = "-port" ];then
