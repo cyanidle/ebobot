@@ -17,7 +17,7 @@ def getMoveClient():
 class Calls: #Async
     #move_servo = rospy.ServiceProxy("servos_service", Servos)
     def __init__(self, name,execs, static = True):
-        rospy.logwarn(f"Initialising a call {name}, {static = }")
+        rospy.logwarn(f"Initialising a call {name}, static:{static}")
         self.executables = []
         self.args = []
         self.parsers = []
@@ -27,7 +27,7 @@ class Calls: #Async
         if static:
             for sub_dict in execs:
                 exec_name = list(sub_dict.keys())[0]
-                rospy.loginfo(f"Parsing {exec_name =}")
+                rospy.loginfo(f"Parsing {exec_name}")
                 args = []
                 self.executables.append(Execute.exec_dict[exec_name]())
                 rospy.loginfo(f"Appended executable {self.executables[-1]}")
@@ -39,19 +39,19 @@ class Calls: #Async
                 rospy.loginfo(f"Appended args {self.args[-1]}")
         else:
             for exec in execs:
-                rospy.loginfo(f"Parsing {exec =}")
+                rospy.loginfo(f"Parsing {exec}")
                 args = []
                 self.executables.append(Execute.exec_dict[exec]())
                 rospy.loginfo(f"Appended executable {self.executables[-1]}")
                 self.parsers.append(Execute.parsers_dict[exec])
                 rospy.loginfo(f"Appended parser {self.parsers[-1]}")
     def __str__(self):
-        return f"Call {self.name}:\n###{self.executables = }\n###{self.parsers = }\n###{self.args = }\n"
+        return f"Call {self.name}:\n###{self.executables}\n###{self.parsers}\n###{self.args}\n"
     def __repr__(self):
-        return f"Call {self.name}:\n###{self.executables = }\n###{self.parsers = }\n###{self.args = }\n"
+        return f"Call {self.name}:\n###{self.executables}\n###{self.parsers}\n###{self.args}\n"
     async def exec(self,args=None):
         "If the call is dynamic, you should pass args to exec() method! Use dict for kwargs of the service"
-        rospy.loginfo(f"{self.static = }")
+        rospy.loginfo(f"static:{self.static}")
         if self.static:
             proc = asyncio.create_task(self.executeStatic())
         else:
@@ -115,7 +115,7 @@ class Calls: #Async
     async def ServoExec(args):
         rospy.sleep(0.2)
         proxy = rospy.ServiceProxy("servos_service", Servos)
-        rospy.logwarn(f"Calling servos_service with {args = }")
+        rospy.logwarn(f"Calling servos_service with args:{args}")
         return proxy(args).resp
     @staticmethod
     def getLcdExec():
@@ -174,7 +174,7 @@ class Execute:
         static = cls.raw_dict["Static"]
         for call_dict in static:
             call_name = list(call_dict.keys())[0]
-            rospy.loginfo(f"Parsing {call_name = }")
+            rospy.loginfo(f"Parsing {call_name}")
             try:
                 cls.dict[call_name] = Calls(call_name, call_dict[call_name])
             except:
@@ -182,7 +182,7 @@ class Execute:
         dynamic = cls.raw_dict["Dynamic"]
         for call_dict in dynamic:
             call_name = list(call_dict.keys())[0]
-            rospy.logwarn(f"Parsing {call_name = }")
+            rospy.logwarn(f"Parsing {call_name}")
             try:
                 cls.dict[call_name] = Calls(call_name, call_dict[call_name], static=False)
             except:
@@ -196,7 +196,7 @@ class Move:
         rospy.logwarn(f"Waiting for server 'move'...")
         self.client.wait_for_server()
     def setTarget(self,target_pos,target_th):
-        rospy.loginfo(f"##Set new goal for {target_pos = }, {target_th = }, with {self.cb = }")
+        rospy.loginfo(f"##Set new goal for {target_pos}, {target_th}")
         self.target_pos = target_pos
         self.target_th = target_th
         goal = MoveGoal()

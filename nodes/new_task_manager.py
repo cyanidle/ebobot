@@ -48,7 +48,7 @@ class Status:
     @staticmethod
     def checkDeps(obj):
         obj_str = Status.getRawString(obj)
-        rospy.logwarn(f"Checking deps of {obj}, {obj_str = }")
+        rospy.logwarn(f"Checking deps of {obj}: {obj_str}")
         if obj_str in Status.deps_dict.keys():
             for dep in Status.deps_dict[obj_str]:
                 dep.trigger()
@@ -150,7 +150,7 @@ class DynamicCall(Call):
         pargs = {}
         for sub_dict in sub_list:
             pargs = {**pargs, **sub_dict}
-        rospy.loginfo(f"Dynamic call init! {parent = }, {name = }, {pargs = }")
+        rospy.loginfo(f"Dynamic call init! {parent}: {name}, {pargs}")
         self.args = pargs
         self.call = executer_dict()[key]
 ########################################################
@@ -471,7 +471,7 @@ class Flags:
 def main():
     rospy.on_shutdown(shutdownHook)
     Manager.read()
-    rospy.loginfo(f"Got dict! {Manager.route = }")
+    rospy.loginfo(f"Got dict!")
     if not Manager.route:
         rospy.logerr(f"Route is empty or missing!")
         return
@@ -479,7 +479,7 @@ def main():
     rospy.logwarn("Parsing route...")
     Manager.parse()
     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-    rospy.loginfo(f"{Manager.obj_dict = }")
+    rospy.loginfo(f"{Manager.obj_dict}")
     rospy.loginfo("Waiting for start topic...")
     
     status_task = Thread(target=Status.updateCycle)
