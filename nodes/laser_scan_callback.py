@@ -59,6 +59,10 @@ class Laser:
     debug = rospy.get_param("~debug",1)
     skip_scans = rospy.get_param("~skipped_scans",0)  #number of skipped per update
     skipped_counter = 0
+    #
+    objects_centre_coeff = rospy.get_param("~objects_centre_coeff",1)
+    radius_thresh = rospy.get_param("~radius_thresh",0.5)
+    #
     #/Features
     #Params
     #
@@ -122,7 +126,7 @@ class Laser:
     def update(cls):
         new_list = []
         cls.updateTF()
-        rotor = getRotor(-cls.robot_pos[2] + cls.rads_offset)
+        rotor = getRotor(cls.robot_pos[2]+cls.rads_offset)
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
@@ -136,52 +140,51 @@ class Laser:
     @classmethod
     def find(cls): 
         curr_obst = []
-        if len(Laser.list)>2:
-            curr_obst.append(Laser.list[0][0])
-            Beacons.clearRelative()
-            Objects.clear()
-            for scan, last_scan in zip(Laser.list[1:],Laser.list[:-1]):
-                pose, intencity = scan
-                last_pose, last_intencity = last_scan
-                try:
-                    dist = np.linalg.norm((pose[0] - last_pose[0] ,  pose[1] - last_pose[1]))
-                except:
-                    rospy.logwarn(f"Misha lox (ya nakosyachil)!")
-                    break
-                if dist<cls.dist_between_dots_minimal:
-                    curr_obst.append(pose)
-                elif len(curr_obst) >= cls.min_dots:
-                    radius = np.linalg.norm(
-                        (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
-                    pos = cls.getPosition(curr_obst)
-                    
-                    #rospy.loginfo(f"Found something at {pos} {radius = }")
-                    if Beacons.min_rad < radius < Beacons.max_rad:
-                        #beacon_dist = 
-                        #rospy.loginfo(f"Potential beacon at {pos}, {radius = }")
-                        for exp in Beacons.expected_list:
-                            beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
-                            if beacon_dist < Beacons.max_dist_from_expected:
-                                Beacons(pos,exp.num)
-                    if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
-                        Objects.minimal_y < pos[0] < Objects.maximum_y
-                        and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
-                        #rospy.logwarn(f"Found obstacle {pos = }")
-                        #pubMarker((curr_obst[-1][0],curr_obst[-1][1]),2*len(Objects.list), 1/cls.update_rate,frame_name="obstacle_pos",type="cube",size = 0.05)
-                        #pubMarker((curr_obst[0][0],curr_obst[0][1]),len(Objects.list), 1/cls.update_rate,frame_name="obstacle_pos",type="cube",size = 0.05)
-                        if radius < Objects.safe_footprint_radius:
-                            radius = Objects.safe_footprint_radius
-                        Objects(pos, radius*Objects.radius_coeff)
+        if len(Laser.list) < 2:
+            return 
+        curr_obst.append(Laser.list[0][0])
+        Beacons.clearRelative()
+        Objects.clear()
+        for scan, last_scan in zip(Laser.list[1:],Laser.list[:-1]):
+            pose, intencity = scan
+            last_pose, last_intencity = last_scan
+            dist = np.linalg.norm((pose[0] - last_pose[0] ,  pose[1] - last_pose[1]))
+            if dist<cls.dist_between_dots_minimal:
+                curr_obst.append(pose)
+            elif len(curr_obst) >= cls.min_dots:
+                radius = np.linalg.norm(
+                    (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
+                if radius > cls.radius_thresh:
                     curr_obst.clear()
+                    continue
+                pos = cls.getPosition(curr_obst)
+                if Beacons.min_rad < radius < Beacons.max_rad:
+                    for exp in Beacons.expected_list:
+                        beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
+                        if beacon_dist < Beacons.max_dist_from_expected:
+                            Beacons(pos,exp.num)
+                if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
+                    Objects.minimal_y < pos[0] < Objects.maximum_y
+                    and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
+                    if radius < Objects.safe_footprint_radius:
+                        radius = Objects.safe_footprint_radius
+                    Objects(pos, radius*Objects.radius_coeff)
+                curr_obst.clear()
     @classmethod
-    def getPosition(cls,poses: list)-> tuple:
+    def getPosition(cls,poses: list,radius = 0)-> tuple:
         "(from class Laser) Simply returns algebraic median from list of positions, may get an upgrade later"
         x, y = 0,0
         for pos in poses:
             y += pos[0]
             x += pos[1]
         max = len(poses)
-        return (y/max,x/max)
+        new = np.array((y/max,x/max))
+        if radius:
+            #rospy.logwarn(f"{new = }, {radius = }")
+            dnew = (new-cls.robot_pos[:2])
+            new = new + ((dnew/np.linalg.norm(dnew)) * (radius/3.1415/4) * cls.objects_centre_coeff)
+            #rospy.logwarn(f"{new = }")
+        return (new[0], new[1])
 #################################################################
 def adjCB(req):
         Beacons._adjust_flag = 1
@@ -318,18 +321,12 @@ class Beacons(Laser):
             delta_rel = acos(rel_line[1]/np.linalg.norm(rel_line))
             if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
                 delta_rel =  -delta_rel
-                #rospy.logwarn(f"-rel!")
-            #rospy.logerr(f"{delta_exp = }, {delta_rel = }")
             delta_th =   -(delta_exp - delta_rel)
             #####################################
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):
-                rospy.logwarn_once(f"Change lines 320-322 if fails")
-                #rospy.logwarn(f"{exp_list[0].pose = }|{rel_list[0].pose}")
                 _curr_adj = np.array(exp_list[0].pose) - (np.array(turnVect(rel_list[0].pose - cls.robot_pos[:2], delta_th)) + cls.robot_pos[:2])
-                rospy.logwarn(f"{_curr_adj}")
                 _curr_adj += np.array(exp_list[1].pose) - (np.array(turnVect(rel_list[1].pose - cls.robot_pos[:2], delta_th)) + cls.robot_pos[:2])
-                rospy.logwarn(f"{_curr_adj}")
                 _curr_adj /= 2
             else:
                 _curr_adj = np.array(exp_list[0] - rel_list[0])
