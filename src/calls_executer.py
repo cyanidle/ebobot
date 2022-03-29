@@ -1,4 +1,5 @@
 import roslib
+import subprocess
 roslib.load_manifest('ebobot')
 import rospy
 import actionlib
@@ -237,6 +238,11 @@ rospy.loginfo(f"Parsing calls from file {Execute.file}...")
 Execute.read()
 Execute.parse()
 rospy.loginfo("Done parsing calls!")
+out = subprocess.run(["echo"], ["1.1.1.1"],text=True])
+
+#out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
+ip = int(out.stdout.split(".")[-1])
+asyncio.run(showPrediction(ip))
 
 
 
