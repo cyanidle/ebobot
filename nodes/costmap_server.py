@@ -26,8 +26,8 @@ def obstaclesCallback(obst):
     if _node_ready:
         Objects.clear()
         for obj in obst.data:
-            if Costmap.debug:
-                print(f"Got new object {obj.y =} {obj.x =}")
+            #if Costmap.debug:
+                #print(f"Got new object {obj.y =} {obj.x =}")
             Objects((obj.y/Costmap.resolution, obj.x/Costmap.resolution),
             obj.radius/Costmap.resolution)
     Objects.updateMask() # AHAHAHAHAHAAHAHA H AHAHAHAHHAHAHAHAAHHAHAHHAHAHAAHAHAHAHAHAHAHAHAHAHAHAHHAHAHA Питон момент

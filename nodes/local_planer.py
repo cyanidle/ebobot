@@ -306,7 +306,7 @@ class Local():
                 return cls.fetchPoint()
         else:
             if cls.debug:
-                rospy.loginfo(f"Fetching target {point =}\ncurr = {current_pos}")
+                rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
             cls.skipped = 0 
             cls.current_target += 1
             return point 
