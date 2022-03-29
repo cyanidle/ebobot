@@ -336,8 +336,8 @@ class Beacons(Laser):
                 _curr_adj = (_curr_adj+np.array(exp_list[1] - rel_list[1]))/2
             ####################################
             d_x,d_y = _curr_adj[1],_curr_adj[0]
-            if Laser.debug:
-                rospy.logwarn(f"{d_x = } , {d_y = }, {delta_th = }")
+            #if Laser.debug:
+                #rospy.logwarn(f"{d_x = } , {d_y = }, {delta_th = }")
             cls.deltas.append((d_y, d_x, delta_th))
             cls.checkCycle()
             cls.rel_list.clear()
@@ -358,7 +358,7 @@ class Beacons(Laser):
                 cls.delta_pos = (0,0)
                 rospy.logerr("Adjustment error!")
             if cls.debug:
-                rospy.logerr(f"{cls.delta_pos = }|{cls.delta_th = } ")
+                rospy.logerr(f"d_pos{cls.delta_pos}|d_th{cls.delta_th} ")
             if cls.switching_adjust:
                 if cls._pubbing_rot:
                     cls._pubbing_rot = 0
