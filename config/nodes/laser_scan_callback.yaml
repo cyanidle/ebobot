@@ -1,6 +1,8 @@
 laser_scan_callback:
-  update_rate: 4
-  rads_offset: 2.093
+  update_rate: 7 # More than 7 is useless
+  rads_offset: 0 #2.093 = 120deg
+  enable_centre_aprox: 1
+  dist_between_dots_minimal: 0.1
   ###############
   minimal_x: -0.2
   minimal_y: -0.2
@@ -8,33 +10,33 @@ laser_scan_callback:
   maximum_y: 3.4
   skip_scans: 0
   #############
-  objects_centre_coeff: 0.16
+  objects_centre_coeff: 20 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
   radius_thresh: 0.6
   ################
   obstacles:
-    minimal_x: 0.1
-    minimal_y: 0.1
-    maximum_x: 1.9
-    maximum_y: 2.9
+    minimal_x: 0.05
+    minimal_y: 0.05
+    maximum_x: 1.95
+    maximum_y: 2.95
     ####
     radius_coeff: 1
     dots_thresh: 200
-    min_dots: 3
+    min_dots: 1
     safe_footprint_radius: 0.4 #Minimal radius around obstacles (if not default)
   ################
   beacons:
     ## Features
     max_th_for_linear_adj: 0.01
-    adjust_on_command: 0
+    adjust_on_command: 1
     enable_adjust: 1
     pub_all: 1
     only_linear_adj: 0
     ##
-    cycles_per_update: 4
+    cycles_per_update: 3
     min_rad: 0.005
     max_rad: 0.25
     max_dist_from_expected: 0.3
-    adjust_time: 2
+    adjust_time: 1.2
     #####################
     num_beacons: 3 #needed for proper auto-init
     ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (biggest x --> last beacon)

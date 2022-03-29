@@ -1,5 +1,6 @@
 <launch>
       <arg name="arduino" default="true"/>
+      <arg name="rviz" default="false"/>
     <include file="$(find ebobot)/launch/arduino_odom.launch">
       <arg name="port" default="/dev/ttyACM0"/>
       <arg name="debug" default="0"/>
@@ -23,4 +24,9 @@
     <include file="$(find ebobot)/launch/laser_callback.launch">
       <arg name="debug" default = "0"/>
     </include>
+
+    <group if="$(arg rviz)">
+        <include file="$(find ebobot)/launch/rviz.launch"/>
+    </group>
+
 </launch>

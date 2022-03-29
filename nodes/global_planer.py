@@ -121,6 +121,7 @@ class Global(): ##Полная жопа
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
     fail_count_threshhold = rospy.get_param('~fail_count_threshhold',5)
+    num_of_tries_for_last = rospy.get_param('~num_of_tries_for_last',5)
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
     step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
@@ -293,6 +294,8 @@ class Global(): ##Полная жопа
                     Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
+                    Global._fail_count += Global.fail_count_threshhold/Global.num_of_tries_for_last
+                    Global.checkFail()
                     return
                 ##################################################
                 if next_pos_x >= Global.costmap_width or next_pos_x < 0:

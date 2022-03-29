@@ -3,11 +3,11 @@
     <rosparam file="$(find ebobot)/config/nodes/planers.yaml" />
     
 
-    <node pkg="ebobot" type="global_planer.py" name="global_planer" output="log" respawn="true" respawn_delay="1"> 
+    <node pkg="ebobot" type="global_planer.py" name="global_planer" output="screen" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>
     </node>
 
-    <node pkg="ebobot" type="local_planer.py" name="local_planer" output="log" respawn="true" respawn_delay="1">
+    <node pkg="ebobot" type="local_planer.py" name="local_planer" output="screen" respawn="true" respawn_delay="1">
         <param name = "debug" value = "$(arg debug)"/>
     </node>
 </launch>

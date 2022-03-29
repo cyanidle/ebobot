@@ -2,7 +2,7 @@
 import roslib
 roslib.load_manifest('ebobot')
 import numpy as np
-from math import cos,sin,acos#,atan2
+from math import cos,sin,acos,ceil,floor#,atan2
 import rospy
 import tf
 #####################
@@ -47,8 +47,10 @@ def laserScanCallback(scan):
         if not Laser.angles_done:
             Laser.precalcCoeffs()
         Laser.update()
+        Laser.allow_time_test = 1
 class Laser:
     #Features
+    enable_centre_aprox = rospy.get_param("~enable_centre_aprox",1)
     debug = rospy.get_param("~debug",1)
     skip_scans = rospy.get_param("~skip_scans",0)  #number of skipped per update
     skipped_counter = 0
@@ -83,6 +85,9 @@ class Laser:
     #Global values
     list = []
     #
+    _updated = False
+    allow_time_test = 0
+    time_test_done = 0
     angles_done = 0
     coeffs =[]
     angle_min = 0
@@ -99,15 +104,16 @@ class Laser:
     #/Global values
     @classmethod
     def precalcCoeffs(cls):
-        for num in range(int(round(Laser.angle_min/cls.angle_increment)),
-         int(round(Laser.angle_max/cls.angle_increment))):
+        for num in range(
+        int(floor(Laser.angle_min/cls.angle_increment)),
+        int(ceil(Laser.angle_max/cls.angle_increment))):
             Laser.coeffs.append((sin(Laser.angle_increment*num -cls.rads_offset),cos(Laser.angle_increment*num-cls.rads_offset))) 
         cls.angles_done = 1
     #####################
     @classmethod
     def updateTF(cls):
         #rospy.logerr(f"epic")
-        quat = tf.transformations.quaternion_from_euler(0,0, cls.robot_pos[2]+cls.rads_offset)
+        quat = tf.transformations.quaternion_from_euler(0,0, +cls.robot_pos[2]+cls.rads_offset)
         cls.broadcaster.sendTransform(
             (cls.robot_pos[1], cls.robot_pos[0], 0),
             quat,
@@ -118,14 +124,15 @@ class Laser:
     ###############
     @classmethod
     def update(cls):
-        cls.list.clear()
+        new_list = list()
         cls.updateTF()
-        rotor = getRotor(-(cls.robot_pos[2]-cls.rads_offset))
+        rotor = getRotor(-cls.robot_pos[2]-cls.rads_offset)
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges) = }|{len(cls.intensities) = }|{len(cls.coeffs) = }")
-        else: 
-            rospy.logerr_once(f"{len(cls.ranges) = }|{len(cls.coeffs) = }")
+        else:
+            container = zip(cls.ranges, cls.coeffs)
+            rospy.logerr_once(f"{len(cls.ranges) = }|{len(cls.coeffs) = }|{cls.coeffs[0] = }|{cls.coeffs[-1] = }")
         for _cont in container:
             if cls.enable_intensities:
                 range, intensity, coeffs = _cont
@@ -139,18 +146,23 @@ class Laser:
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     if cls.enable_intensities:
-                        cls.list.append((prob_meters_pos,intensity))
+                        new_list.append((prob_meters_pos,intensity))
                     else:
-                        cls.list.append((prob_meters_pos,0))
+                        new_list.append((prob_meters_pos,None))
+        cls.list = new_list
+        cls._updated = True
     @classmethod
     def find(cls): 
         curr_obst = []
+        if not cls._updated:
+            return
+        cls._updated = False
         if len(cls.list) < 2:
             return 
-        curr_obst.append(cls.list[0][0])
         Beacons.clearRelative()
         Objects.clear()
-        rospy.logwarn(f"##########")
+        curr_obst.append(cls.list[0][0])
+        pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
         for scan, last_scan in zip(cls.list[1:],cls.list[:-1]):
             pose, intencity = scan
             last_pose, last_intencity = last_scan
@@ -161,19 +173,24 @@ class Laser:
                 radius = np.linalg.norm(
                     (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
                 if radius < cls.radius_thresh:
-                    pos = cls.getPosition(curr_obst)
-                    rospy.logwarn(f"{pos = }|{radius = }")
+                    if cls.enable_centre_aprox:
+                        pos = cls.getPosition(curr_obst,radius)
+                    else:
+                        pos = cls.getPosition(curr_obst)
+                    ###################################################
                     if Beacons.min_rad < radius < Beacons.max_rad:
                         for exp in Beacons.expected_list:
                             beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
                             if beacon_dist < Beacons.max_dist_from_expected:
                                 Beacons(pos,exp.num)
+                    ####################################################
                     if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
                         Objects.minimal_y < pos[0] < Objects.maximum_y
-                        and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
+                        and Objects.min_dots <= len(curr_obst) < Objects.dots_thresh):
                         if radius < Objects.safe_footprint_radius:
-                            radius = Objects.safe_footprint_radius
-                        Objects(pos, radius*Objects.radius_coeff)
+                            Objects(pos, Objects.safe_footprint_radius)
+                        else:
+                            Objects(pos, radius*Objects.radius_coeff)
                 curr_obst.clear()
     @classmethod
     def getPosition(cls,poses: list,radius = 0)-> tuple:
@@ -322,8 +339,6 @@ class Beacons(Laser):
             delta_exp = acos(exp_line[1]/np.linalg.norm(exp_line))
             if (np.array(turnVect(exp_line,-delta_exp))[0] < cls.kostyl):
                 delta_exp =  -delta_exp
-                #rospy.logwarn(f"-exp!")
-
             delta_rel = acos(rel_line[1]/np.linalg.norm(rel_line))
             if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
                 delta_rel =  -delta_rel
@@ -416,7 +431,7 @@ class Objects(Laser):
         msg = Obstacles()
         for num,obst in enumerate(cls.list):
             obstacle = Obstacle()
-            pubMarker(obst.pose,num,1/Laser.update_rate,frame_name="objects",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+            #pubMarker(obst.pose,num,1/Laser.update_rate,frame_name="objects",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
             obstacle.radius = obst.radius #PLACEHOLDER
@@ -436,7 +451,13 @@ def main():
     rospy.on_shutdown(shutdownHook)
     Beacons.initExpected()
     while not rospy.is_shutdown():
-        Laser.find()
+        if Laser.allow_time_test and not Laser.time_test_done:
+            _start = rospy.Time.now()
+            Laser.find()
+            rospy.logwarn_once(f"Time for one find (ms) = {(rospy.Time.now() - _start).to_sec() * 1000}")
+            Laser.time_test_done = 1
+        else:
+            Laser.find()
         Beacons.update()
         Objects.send()
         rate.sleep()

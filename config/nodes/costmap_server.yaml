@@ -1,8 +1,8 @@
 costmap_server:
   # Features
-  publish_on_obstacles_recieve: 0 #republish map only when recieving new list of obstacles, overrides update_rate
+  publish_on_obstacles_recieve: 1 #republish map only when recieving new list of obstacles, overrides update_rate
   inflate_enable: 0 #use map directly, or inflate it beforehand
-  write_map_enable: 1 #write inflated map and mask (mask is for debug)
+  write_map_enable: 0 #write inflated map and mask (mask is for debug)
   interpolate_enable: 0
   inflation_nonlinear_enable: 0 #not tested btw)
   #

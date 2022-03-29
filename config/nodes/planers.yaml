@@ -1,7 +1,8 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  maximum_cost: 12 #Most important
+  maximum_cost: 15 #Most important
   maximum_jumps: 1000
-  fail_count_threshhold: 5
+  fail_count_threshhold: 30
+  num_of_tries_for_last: 4
   # Features
   cleanup_feature: 1
   resend: 1
@@ -12,8 +13,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   twist_amplify_coeff: 0.5
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
   update_stop_thresh: 8 # Dist from target, when stops updating route
-  step: 2
-  step_radians_resolution: 20
+  step: 3
+  step_radians_resolution: 12
   dist_to_target_threshhold: 3
   update_rate: 0.6
   #!!! DANGEROUS
@@ -23,10 +24,11 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   #the last point is removed (considered a dead end)
                                   
   ##### dir locking
-  stuck_check_jumps: 4 #checks for 'stuck' per 'n' jumps
-  stuck_dist_threshhold: 5 #dist which should be reached in (stuck_check_jumps)
+  stuck_check_jumps: 10 #checks for 'stuck' per 'n' jumps
+  stuck_dist_threshhold: 8 #dist which should be reached in (stuck_check_jumps)
   lock_dirs: #directions which get tried one after another if planer is stuck
-    - 0
+    - 0 # first should be always zero
+    - top
     - left
     - left
     - right
@@ -37,7 +39,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_power: 1         # number of cleanups, ussualy one is enough
   #################################
   cleanup_repeats_len: 8          # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 7.5 # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_threshhold: 6   # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
 
 ##################################
