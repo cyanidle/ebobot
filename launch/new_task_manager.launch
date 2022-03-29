@@ -3,7 +3,7 @@
     <arg name="debug" default="0"/>
     <rosparam file="$(find ebobot)/config/nodes/new_task_manager.yaml" />
     
-    <node pkg="ebobot" type="new_task_manager.py" name="new_task_manager"> 
+    <node pkg="ebobot" type="new_task_manager.py" name="new_task_manager" output="screen"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "calls_file" value = "$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
         <param name = "file" value = "$(find ebobot)/config/routes/$(optenv EBOBOT_ROUTE test_route).yaml"/>

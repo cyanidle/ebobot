@@ -1,5 +1,5 @@
 laser_scan_callback:
-  update_rate: 8
+  update_rate: 5
   rads_offset: 2.09
   ###############
   minimal_x: -0.2
