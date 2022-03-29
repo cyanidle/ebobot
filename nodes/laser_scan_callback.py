@@ -126,7 +126,7 @@ class Laser:
     def update(cls):
         new_list = []
         cls.updateTF()
-        rotor = getRotor(cls.robot_pos[2]+cls.rads_offset)
+        rotor = getRotor(-(cls.robot_pos[2]-cls.rads_offset))
         for range, intensity, coeffs in zip(cls.ranges, cls.intensities, cls.coeffs):
             y_coeff, x_coeff = coeffs
             if range < cls.range_max and range > cls.range_min:
@@ -145,6 +145,7 @@ class Laser:
         curr_obst.append(Laser.list[0][0])
         Beacons.clearRelative()
         Objects.clear()
+        rospy.logwarn(f"##########")
         for scan, last_scan in zip(Laser.list[1:],Laser.list[:-1]):
             pose, intencity = scan
             last_pose, last_intencity = last_scan
@@ -154,21 +155,20 @@ class Laser:
             elif len(curr_obst) >= cls.min_dots:
                 radius = np.linalg.norm(
                     (curr_obst[0][0] - curr_obst[-1][0],  curr_obst[0][1] - curr_obst[-1][1]    ))
-                if radius > cls.radius_thresh:
-                    curr_obst.clear()
-                    continue
-                pos = cls.getPosition(curr_obst)
-                if Beacons.min_rad < radius < Beacons.max_rad:
-                    for exp in Beacons.expected_list:
-                        beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
-                        if beacon_dist < Beacons.max_dist_from_expected:
-                            Beacons(pos,exp.num)
-                if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
-                    Objects.minimal_y < pos[0] < Objects.maximum_y
-                    and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
-                    if radius < Objects.safe_footprint_radius:
-                        radius = Objects.safe_footprint_radius
-                    Objects(pos, radius*Objects.radius_coeff)
+                if radius < cls.radius_thresh:
+                    pos = cls.getPosition(curr_obst)
+                    rospy.logwarn(f"{pos = }|{radius = }")
+                    if Beacons.min_rad < radius < Beacons.max_rad:
+                        for exp in Beacons.expected_list:
+                            beacon_dist = np.linalg.norm(( pos[0] - exp.pose[0]  ,pos[1] - exp.pose[1] ))
+                            if beacon_dist < Beacons.max_dist_from_expected:
+                                Beacons(pos,exp.num)
+                    if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
+                        Objects.minimal_y < pos[0] < Objects.maximum_y
+                        and Objects.min_dots < len(curr_obst) < Objects.dots_thresh):
+                        if radius < Objects.safe_footprint_radius:
+                            radius = Objects.safe_footprint_radius
+                        Objects(pos, radius*Objects.radius_coeff)
                 curr_obst.clear()
     @classmethod
     def getPosition(cls,poses: list,radius = 0)-> tuple:
@@ -180,10 +180,11 @@ class Laser:
         max = len(poses)
         new = np.array((y/max,x/max))
         if radius:
-            #rospy.logwarn(f"{new = }, {radius = }")
+            rospy.logwarn_once("Using object centre approx")
+            rospy.logwarn_once(f"{new = }, {radius = }")
             dnew = (new-cls.robot_pos[:2])
             new = new + ((dnew/np.linalg.norm(dnew)) * (radius/3.1415/4) * cls.objects_centre_coeff)
-            #rospy.logwarn(f"{new = }")
+            rospy.logwarn_once(f"{new = }")
         return (new[0], new[1])
 #################################################################
 def adjCB(req):
@@ -257,9 +258,6 @@ class Beacons(Laser):
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
             new_beacon = cls(coord,num,expected = 1)
-    # @classmethod
-    # def initRelative(cls, pose,num):   
-    #     beacon = cls(pose,num) #initialisation auto-appends objects to their list
     @classmethod
     def pubRelative(cls, _all = False):
         for num,beacon in enumerate(cls.rel_list):

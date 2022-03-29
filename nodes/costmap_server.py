@@ -113,6 +113,8 @@ class Costmap():
                 cls.inflate(y,x)
                 if not (num%100):
                     cls.publish() 
+        else:
+            cls.grid = cls.pixels
         if cls.interpolate_enable:
             cls.interpolateGrid()
         if cls.write_map_enable:
