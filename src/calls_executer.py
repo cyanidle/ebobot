@@ -255,7 +255,10 @@ rospy.loginfo("Done parsing calls!")
 
 #out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
 #ip = int(out.stdout.split(".")[-1])
-asyncio.run(showPrediction(999))
+# try:
+#     asyncio.run(showPrediction(0000))
+# except:
+#     rospy.logwarn("Arduino disconnected!")
 
 
 
