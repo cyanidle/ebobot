@@ -1,32 +1,43 @@
 <launch>
       <arg name="arduino" default="true"/>
       <arg name="rviz" default="false"/>
-    <include file="$(find ebobot)/launch/arduino_odom.launch">
-      <arg name="port" default="/dev/ttyACM0"/>
+      <arg name="laser" default="true"/>
+      <arg name="arduino_port" default="/dev/ttyACM0"/>
       <arg name="debug" default="0"/>
-      <arg name="arduino_connected" default="$(arg arduino)"/>
+      <arg name="use_own" default="true"/>
+
+    <include file="$(find ebobot)/launch/arduino_odom.launch">
+      <arg name="use_own" value="$(arg use_own)"/>
+      <arg name="port" value="$(arg arduino_port)"/>
+      <arg name="debug" value="$(arg debug)"/>
+      <arg name="arduino_connected" value="$(arg arduino)"/>
     </include>
 
     <include file="$(find ebobot)/launch/costmap.launch">
-      <arg name="debug" default="0"/>
+      <arg name="use_own" value="$(arg use_own)"/>
+      <arg name="debug" value="$(arg debug)"/>
     </include>
 
     <include file="$(find ebobot)/launch/planers.launch">
-      <arg name="debug" default = "0"/>
+      <arg name="use_own" value="$(arg use_own)"/>
+      <arg name="debug" value = "$(arg debug)"/>
     </include>
 
-    <include file="$(find ebobot)/launch/robot_model.launch">
-      <arg name="fake_joint" default = "true"/>
-    </include>
-
-    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
-
-    <include file="$(find ebobot)/launch/laser_callback.launch">
-      <arg name="debug" default = "0"/>
-    </include>
+    
 
     <group if="$(arg rviz)">
         <include file="$(find ebobot)/launch/rviz.launch"/>
+        <include file="$(find ebobot)/launch/robot_model.launch">
+          <arg name="fake_joint" value = "true"/>
+        </include>
+    </group>
+
+    <group if="$(arg laser)">
+        <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+        <include file="$(find ebobot)/launch/laser_callback.launch">
+        <arg name="use_own" value="$(arg use_own)"/>
+        <arg name="debug" value = "$(arg debug)"/>
+        </include>
     </group>
 
 </launch>

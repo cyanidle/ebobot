@@ -1,9 +1,13 @@
 <launch>
-
+    
     <arg name="port" default="/dev/ttyACM0"/>
     <arg name="arduino_baud" default="57600"/>
     <arg name="debug" default="0"/>
+
+    <arg name="use_own" default="true"/>
+    <group if="$(arg use_own)">
     <rosparam file="$(find ebobot)/config/nodes/arduino_odom.yaml" />
+    </group>
 
     <arg name ="arduino_connected" default="true"/>
     

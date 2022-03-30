@@ -2,8 +2,10 @@
     
     <arg name="debug" default="0"/>
 
+    <arg name="use_own" default="true"/>
+    <group if="$(arg use_own)">
     <rosparam file="$(find ebobot)/config/nodes/costmap_server.yaml" />
-    
+    </group>
 
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
