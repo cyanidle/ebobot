@@ -47,9 +47,9 @@ class Costmap():
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
     interpolation_radius = rospy.get_param('~interpolation_radius',2) #in cells
-    base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) #VERY DANGEROUS
-    #
     inflation_skip_cells = rospy.get_param('~inflation_skip_cells',2)
+    base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) * inflation_skip_cells #VERY DANGEROUS
+    #
     inflation_nonlinear_power = rospy.get_param('~inflation_nonlinear_power',1)
     update_rate = rospy.get_param('~update_rate',2)
     inflation_radius = rospy.get_param('~inflation_radius',0.45)

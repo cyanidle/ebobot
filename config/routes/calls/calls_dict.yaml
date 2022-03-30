@@ -3,7 +3,8 @@
 # ohm_reader_service, adjust_pos_service
 "Static":
   - "Adjust":
-    - "adjust_pos_service"
+    - "adjust_pos_service":
+      - "empty": 0 #even if the call is empty you should state at least one argument in static call
   - "ArmUp":
     - "servos_service":
       - "num": 0

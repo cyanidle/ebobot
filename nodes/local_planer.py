@@ -270,7 +270,7 @@ class Local():
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if abs(diff) > 3.1415:
-               diff = -(3.1415-(diff-3.1415))
+               diff = abs(-6.283 - diff)
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1

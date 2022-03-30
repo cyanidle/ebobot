@@ -261,13 +261,13 @@ class Group(Template):
         for sub_dict in args:
             subtask_name = list(sub_dict.keys())[0]
             sub_args = sub_dict[subtask_name]
-            self.subtask_list.append(Task(self,subtask_name,sub_args))
+            self.subtask_list.append(constructors_dict[subtask_name](self,subtask_name,sub_args))
     async def midExec(self) -> None:
         subtasks = []
         for micro in self.subtask_list:
             if Manager.debug:
                 rospy.loginfo(f"Executing {micro} in {self}")
-            task = asyncio.create_task(micro.action.exec())
+            task = asyncio.create_task(micro.exec())
             subtasks.append(task)
         await asyncio.gather(*subtasks)           
 ########################################################

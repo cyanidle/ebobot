@@ -6,13 +6,13 @@ costmap_server:
   interpolate_enable: 1
   inflation_nonlinear_enable: 0 #not tested btw)
   #
-  inflation_skip_cells: 3
+  inflation_skip_cells: 2
   resolution: 0.02 #meters/cell. Better not to touch
   inflation_radius: 0.27 #in meters
   base_inflation_coeff: 0.0142 #slight change = zhopa
   inflation_threshhold: 99 #inflate cell if its cost is > than 'n'
   update_rate: 2 #per seconds, if publish_on_obstacles_recieve disabled
-  interpolation_radius: 3 #in cells
+  interpolation_radius: 2 #in cells
   #################################
   obstacles:
     use_default: 1

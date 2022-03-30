@@ -1,10 +1,11 @@
 tasks:
   start: 
     - move: 1/1.5/0
-    - score: 10
-    # - group:
-    #   - log: "W:Testing group"
-    #   - log: "E:Testing group"
+    - score: 10  
+    - group:  #Things in group are done in parallel
+      - log: "W:Testing group" 
+      - sleep: 1
+      - log: "E:Testing group"
     - call: Adjust
   top:
     - move: 1.5/1/1
@@ -29,7 +30,7 @@ tasks:
   return:
     - move: 1/1.5/0
     - score: 9
-    #- goto: start
+    - goto: start
 
 interrupts: 
   return_to_base:
