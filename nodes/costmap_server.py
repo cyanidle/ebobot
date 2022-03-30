@@ -236,6 +236,7 @@ class Objects:
     use_default = rospy.get_param('~obstacles/use_default',0)
     resolution = rospy.get_param('~obstacles/resolution',15)
     #
+    default_radius = rospy.get_param('~obstacles/default_radius',12)
     base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',150)
     #
     topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
@@ -324,6 +325,6 @@ if __name__=="__main__":
     if Objects.use_default:
         rospy.loginfo(f"Using default obstacles, initialazing...")
         start_time = rospy.Time.now()
-        default_obstacle = Objects((-10,-10), 10, default=1)
+        default_obstacle = Objects((-10,-10), Objects.default_radius, default=1)
         rospy.loginfo(f"Done in {(rospy.Time.now()-start_time).to_sec()}!")
     main()

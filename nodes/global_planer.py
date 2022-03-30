@@ -227,19 +227,16 @@ class Global(): ##Полная жопа
     def checkIfStuck(num):
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
-                rospy.logwarn_once(f"Planer stuck, using recovery!")
-                #MoveServer.server.feedback('stuck')
+                #rospy.logwarn(f"Planer stuck, using recovery!")
                 Global.lock_dir_num += 1
                 Global.lock_dir_num  = Global.lock_dir_num%len(Global.lock_dirs)
             else:
                 Global.lock_dir_num = 0
-            Global.last_stuck = Global.list[-1][0]
+            Global.last_stuck = Global.list[-1][0][:2]
             Global.lock_dir = Global.lock_dirs[Global.lock_dir_num]
     @staticmethod
     def reset(): #For reset service
-        blank = np.array([0,0,0])
-        Global.target = blank
-        #Global.robot_pos = blank
+        Global.target = np.array([0,0,0])
 
 
 
@@ -395,7 +392,7 @@ class Global(): ##Полная жопа
         for num in range(len(Global.list)):
             if num > check_for and (max_num-num) > check_for:
                 #rospy.loginfo(f"{num =}")
-                if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) > Global.cleanup_repeats_threshhold:
+                if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) < Global.cleanup_repeats_threshhold:
                     #rospy.loginfo(f"added for remove, len is {max_num}")
                     for i in range(num - check_for,num):
                         if not i in list_to_remove:
@@ -406,6 +403,7 @@ class Global(): ##Полная жопа
                 popped = Global.list.pop(num-done)
                 if Global.debug:
                     rospy.loginfo(f"Removing repeats {popped}")
+        rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      
@@ -446,7 +444,10 @@ class Global(): ##Полная жопа
             target_pos = PoseStamped()
             if Global.debug:
                 rospy.loginfo(f"Last point {target}")
-            quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
+            if len(target)>2:
+                quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
+            else:
+                quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
             if Global.rviz_enable:
                 rviz_targ = PoseStamped()
                 rviz_targ.pose.position.y = target[0] / rviz_coeff
@@ -507,6 +508,8 @@ def main():
                 Global.publish()
             #######
             Global.error = 0
+            Global._fail_count = 0
+            #
             end_time = rospy.Time.now() ### end time
             rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
             if Global.resend:

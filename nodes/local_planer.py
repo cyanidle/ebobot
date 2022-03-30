@@ -90,6 +90,7 @@ class Local():
     #
    
     #speed coeffs
+    full_path_coeff_dist = rospy.get_param('~full_path_coeff_dist', 60) #dist from target in cells at which robot goes full spd
     static_coeff = rospy.get_param('~static_coeff', 0.4)
     min_path_coeff = rospy.get_param('~min_path_coeff', 0.2) #Final!!
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
@@ -178,6 +179,7 @@ class Local():
         # else:
         #     delta_theta = final_target[2]
         min_dist = 100
+        _current_target = 0
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
             dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
@@ -187,7 +189,6 @@ class Local():
         cls.targets = new_parsed_targets #IMPORTANT
         cls.current_target = _current_target
         new_parsed_targets.append(final_target)  
-        cls.max_dist = np.linalg.norm(cls.targets[-1] - cls.targets[0])
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
         cls.goal_reached = 0
@@ -238,10 +239,12 @@ class Local():
     @classmethod
     def getPathSpdCoeff(cls): 
         if len(cls.targets):
-            final_coeff = (1-(cls.max_dist- np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])/cls.max_dist)) *cls.path_speed_coeff
+            curr_dist = np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2])
+            final_coeff = curr_dist/cls.full_path_coeff_dist * cls.path_speed_coeff
+            #rospy.loginfo(f"{final_coeff = }|{curr_dist = }|{cls.full_path_coeff_dist = }")
         else:
             final_coeff = 0
-        #rospy.loginfo(f"{final_coeff = }, {cls.max_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
+        #rospy.loginfo(f"{final_coeff = }, {cls.full_path_coeff_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
         if final_coeff < cls.min_path_coeff:
             final_coeff = cls.min_path_coeff
         if final_coeff > 1:
@@ -251,7 +254,13 @@ class Local():
     @classmethod
     def checkTurn(cls): 
         #rospy.loginfo(f"Checking turn {cls.robot_pos[2]=}{cls.last_target[2]=}...")
-        return abs(cls.robot_pos[2] - cls.last_target[2]) > cls.turn_threshhold
+        return abs(cls.getRadNorm(cls.robot_pos[2]) - cls.getRadNorm(cls.last_target[2])) > cls.turn_threshhold
+    @staticmethod
+    def getRadNorm(rad):
+        if rad >= 0:
+            return rad
+        else:
+            return abs(-6.283 - rad)
     @classmethod
     def rotateAtEnd(cls):
         if cls.debug:
@@ -259,9 +268,9 @@ class Local():
         shutdownHook()
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
-            diff =  (cls.last_target[2] - cls.robot_pos[2])
+            diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if abs(diff) > 3.1415:
-                diff = (-6.283 - diff)%6.283
+               diff = -(3.1415-(diff-3.1415))
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1
@@ -338,7 +347,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
-        markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="arrow",size=0.1,debug=0,duration=1,add=1)
+        #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="arrow",size=0.1,debug=0,duration=1,add=1)
         rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()

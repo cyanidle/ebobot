@@ -56,6 +56,8 @@ class Laser:
     skipped_counter = 0
     enable_intensities = rospy.get_param("~enable_intensities",0)
     #
+    max_dots_per_obj = rospy.get_param("~max_dots_per_obj",130) 
+    range_max_custom = rospy.get_param("~range_max_custom",6) 
     objects_centre_coeff = rospy.get_param("~objects_centre_coeff",1)
     radius_thresh = rospy.get_param("~radius_thresh",0.5)
     #
@@ -67,7 +69,7 @@ class Laser:
     maximum_x = rospy.get_param('~maximum_x', 2.4)
     minimal_y = rospy.get_param('~minimal_y ', -0.2)
     maximum_y = rospy.get_param('~maximum_y', 3.4)
-    dist_between_dots_minimal = rospy.get_param('~dist_between_dots_minimal', 0.05) #in meters
+    dist_between_dots_max = rospy.get_param('~dist_between_dots_max', 0.05) #in meters
     #
     update_rate = rospy.get_param("~update_rate",2) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(radians counterclockwise)
@@ -129,17 +131,17 @@ class Laser:
         rotor = getRotor(-cls.robot_pos[2]-cls.rads_offset)
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
-            rospy.logerr_once(f"{len(cls.ranges) = }|{len(cls.intensities) = }|{len(cls.coeffs) = }")
+            rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
         else:
             container = zip(cls.ranges, cls.coeffs)
-            rospy.logerr_once(f"{len(cls.ranges) = }|{len(cls.coeffs) = }|{cls.coeffs[0] = }|{cls.coeffs[-1] = }")
+            rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.coeffs)}|{cls.coeffs[0]}|{cls.coeffs[-1]}")
         for _cont in container:
             if cls.enable_intensities:
                 range, intensity, coeffs = _cont
             else: 
                 range,coeffs = _cont
             y_coeff, x_coeff = coeffs
-            if range < cls.range_max and range > cls.range_min:
+            if range < cls.range_max_custom and range > cls.range_min:
                 meters_pos = (range * y_coeff, range * x_coeff) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
                 prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
@@ -162,12 +164,12 @@ class Laser:
         Beacons.clearRelative()
         Objects.clear()
         curr_obst.append(cls.list[0][0])
-        pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+        pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.08,g=1,r=1,b=1,debug=Laser.debug,add=1)
         for scan, last_scan in zip(cls.list[1:],cls.list[:-1]):
             pose, intencity = scan
             last_pose, last_intencity = last_scan
             dist = np.linalg.norm((pose[0] - last_pose[0] ,  pose[1] - last_pose[1]))
-            if dist<cls.dist_between_dots_minimal:
+            if dist<cls.dist_between_dots_max and len(curr_obst) < cls.max_dots_per_obj:
                 curr_obst.append(pose)
             elif len(curr_obst) >= cls.min_dots:
                 radius = np.linalg.norm(
@@ -191,6 +193,10 @@ class Laser:
                             Objects(pos, Objects.safe_footprint_radius)
                         else:
                             Objects(pos, radius*Objects.radius_coeff)
+                else:
+                    rospy.logwarn(f"Object is too big {pos}")
+                curr_obst.clear()
+            else:
                 curr_obst.clear()
     @classmethod
     def getPosition(cls,poses: list,radius = 0)-> tuple:
@@ -206,10 +212,10 @@ class Laser:
         new = np.array((y/max,x/max))
         if radius:
             rospy.logwarn_once("Using object centre aprox")
-            rospy.logwarn_once(f"{new = }, {radius = }")
+            rospy.logwarn_once(f"{new}, {radius}")
             d_new = (new-cls.robot_pos[:2])
             new = new + ((d_new/np.linalg.norm(d_new))/100 * radius * cls.objects_centre_coeff)
-            rospy.logwarn_once(f"{new = }")
+            rospy.logwarn_once(f"{new}")
         return (new[0], new[1])
 #################################################################
 def adjCB(req):
@@ -314,7 +320,7 @@ class Beacons(Laser):
             rel_list = []
             _rel_list_meta = []
             nums = []
-            min_dists = [100,100,100]
+            min_dists = [100] * cls.num_beacons
             new_rels = sorted(cls.rel_list, key= lambda _rel: _rel.num)
             for rel in new_rels:
                 if not rel.num in nums and len(nums) < 2:
@@ -343,6 +349,13 @@ class Beacons(Laser):
             if (np.array(turnVect(rel_line,-delta_rel))[0] < cls.kostyl):
                 delta_rel =  -delta_rel
             delta_th =   -(delta_exp - delta_rel)
+            # #################################### Более правильный вариант...наверное
+            # delta_th = acos(np.dot(rel_line,exp_line)/np.linalg.norm(rel_line)/np.linalg.norm(exp_line))
+            # _kost_vect = np.array(turnVect(rel_line,-delta_th)-np.array(exp_line))
+            # rospy.logerr(f"{delta_th = }|{_kost_vect = }")
+            # if (_kost_vect[0]+_kost_vect[1]) > cls.kostyl:
+            #     delta_th =  -delta_th
+            # #delta_th =  -delta_th
             #####################################
             if (abs(delta_th) > cls.max_th_for_linear_adj 
             and not cls.only_linear_adj):

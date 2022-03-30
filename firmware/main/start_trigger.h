@@ -22,4 +22,5 @@ void startUpdate(){
   else
     if (digitalRead(_start_pin) == LOW){
       _started = false;
+    }
 }

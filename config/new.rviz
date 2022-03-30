@@ -28,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -97,9 +97,7 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        expected_beacon: true
-        first_scan: true
-        relative_beacon: true
+        global_target: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -224,7 +222,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.37706184387207
+      Distance: 6.347570419311523
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -232,17 +230,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.1417969465255737
-        Y: 0.5390966534614563
-        Z: 0.3342670500278473
+        X: 1.3325265645980835
+        Y: 1.4503155946731567
+        Z: 0.9460035562515259
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.98539799451828
+      Pitch: 0.86039799451828
       Target Frame: <Fixed Frame>
-      Yaw: 4.633580684661865
+      Yaw: 4.368582248687744
     Saved: ~
 Window Geometry:
   Displays:
