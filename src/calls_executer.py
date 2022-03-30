@@ -152,6 +152,11 @@ class Calls: #Async
     def getAdjExec():
         return rospy.ServiceProxy("adjust_pos_service", Empty)
     @staticmethod
+    def adjExec(args):
+        proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
+        proxy(args)
+        return 0
+    @staticmethod
     def parseAdj(_place, _holder):
         return EmptyRequest()
     ####

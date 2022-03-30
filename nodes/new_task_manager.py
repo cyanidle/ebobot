@@ -81,17 +81,20 @@ class Template(ABC):
         self._activate_flag = False
         self.num = 0
         self.name = name
-        if type(parent) == Task:
-            for obj in self.parent.micros_list:
-                if obj.name == self.name:
-                    self.num += 1
-        else:
-            self.num = len(type(self).list)
+        ###
         cls_name = type(self).__name__
         if cls_name in Manager.obj_dict.keys():
             Manager.obj_dict[cls_name].append(self)
         else:
             Manager.obj_dict[cls_name] = [self]
+        ###
+        if type(parent) == Task or type(parent) == Group:
+            for obj in self.parent.micros_list:
+                if obj.name == self.name:
+                    self.num += 1
+        else:
+            self.num = len(Manager.obj_dict[type(self).__name__])
+        ###
         self.status = Status(self)
     @abstractmethod
     async def midExec(self)-> None:
@@ -257,19 +260,27 @@ class Sleep(Template):
 class Group(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        self.subtask_list = []
+        self.micros_list = []
+        self.group_name = self.name
+        self.name = f"{super().rawString()}"
         for sub_dict in args:
             subtask_name = list(sub_dict.keys())[0]
             sub_args = sub_dict[subtask_name]
-            self.subtask_list.append(constructors_dict[subtask_name](self,subtask_name,sub_args))
+            self.micros_list.append(constructors_dict[subtask_name](self,subtask_name,sub_args))
     async def midExec(self) -> None:
         subtasks = []
-        for micro in self.subtask_list:
+        for micro in self.micros_list:
             if Manager.debug:
                 rospy.loginfo(f"Executing {micro} in {self}")
             task = asyncio.create_task(micro.exec())
             subtasks.append(task)
-        await asyncio.gather(*subtasks)           
+        resps = await asyncio.gather(*subtasks)
+        if 1 in resps or "fail" in resps:
+            self.status.set("fail")
+        else:
+            self.status.set("done")
+    def rawString(self):
+        return f"{self.parent.name}/{self.group_name}/{self.num}"      
 ########################################################
 class Task(Template):
     def __init__(self, name, args):
