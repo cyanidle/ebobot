@@ -1,6 +1,8 @@
 <launch>
     
     <arg name="debug" default="0"/>
+    <arg name="file_dir" default="$(find ebobot)/config/costmap"/>
+    <arg name="file" default="$(find ebobot)/config/costmap/costmap.png"/>
 
     <arg name="use_own" default="true"/>
     <group if="$(arg use_own)">
@@ -9,8 +11,8 @@
 
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "file_dir" value = "$(find ebobot)/config/costmap"/>
-        <param name = "file" value = "$(find ebobot)/config/costmap/costmap.png"/>
+        <param name = "file_dir" value = "$(arg file_dir)"/>
+        <param name = "file" value = "$(arg file)"/>
     </node>
     
 </launch>

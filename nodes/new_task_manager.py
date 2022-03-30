@@ -43,7 +43,7 @@ class Status:
                 for timer in Manager.obj_dict["Timer"]:
                     timer.status.update()
             else:
-                rospy.logwarn(f"No timers found!")
+                rospy.logwarn(f"Awaiting start topic!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):

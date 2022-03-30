@@ -5,6 +5,8 @@
       <arg name="arduino_port" default="/dev/ttyACM0"/>
       <arg name="debug" default="0"/>
       <arg name="use_own" default="true"/>
+      <arg name="costmap_dir" default="$(find ebobot)/config/costmap"/>
+      <arg name="costmap_file" default="$(find ebobot)/config/costmap/costmap.png"/>
 
     <include file="$(find ebobot)/launch/arduino_odom.launch">
       <arg name="use_own" value="$(arg use_own)"/>
@@ -16,6 +18,8 @@
     <include file="$(find ebobot)/launch/costmap.launch">
       <arg name="use_own" value="$(arg use_own)"/>
       <arg name="debug" value="$(arg debug)"/>
+      <arg name="file_dir" default="$(arg costmap_dir)"/>
+      <arg name="file" default="$(arg costmap_file)"/>
     </include>
 
     <include file="$(find ebobot)/launch/planers.launch">
