@@ -1,0 +1,27 @@
+tasks:
+  start: 
+    #- call: Adjust
+    - move: 1/1.5/0
+    - score: 10  
+    - call: ArmUp
+  top:
+    - move: 1.5/1/1
+    - call: Adjust
+    - log: "E: We chilling on task top"
+    - score: -5
+    - call: ArmUp
+    - sleep: 1
+  left:
+    - move: 0.5/1/0
+    - score: 55
+    - sleep: 1
+  return:
+    - move: 1/1.5/0
+    - score: 9
+    - goto: start
+variables:
+  default: 0
+interrupts: 
+  return_to_base:
+    - interrupt_condition: "timers/main/40"
+    - move: 1/0.4/1.5 

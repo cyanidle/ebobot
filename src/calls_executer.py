@@ -36,10 +36,11 @@ class Calls: #Async
                 self.parsers.append(Execute.parsers_dict[exec_name])
                 rospy.loginfo(f"Appended parser {self.parsers[-1]}")
                 pargs = {}
-                for sub_args in sub_dict[exec_name]:
-                    pargs = {**pargs, **sub_dict}
+                print (sub_dict[exec_name])
+                for sub_dict_args in sub_dict[exec_name]:
+                    pargs = {**pargs, **sub_dict_args}
                 self.args.append(pargs)
-                rospy.loginfo(f"Appended args {self.args}")
+                rospy.loginfo(f"Appended args {pargs} to {self.args}")
         else:
             for exec in execs:
                 rospy.loginfo(f"Parsing {exec}")
@@ -66,7 +67,7 @@ class Calls: #Async
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 _corout = exec(parser(args))
                 resps.append(await _corout)
-            rospy.loginfo(f"Executing static {self.name}, responces = {resps}")
+            rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
                 return "fail"
             else:
@@ -91,19 +92,19 @@ class Calls: #Async
             rospy.logerr(f"Call {self.name} unavailable!")
             return "fail"
     @staticmethod
-    def parseServos(args,static:bool):
+    def parseServos(args):
         parsed = ServosRequest()
         rospy.loginfo(f"Parsing args for servo")
         parsed.num = args["num"]
         parsed.state = int(args["state"])
         return parsed
     @staticmethod
-    def parseLcd(args,static):
+    def parseLcd(args):
         parsed = LcdShowRequest()
         parsed.num = args["num"]
         return parsed
     @staticmethod
-    def parseOhm(args,static:bool):
+    def parseOhm(args):
         parsed = PinReaderRequest()
         parsed.digital = False
         parsed.write = False
@@ -149,7 +150,7 @@ class Calls: #Async
         proxy(args)
         return 0
     @staticmethod
-    def parseAdj(_place, _holder):
+    def parseAdj(_place):
         return EmptyRequest()
     ####
     @staticmethod
@@ -161,7 +162,7 @@ class Calls: #Async
         proxy(args)
         return 0
     @staticmethod
-    def parsePin(args,static:bool):
+    def parsePin(args):
         parsed =  PinReaderRequest()
         parsed.pin = args["pin"]
         parsed.digital = args["digital"]
@@ -268,7 +269,7 @@ rospy.loginfo("Done parsing calls!")
 #out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
 #ip = int(out.stdout.split(".")[-1])
 try:
-    asyncio.run(showPrediction(0000))
+    asyncio.run(showPrediction(7770))
 except:
     rospy.logwarn("Arduino disconnected!")
 

@@ -14,7 +14,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 8, 4, 1524, 1400> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 8, 8, 1224, 1400> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -218,7 +218,7 @@ void update_mot(int mot)
 }
 //////////////////////////////////////////////////////
 // void debugServo(int num){
-//     struct Servo_mot *servo = ptr_list[num];
+//     Servo_mot* servo = ptr_list[num];
 //     char buffer[40];
 //     int target;
 //     if (servo->target_state) target = 1;
@@ -267,18 +267,6 @@ void setup()
     nh.logwarn("Servos shield found");
   else
     nh.logerror("Servos shield not found!");
-  //
-  /*
-  motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
-  motors_msg.layout.dim_length = 2;
-  motors_msg.layout.dim[0].label = "Motor";
-  motors_msg.layout.dim[0].size = 3;
-  motors_msg.layout.dim[0].stride = 12;
-  motors_msg.layout.dim[1].label = "Info";
-  motors_msg.layout.dim[1].size = 4;
-  motors_msg.layout.dim[0].stride = 4;
-  */
-
   ////////////////////////////////
   motors_msg.layout.data_offset = 0;
   motors_msg.data_length = 12;
@@ -315,7 +303,7 @@ void loop()
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
     if (not pin_reader_debugged){
-      nh.loginfo(pin_reader_debug);
+      nh.logwarn(pin_reader_debug);
     pin_reader_debugged = true;
     }
       
@@ -323,10 +311,12 @@ void loop()
 
   if (servo_loop.tick())
   {
-    // debugServo(0);
     servosUpdate();
-    if (not servos_debugged)
-      nh.loginfo(servos_debug);
+    if (not servos_debugged){
+      nh.logwarn(servos_debug);
+      //debugServo(0);
+    }
+      
     servos_debugged = true;
   }
   if (start_loop.tick())

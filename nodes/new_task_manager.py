@@ -22,20 +22,32 @@ from abc import ABC, abstractmethod
 #####################################
 def startCallback(start):
     Flags._execute = 0
+    rospy.logwarn(Manager.route)
     if not start.data:
+        parse(0)
+        rospy.sleep(1)
+        asyncio.run(showPrediction(3))
+        rospy.sleep(1)
+        asyncio.run(showPrediction(2))
+        rospy.sleep(1)
+        asyncio.run(showPrediction(1))
+        rospy.sleep(1)
+        asyncio.run(showPrediction(0))
         Flags._execute = 1
         rospy.logwarn(f"Executing default route!")
     else:
-        Manager.reset()
         if start.data == 1:
+            asyncio.run(showPrediction(7771))
             rospy.logwarn(f"Parsing route1!")
             rospy.sleep(0.5)
             parse(1)
         elif start.data == 2:
+            asyncio.run(showPrediction(7772))
             rospy.logwarn(f"Parsing route2!")
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
+            asyncio.run(showPrediction(0))
             Flags._execute = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -61,7 +73,7 @@ class Status:
                 for timer in Manager.obj_dict["Timer"]:
                     timer.status.update()
             else:
-                rospy.logwarn(f"Awaiting start topic!")
+                rospy.logwarn(f"No timers found!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):
@@ -194,7 +206,7 @@ class Move(Template):
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
         _ended = 0
-        while not _ended and not rospy.is_shutdown():
+        while not _ended and not rospy.is_shutdown() and Flags._execute:
             _stat = type(self).client.checkResult()
             rospy.loginfo(f"Move server feedback {_stat}")
             if _stat == "executing":
@@ -314,7 +326,7 @@ class Task(Template):
         rospy.logwarn(f"Micros in task {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            if self._fail_flag:
+            if self._fail_flag or not Flags._execute:
                 self.status.set("fail")
                 break
         if not self._fail_flag:
@@ -359,6 +371,11 @@ class Interrupt(Template):
         rospy.logwarn(f"Micros in interrupt {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
+            if self._fail_flag or not Flags._execute:
+                self.status.set("fail")
+                break
+        if not self._fail_flag:
+            self.status.set("done")
     def trigger(self):
         Interrupt.queue.append(self)
     @staticmethod
@@ -383,9 +400,6 @@ class Variable(Template):
         super().__init__(parent, name, args)
         self.value = int(args)
         self.status.set(self.value)
-    # #def updateStatus(self) -> str:
-    #     Status.checkDeps(self)
-    #     return str(self.value)
     def set(self, num: int):
         self.value = num
         Status.checkDeps(self)
@@ -468,10 +482,13 @@ class Schedule(Template):
         self._task_name = args
     async def midExec(self) -> None:
         if not "Task" in Manager.obj_dict.keys():
-            return 1
+            self.status.set("fail")
+            return
         for task in Manager.obj_dict["Task"]:
             if task.name == self._task_name:
-                return await task.exec()
+                await task.exec()
+                self.status.set(task.status.get())
+                return 
         rospy.logerr(f"Task {self._task_name} trigger failed! (No such task)!")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
@@ -543,6 +560,7 @@ class Manager:
     def reset():
         Manager.route.clear()
         Manager.obj_dict.clear()
+        Prediction.score = 0
     @staticmethod
     async def exec():
         await asyncio.sleep(0.2)

@@ -2,7 +2,7 @@
     
     <arg name="debug" default="0"/>
     <arg name="calls_file" default="$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
-    <arg name="file1" default="$(find ebobot)/config/routes/test_route.yaml"/>
+    <arg name="file1" default="$(find ebobot)/config/routes/new_route.yaml"/>
     <arg name="file2" default="$(find ebobot)/config/routes/test_route.yaml"/>
     <arg name="default_file" default="$(find ebobot)/config/routes/test_route.yaml"/>
 
