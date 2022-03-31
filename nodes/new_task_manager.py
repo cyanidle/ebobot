@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from math import floor
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -364,14 +365,17 @@ class Timer(Template):
         pass
     def delete(self):
         Timer.list.remove(self)
-    def updateStatus(self):
-        #print (f"{self.time = }")
-        #print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
-        self.time += round((rospy.Time.now() - self.last_time).to_sec())
-        self.last_time = rospy.Time.now()
-        if not self.status.get() == str(self.time):
+    def updateStatus(self) -> str:
+        curr_time = rospy.Time.now()
+        self.time += (curr_time - self.last_time).to_sec()
+        self.last_time = curr_time
+        if Status.update_rate < 1:
+            self.repr_time = round(self.time)
+        else:
+            self.repr_time = floor(self.time)
+        if self.status.get() != str(self.repr_time):
             self.status.checkDeps(self) 
-        return str(self.time)
+        return str(self.repr_time)
     def __str__(self) -> str:
         return f"{self.name}|status: {self.status.get()}"
     def rawString(self):
