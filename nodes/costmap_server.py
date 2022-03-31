@@ -47,8 +47,9 @@ class Costmap():
     #/Features 
     inflation_threshhold = rospy.get_param('~inflation_threshhold',80) #from 0 to 100
     interpolation_radius = rospy.get_param('~interpolation_radius',2) #in cells
-    base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) #VERY DANGEROUS
-    
+    inflation_skip_cells = rospy.get_param('~inflation_skip_cells',2)
+    base_inflation_coeff = rospy.get_param('~base_inflation_coeff',0.003) * inflation_skip_cells #VERY DANGEROUS
+    #
     inflation_nonlinear_power = rospy.get_param('~inflation_nonlinear_power',1)
     update_rate = rospy.get_param('~update_rate',2)
     inflation_radius = rospy.get_param('~inflation_radius',0.45)
@@ -110,8 +111,9 @@ class Costmap():
                 y,x = _tup
                 #if y/50 >= 1.5 and x/50 >= 1.5:
                     #raise SyntaxError()
-                cls.inflate(y,x)
-                if not (num%100):
+                if not (num%cls.inflation_skip_cells):
+                    cls.inflate(y,x)
+                if not (num%200):
                     cls.publish() 
         else:
             cls.grid = cls.pixels
@@ -236,6 +238,7 @@ class Objects:
     use_default = rospy.get_param('~obstacles/use_default',0)
     resolution = rospy.get_param('~obstacles/resolution',15)
     #
+    default_radius = rospy.get_param('~obstacles/default_radius',12)
     base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',150)
     #
     topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
@@ -324,6 +327,6 @@ if __name__=="__main__":
     if Objects.use_default:
         rospy.loginfo(f"Using default obstacles, initialazing...")
         start_time = rospy.Time.now()
-        default_obstacle = Objects((-10,-10), 10, default=1)
+        default_obstacle = Objects((-10,-10), Objects.default_radius, default=1)
         rospy.loginfo(f"Done in {(rospy.Time.now()-start_time).to_sec()}!")
     main()

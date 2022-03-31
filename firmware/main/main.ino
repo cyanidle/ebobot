@@ -60,6 +60,7 @@ float absolute_max_speed = 0.75;
 float ddist[3];
 float targ_spd[3];
 float curr_spd[3];
+float last_spds[3];
 int num_motors = 3;
 int fwd[] = {FWD0, FWD1, FWD2};
 int bck[] = {BCK0, BCK1, BCK2};
@@ -110,6 +111,10 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     float spd = mots_x_coeffs[mot] * x * absolute_max_speed + mots_y_coeffs[mot] * y * absolute_max_speed;
     spd += turn * turn_max_speed;
 
+    // IF speed is changed radically (1/4 of max), then terms are reset
+    if (abs(spd - last_spds[mot]) > absolute_max_speed/2){
+      termsReset(mot);
+    }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
     if (spd < 0.01 and spd > -0.01)
     {
@@ -121,6 +126,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
       spd = constrain(spd,-absolute_max_speed, absolute_max_speed);
       stop_mot[mot] = false;
       targ_spd[mot] = spd;
+      last_spds[mot] = spd
     }
   }
 }

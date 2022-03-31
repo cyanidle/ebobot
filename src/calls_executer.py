@@ -1,4 +1,5 @@
 import roslib
+import subprocess
 roslib.load_manifest('ebobot')
 import rospy
 import actionlib
@@ -59,7 +60,8 @@ class Calls: #Async
             proc = asyncio.create_task(self.executeDynamic(args))
         return await proc
     async def executeStatic(self):
-            resps = []
+        resps = []
+        try:
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 _corout = exec(parser(args,self.static))
                 resps.append(await _corout)
@@ -70,18 +72,25 @@ class Calls: #Async
                 return 1
             else:
                 return 0
+        except:
+            rospy.logerr(f"Call {self.name} unavailable!")
+            return 1
     async def executeDynamic(self,args):
         sub_calls = []
-        for tup in zip(self.executables, self.parsers):
-            exec, parser = tup
-            _corout = exec(parser(args,self.static))
-            sub_calls.append(asyncio.create_task(_corout))
-        resp = await asyncio.gather(*sub_calls)
-        rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
-        if 1 in resp:
+        try:
+            for tup in zip(self.executables, self.parsers):
+                exec, parser = tup
+                _corout = exec(parser(args,self.static))
+                sub_calls.append(asyncio.create_task(_corout))
+            resp = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
+            if 1 in resp:
+                return 1
+            else:
+                return 0
+        except:
+            rospy.logerr(f"Call {self.name} unavailable!")
             return 1
-        else:
-            return 0
     @staticmethod
     def parseServos(args,static:bool):
         parsed = ServosRequest()
@@ -143,7 +152,12 @@ class Calls: #Async
     def getAdjExec():
         return rospy.ServiceProxy("adjust_pos_service", Empty)
     @staticmethod
-    def parseAdj(args = None):
+    def adjExec(args):
+        proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
+        proxy(args)
+        return 0
+    @staticmethod
+    def parseAdj(_place, _holder):
         return EmptyRequest()
     ####
 async def showPrediction(num):
@@ -237,6 +251,14 @@ rospy.loginfo(f"Parsing calls from file {Execute.file}...")
 Execute.read()
 Execute.parse()
 rospy.loginfo("Done parsing calls!")
+#out = subprocess.run("echo", "1.1.1.1",text=True)
+
+#out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
+#ip = int(out.stdout.split(".")[-1])
+# try:
+#     asyncio.run(showPrediction(0000))
+# except:
+#     rospy.logwarn("Arduino disconnected!")
 
 
 

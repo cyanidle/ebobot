@@ -1,21 +1,23 @@
 costmap_server:
   # Features
-  publish_on_obstacles_recieve: 0 #republish map only when recieving new list of obstacles, overrides update_rate
-  inflate_enable: 0 #use map directly, or inflate it beforehand
+  publish_on_obstacles_recieve: 1 #republish map only when recieving new list of obstacles, overrides update_rate
+  inflate_enable: 1 #use map directly, or inflate it beforehand
   write_map_enable: 1 #write inflated map and mask (mask is for debug)
   interpolate_enable: 0
   inflation_nonlinear_enable: 0 #not tested btw)
   #
+  inflation_skip_cells: 1 # default = 1 (skip none) DO NOT SET TO 0!
   resolution: 0.02 #meters/cell. Better not to touch
   inflation_radius: 0.27 #in meters
-  base_inflation_coeff: 0.013 #slight change = zhopa
+  base_inflation_coeff: 0.0142 #slight change = zhopa
   inflation_threshhold: 99 #inflate cell if its cost is > than 'n'
-  update_rate: 2 #per seconds, if pub_on_obst_recieve disabled
+  update_rate: 2 #per seconds, if publish_on_obstacles_recieve disabled
   interpolation_radius: 1 #in cells
   #################################
   obstacles:
     use_default: 1
     #
-    base_infaltion_coeff: 150
+    default_radius: 14
+    base_infaltion_coeff: 130
     resolution: 15 #how round the obstacles are
   

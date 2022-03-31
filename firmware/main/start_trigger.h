@@ -22,7 +22,5 @@ void startUpdate(){
   else
     if (digitalRead(_start_pin) == LOW){
       _started = false;
-      start_msg.data = false;
-      start_trigger.publish(&start_msg);
     }
 }

@@ -1,12 +1,25 @@
 <launch>
     
     <arg name="debug" default="0"/>
+    <arg name="calls_file" default="$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
+    <arg name="file" default="$(find ebobot)/config/routes/$(optenv EBOBOT_ROUTE test_route).yaml"/>
+
+
+
+    <arg name="use_own" default="true"/>
+
+    <group if="$(arg use_own)">
     <rosparam file="$(find ebobot)/config/nodes/new_task_manager.yaml" />
-    
+    </group>
+
     <node pkg="ebobot" type="new_task_manager.py" name="new_task_manager" output="screen"> 
         <param name = "debug" value = "$(arg debug)"/>
-        <param name = "calls_file" value = "$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
-        <param name = "file" value = "$(find ebobot)/config/routes/$(optenv EBOBOT_ROUTE test_route).yaml"/>
+        <param name = "calls_file" value = "$(arg calls_file)"/>
+        <param name = "file" value = "$(arg file)"/>
     </node>
     
+
+
+
+
 </launch>
