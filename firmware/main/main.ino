@@ -112,7 +112,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds[mot]) > absolute_max_speed/4){
+    if (abs(spd - last_spds[mot]) > absolute_max_speed/2){
       termsReset(mot);
     }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
