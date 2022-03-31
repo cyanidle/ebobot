@@ -4,4 +4,4 @@ bool digital
 bool pullup 
 int16 value
 ---
-int16 resps
+int16 resp

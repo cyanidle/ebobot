@@ -3,7 +3,7 @@
 #include <ebobot/PinReader.h>
 
 void PinReaderCallback(const ebobot::PinReader::Request &req, ebobot::PinReader::Response &resp){
-    int _num = req.num;
+    int _num = req.pin;
     if (not req.digital) _num = _num + 54;
     if (req.digital){
         if (req.pullup){
@@ -24,8 +24,8 @@ void PinReaderCallback(const ebobot::PinReader::Request &req, ebobot::PinReader:
     }
     else{
         if (req.write){
-            pinMode(req.num, OUTPUT);
-            analogWrite(req.num, req.value);
+            pinMode(req.pin, OUTPUT);
+            analogWrite(req.pin, req.value);
             resp.resp = 0
         } 
         else{
