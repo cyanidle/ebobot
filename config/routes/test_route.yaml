@@ -1,27 +1,15 @@
 tasks:
   start: 
+    - call: Adjust
     - move: 1/1.5/0
     - score: 10  
-    - group:  #Things in group are done in parallel
-      - log: "W:Testing group" 
-      - sleep: 1
-      - log: "E:Testing group"
     - call: Adjust
   top:
     - move: 1.5/1/1
-    - log: "E: EPIC TEST INCOMING"
-    - condition:
-      - if: "start/sleep/0/fail"
-      - do: 
-        - log: "W: EPIC TEST PASSED!"
-      - else: 
-        - log: "E: EPIC TEST FAILED!!"
+    - call: Adjust
+    - log: "E: We chilling on task top"
     - score: -5
     - call: ArmUp
-    - dynamic_call:
-      - MoveServo
-      - num: 0
-      - state: 1
     - sleep: 1
   left:
     - move: 0.5/1/0
@@ -31,8 +19,9 @@ tasks:
     - move: 1/1.5/0
     - score: 9
     - goto: start
-
+variables:
+  default: 0
 interrupts: 
   return_to_base:
-    - interrupt_condition: "timer/main/35"
+    - interrupt_condition: "timers/main/40"
     - move: 1/0.4/1.5 

@@ -8,7 +8,7 @@ from threading import Thread
 import asyncio
 rospy.init_node("task_manager")
 #
-from std_msgs.msg import Bool
+from std_msgs.msg import Int8
 from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
@@ -19,7 +19,24 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 from abc import ABC, abstractmethod
 
-
+#####################################
+def startCallback(start):
+    Flags._execute = 0
+    if not start.data:
+        Flags._execute = 1
+        rospy.logwarn(f"Executing default route!")
+    else:
+        Manager.reset()
+        if start.data == 1:
+            rospy.logwarn(f"Parsing route1!")
+            rospy.sleep(0.5)
+            parse(1)
+        elif start.data == 2:
+            rospy.logwarn(f"Parsing route2!")
+            rospy.sleep(0.5)
+            parse(2)
+        elif start.data == 3:
+            Flags._execute = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
@@ -110,6 +127,7 @@ class Template(ABC):
         ############### Done after main exec
         await Task.checkForInterrupt()
         self._activate_flag = False
+        rospy.logwarn(f"Executable done! {self}")
         Status.checkDeps(self)
     ####### Not neccessary to override
     def trigger(self) -> None:
@@ -177,17 +195,17 @@ class Move(Template):
         _stat = self.status.get()
         _ended = 0
         while not _ended and not rospy.is_shutdown():
-            #await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
-            #rospy.logwarn(f"{_stat = }| {type(_stat) = }")
             rospy.loginfo(f"Move server feedback {_stat}")
-            if _stat == 2 or _stat == 4:
+            if _stat == "executing":
                 if await Task.checkForInterrupt():
                     await asyncio.sleep(0.1)
                     type(self).client.setTarget(self.pos,self.th)
             else:
                _ended = 1
                self.status.set(_stat)
+               if _stat == "fail":
+                   self.parent._fail_flag = 1
             await asyncio.sleep((1/Status.update_rate) / Status.amplify_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
@@ -348,38 +366,88 @@ class Interrupt(Template):
         Status.registerDependency(parent, args)
     @staticmethod
     def forceCall(parent, name, args):
-        return Interrupt.list[int(args)]
+        try:
+            for inter in Manager.obj_dict["Interrupt"]:
+                if inter.name == args:
+                    return inter
+            rospy.logerr(f"No such interrupt {args}")
+        except:
+            rospy.logerr(f"Interrupt force called when list is empty!")
     def __str__(self) -> str:
         return f"{self.name}"
     def rawString(self): #Used to get status
         return f"interrupts/{self.name}"
 ########################################################
+class Variable(Template):
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.value = int(args)
+        self.status.set(self.value)
+    # #def updateStatus(self) -> str:
+    #     Status.checkDeps(self)
+    #     return str(self.value)
+    def set(self, num: int):
+        self.value = num
+        Status.checkDeps(self)
+    def midExec(self) -> None:
+        pass
+    def rawString(self):
+        return f"var/{self.name}"
+########################################################
+class ChangeVar(Template): 
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        parsed = args.split("/")
+        self._var = parsed[0]
+        self._action = parsed[1]
+        self._value = parsed[2]
+    def apply(self, val: int):
+        if self._action == "add":
+            return val + self._value
+        elif self._action == "sub":
+            return val - self._value
+        elif self._action == "divide":
+            return val / self._value
+        elif self._action == "multiply":
+            return val * self._value
+        else:
+            rospy.logerr(f"Value change ({self._action}) not implemented!")
+    def midExec(self) -> None:
+        try:
+            for var in Manager.obj_dict["Variable"]:
+                if var.name == self._var:
+                    var.set(self.apply(var.value))
+            self.status.set("done")
+        except:
+            rospy.logerr("No variables available")
+########################################################
 class Timer(Template):
     name = "timer"
-    def __init__(self, name):
-        super().__init__(Timer, name, name)
+    def __init__(self, parent,name,args):
+        super().__init__(parent, name, args)
         self.time = 0 
         self.status.set("0")
         self.last_time = rospy.Time.now()
+        self._allow_flag = False
     async def midExec(self) -> None:
-        pass
+        self._allow_flag = True
     def delete(self):
         Timer.list.remove(self)
-    def updateStatus(self) -> str:
-        curr_time = rospy.Time.now()
-        self.time += (curr_time - self.last_time).to_sec()
-        self.last_time = curr_time
-        if Status.update_rate < 1:
-            self.repr_time = round(self.time)
+    def updateStatus(self):
+        if self._allow_flag:
+            #print (f"{self.time = }")
+            #print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
+            self.time += round((rospy.Time.now() - self.last_time).to_sec())
+            self.last_time = rospy.Time.now()
+            if not self.status.get() == str(self.time):
+                self.status.checkDeps(self) 
+            return str(self.time)
         else:
-            self.repr_time = floor(self.time)
-        if self.status.get() != str(self.repr_time):
-            self.status.checkDeps(self) 
-        return str(self.repr_time)
+            return "0"
     def __str__(self) -> str:
         return f"{self.name}|status: {self.status.get()}"
     def rawString(self):
-        return f"timer/{self.name}"
+        return f"timers/{self.name}"
 ##########################################################
 class Goto(Template):
     def __init__(self, parent, name, args):
@@ -397,14 +465,14 @@ class Goto(Template):
 class Schedule(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        self._interrupt_name = args
+        self._task_name = args
     async def midExec(self) -> None:
-        if not "Interrupt" in Manager.obj_dict.keys():
-            return
-        for inter in Manager.obj_dict["Interrupt"]:
-            if inter.name == self._interrupt_name:
-                inter.trigger()
-        rospy.logerr(f"Interrupt {self._interrupt_name} trigger failed! (No such interrupt)!")
+        if not "Task" in Manager.obj_dict.keys():
+            return 1
+        for task in Manager.obj_dict["Task"]:
+            if task.name == self._task_name:
+                return await task.exec()
+        rospy.logerr(f"Task {self._task_name} trigger failed! (No such task)!")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
         "call":Call,
@@ -419,14 +487,13 @@ constructors_dict = {  #syntax for route.yaml
         "dynamic_call": DynamicCall,
         "sleep": Sleep,
         "goto": Goto,
-        "schedule_interrupt": Schedule,
-        "new_timer": Timer
+        "schedule_task": Schedule,
+        "timer": Timer,
+        "change_var": ChangeVar
         } 
 
 
-#####################################
-def startCallback(start):
-    Flags._execute = start.data
+
 ##############
 class Manager:
     current_task = 0
@@ -435,34 +502,50 @@ class Manager:
     #Params
     debug = rospy.get_param("~debug", 1)
     #
-    file = rospy.get_param("~file", "config/routes/test_route.yaml")
+    file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
+    file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
+    default_file = rospy.get_param("~default_file", "config/routes/test_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
+    curr_file = default_file
+    start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     route = {}
     rate = rospy.Rate(Status.update_rate)
     @classmethod
     def read(cls):
-        with open(cls.file, "r") as stream:
+        with open(cls.curr_file, "r") as stream:
             try:
                 cls.route = (yaml.safe_load(stream))
             except yaml.YAMLError as exc:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for interrupt_name in cls.route["interrupts"]:
-            unparsed_list = cls.route["interrupts"][interrupt_name]
-            #rospy.logerr(f"{unparsed_list = }")
-            new_inter = Interrupt(interrupt_name,unparsed_list)
-        for task_name in cls.route["tasks"]:
-            unparsed_list = cls.route["tasks"][task_name]
-            #rospy.logerr(f"{unparsed_list = }")
-            new_task = Task(task_name,unparsed_list)
+        if "interrupts" in cls.route.keys():
+            for interrupt_name in cls.route["interrupts"]:
+                unparsed_list = cls.route["interrupts"][interrupt_name]
+                new_inter = Interrupt(interrupt_name,unparsed_list)
+        else:
+            rospy.logwarn("No interrupts found in route file!")
+        if "tasks" in cls.route.keys():
+            for task_name in cls.route["tasks"]:
+                unparsed_list = cls.route["tasks"][task_name]
+                new_task = Task(task_name,unparsed_list)
+        else:
+            rospy.logerr("NO TASKS IN ROUTE FILE!")
+        if "variables" in cls.route.keys():
+            for var_name in cls.route["variables"]:
+                var_val = cls.route["variables"][var_name]
+                new_var = Variable(Variable, var_name, var_val)
+        else:
+            rospy.logwarn("No variables found!")
+    @staticmethod
+    def reset():
+        Manager.route.clear()
+        Manager.obj_dict.clear()
     @staticmethod
     async def exec():
-        await asyncio.sleep(0.5)
-        #rospy.logerr(f"{Task.list = }")
+        await asyncio.sleep(0.2)
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
             if Manager.current_task<len(Manager.obj_dict["Task"]):
@@ -483,8 +566,16 @@ class Manager:
 class Flags:
     _execute = 0
     _goto = False
-def main():
-    rospy.on_shutdown(shutdownHook)
+def parse(route = 0):
+    Manager.reset()
+    if not route:
+        Manager.curr_file = Manager.default_file
+    elif route == 1:
+        Manager.curr_file = Manager.file1
+    elif route == 2:
+        Manager.curr_file = Manager.file2
+    else:
+        rospy.logerr("Unavailable route called")
     Manager.read()
     rospy.loginfo(f"Got dict!")
     if not Manager.route:
@@ -497,21 +588,28 @@ def main():
     rospy.loginfo(f"{Manager.obj_dict}")
     rospy.loginfo("Waiting for start topic...")
     
-    status_task = Thread(target=Status.updateCycle)
-    status_task.start()
+def main():
+    parse()
     while not rospy.is_shutdown():
         if Flags._execute:
             asyncio.run(executeRoute())
+        rospy.loginfo("Waiting for start topic...")
+        rospy.sleep(1/Status.update_rate)
+    
+    
         
 ##################
 async def executeRoute():
     rospy.logwarn(f"Starting route!")
-    main_timer = Timer("main")
-    main_task = asyncio.create_task(Manager.exec())
-    await main_task
+    main_timer = Timer(Timer,"main","main")
+    main_timer._allow_flag = 1
+    await Manager.exec()
 ##################
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")
 ##################
 if __name__=="__main__":
+    status_task = Thread(target=Status.updateCycle)
+    status_task.start()
+    rospy.on_shutdown(shutdownHook)
     main()

@@ -2,9 +2,9 @@
     
     <arg name="debug" default="0"/>
     <arg name="calls_file" default="$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
-    <arg name="file" default="$(find ebobot)/config/routes/$(optenv EBOBOT_ROUTE test_route).yaml"/>
-
-
+    <arg name="file1" default="$(find ebobot)/config/routes/test_route.yaml"/>
+    <arg name="file2" default="$(find ebobot)/config/routes/test_route.yaml"/>
+    <arg name="default_file" default="$(find ebobot)/config/routes/test_route.yaml"/>
 
     <arg name="use_own" default="true"/>
 
@@ -15,7 +15,9 @@
     <node pkg="ebobot" type="new_task_manager.py" name="new_task_manager" output="screen"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "calls_file" value = "$(arg calls_file)"/>
-        <param name = "file" value = "$(arg file)"/>
+        <param name = "file1" value = "$(arg file1)"/>
+        <param name = "file2" value = "$(arg file2)"/>
+        <param name = "default_file" value = "$(arg default_file)"/>
     </node>
     
 

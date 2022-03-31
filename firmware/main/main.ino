@@ -10,11 +10,11 @@
 ///////////////////////////
 #include "servos.h"
 #include "kadyrov_lcd.h"
-#include "ohm_reader.h"
+#include "pin_reader.h"
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1500> nh; //receive/publish
+ros::NodeHandle_<ArduinoHardware, 8, 4, 1524, 1400> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -46,7 +46,7 @@ TimerMs start_loop(100, 1, 0);
 
 volatile long X[3];
 const float coeff = 1;
-const float rad = 0.185; //m
+const float rad = 0.185; // m
 const float ticks_per_rotation = 360;
 long dX[3];
 long lastX[3];
@@ -112,7 +112,8 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds[mot]) > absolute_max_speed/4){
+    if (abs(spd - last_spds[mot]) > absolute_max_speed / 2)
+    {
       termsReset(mot);
     }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
@@ -123,10 +124,10 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
     else
     {
-      spd = constrain(spd,-absolute_max_speed, absolute_max_speed);
+      spd = constrain(spd, -absolute_max_speed, absolute_max_speed);
       stop_mot[mot] = false;
       targ_spd[mot] = spd;
-      last_spds[mot] = spd
+      last_spds[mot] = spd;
     }
   }
 }
@@ -160,8 +161,8 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
     nh.loginfo("set diff");
     diff_coeff[mot] = set_pid.data;
     break;
-  //case 3:
-    //max_speed = set_pid.data
+    // case 3:
+    // max_speed = set_pid.data
   }
   pid_count++;
   if (pid_count > 8)
@@ -216,16 +217,16 @@ void update_mot(int mot)
   }
 }
 //////////////////////////////////////////////////////
-void debugServo(int num){
-    struct Servo_mot *servo = ptr_list[num];
-    char buffer[40];
-    int target;
-    if (servo->target_state) target = 1;
-    else target = 0;
-    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
-    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
-    nh.loginfo(buffer);
-}
+// void debugServo(int num){
+//     struct Servo_mot *servo = ptr_list[num];
+//     char buffer[40];
+//     int target;
+//     if (servo->target_state) target = 1;
+//     else target = 0;
+//     sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
+//     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
+//     nh.loginfo(buffer);
+// }
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -245,7 +246,8 @@ void encoder2()
 }
 
 /////////////////////////////////////////////////
-void setup(){
+void setup()
+{
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
@@ -255,13 +257,16 @@ void setup(){
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
-  nh.advertiseService(ohm_reader_server);
+  nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
-  pinMode(A0, INPUT_PULLUP);
-  setStartPin(25);
+  pinMode(_start_pin, INPUT_PULLUP);
+  pinMode(_switch_pin, INPUT_PULLUP);
+  ///////////////////////////////
   lcdSetup();
-  if (servosSetup()) nh.logwarn("Servos shield found");
-  else nh.logerror("Servos shield not found!");
+  if (servosSetup())
+    nh.logwarn("Servos shield found");
+  else
+    nh.logerror("Servos shield not found!");
   //
   /*
   motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
@@ -273,7 +278,7 @@ void setup(){
   motors_msg.layout.dim[1].size = 4;
   motors_msg.layout.dim[0].stride = 4;
   */
-    
+
   ////////////////////////////////
   motors_msg.layout.data_offset = 0;
   motors_msg.data_length = 12;
@@ -296,8 +301,10 @@ void setup(){
   pinMode(BCK2, OUTPUT);
 }
 ////////////////////////////////
-void loop(){
-  if (main_loop.tick()){
+void loop()
+{
+  if (main_loop.tick())
+  {
     for (int mot = 0; mot < num_motors; mot++)
       update_mot(mot);
     for (int mot = 0; mot < num_motors; mot++)
@@ -307,15 +314,23 @@ void loop(){
       motors_msg.data[mot * 4 + 2] = dist[mot];
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
+    if (not pin_reader_debugged){
+      nh.loginfo(pin_reader_debug);
+    pin_reader_debugged = true;
+    }
+      
   }
 
-  if (servo_loop.tick()){
-    //debugServo(0);
+  if (servo_loop.tick())
+  {
+    // debugServo(0);
     servosUpdate();
-    if (not servos_debugged) nh.loginfo(servos_debug);
+    if (not servos_debugged)
+      nh.loginfo(servos_debug);
     servos_debugged = true;
   }
-  if (start_loop.tick()){
+  if (start_loop.tick())
+  {
     startUpdate();
   }
   motors_info.publish(&motors_msg);
