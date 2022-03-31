@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ros.h>
-#include <std_msgs/Int8.h>>
+#include <std_msgs/Int8.h>
 std_msgs::Int8 start_msg;
 ros::Publisher start_trigger("/ebobot/begin", &start_msg);
 bool _started = false;
