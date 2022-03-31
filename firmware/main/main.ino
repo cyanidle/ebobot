@@ -314,6 +314,11 @@ void loop()
       motors_msg.data[mot * 4 + 2] = dist[mot];
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
+    if (not pin_reader_debugged){
+      nh.loginfo(pin_reader_debug);
+    pin_reader_debugged = true;
+    }
+      
   }
 
   if (servo_loop.tick())

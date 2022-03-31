@@ -126,6 +126,7 @@ class Template(ABC):
         ############### Done after main exec
         await Task.checkForInterrupt()
         self._activate_flag = False
+        rospy.logwarn(f"Executable done! {self}")
         Status.checkDeps(self)
     ####### Not neccessary to override
     def trigger(self) -> None:
@@ -381,23 +382,43 @@ class Variable(Template):
         super().__init__(parent, name, args)
         self.value = int(args)
         self.status.set(self.value)
-    def updateStatus(self) -> str:
+    # #def updateStatus(self) -> str:
+    #     Status.checkDeps(self)
+    #     return str(self.value)
+    def set(self, num: int):
+        self.value = num
         Status.checkDeps(self)
-        return str(self.value)
     def midExec(self) -> None:
         pass
     def rawString(self):
         return f"var/{self.name}"
 ########################################################
-class ChangeVar(Template):
+class ChangeVar(Template): 
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         parsed = args.split("/")
         self._var = parsed[0]
-        self._sign = parsed[1]
-        self._val = parsed[2]
+        self._action = parsed[1]
+        self._value = parsed[2]
+    def apply(self, val: int):
+        if self._action == "add":
+            return val + self._value
+        elif self._action == "sub":
+            return val - self._value
+        elif self._action == "divide":
+            return val / self._value
+        elif self._action == "multiply":
+            return val * self._value
+        else:
+            rospy.logerr(f"Value change ({self._action}) not implemented!")
     def midExec(self) -> None:
-        pass
+        try:
+            for var in Manager.obj_dict["Variable"]:
+                if var.name == self._var:
+                    var.set(self.apply(var.value))
+            self.status.set("done")
+        except:
+            rospy.logerr("No variables available")
 ########################################################
 class Timer(Template):
     name = "timer"
@@ -466,7 +487,8 @@ constructors_dict = {  #syntax for route.yaml
         "sleep": Sleep,
         "goto": Goto,
         "schedule_task": Schedule,
-        "timer": Timer
+        "timer": Timer,
+        "change_var": ChangeVar
         } 
 
 
@@ -498,12 +520,24 @@ class Manager:
                 rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        for interrupt_name in cls.route["interrupts"]:
-            unparsed_list = cls.route["interrupts"][interrupt_name]
-            new_inter = Interrupt(interrupt_name,unparsed_list)
-        for task_name in cls.route["tasks"]:
-            unparsed_list = cls.route["tasks"][task_name]
-            new_task = Task(task_name,unparsed_list)
+        if "interrupts" in cls.route.keys():
+            for interrupt_name in cls.route["interrupts"]:
+                unparsed_list = cls.route["interrupts"][interrupt_name]
+                new_inter = Interrupt(interrupt_name,unparsed_list)
+        else:
+            rospy.logwarn("No interrupts found in route file!")
+        if "tasks" in cls.route.keys():
+            for task_name in cls.route["tasks"]:
+                unparsed_list = cls.route["tasks"][task_name]
+                new_task = Task(task_name,unparsed_list)
+        else:
+            rospy.logerr("NO TASKS IN ROUTE FILE!")
+        if "variables" in cls.route.keys():
+            for var_name in cls.route["variables"]:
+                var_val = cls.route["variables"][var_name]
+                new_var = Variable(Variable, var_name, var_val)
+        else:
+            rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
         Manager.route.clear()
