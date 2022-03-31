@@ -364,7 +364,13 @@ class Interrupt(Template):
         Status.registerDependency(parent, args)
     @staticmethod
     def forceCall(parent, name, args):
-        return Interrupt.list[int(args)]
+        try:
+            for inter in Manager.obj_dict["Interrupt"]:
+                if inter.name == args:
+                    return inter
+            rospy.logerr(f"No such interrupt {args}")
+        except:
+            rospy.logerr(f"Interrupt force called when list is empty!")
     def __str__(self) -> str:
         return f"{self.name}"
     def rawString(self): #Used to get status
