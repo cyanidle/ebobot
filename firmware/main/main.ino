@@ -10,7 +10,7 @@
 ///////////////////////////
 #include "servos.h"
 #include "kadyrov_lcd.h"
-#include "ohm_reader.h"
+#include "pin_reader.h"
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
@@ -126,7 +126,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
       spd = constrain(spd,-absolute_max_speed, absolute_max_speed);
       stop_mot[mot] = false;
       targ_spd[mot] = spd;
-      last_spds[mot] = spd
+      last_spds[mot] = spd;
     }
   }
 }
@@ -255,11 +255,11 @@ void setup(){
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
-  nh.advertiseService(ohm_reader_server);
+  nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
   pinMode(_start_pin,INPUT_PULLUP);
   pinMode(_switch_pin,INPUT_PULLUP);
-  pinMode(A0, INPUT_PULLUP);
+  ///////////////////////////////
   lcdSetup();
   if (servosSetup()) nh.logwarn("Servos shield found");
   else nh.logerror("Servos shield not found!");

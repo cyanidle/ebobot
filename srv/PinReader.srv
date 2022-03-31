@@ -1,0 +1,7 @@
+int8 pin
+bool write
+bool digital
+bool pullup 
+int16 value
+---
+int16 resps

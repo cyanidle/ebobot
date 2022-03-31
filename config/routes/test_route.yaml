@@ -6,6 +6,7 @@ tasks:
     - call: Adjust
   top:
     - move: 1.5/1/1
+    - call: Adjust
     - log: "E: We chilling on task top"
     - score: -5
     - call: ArmUp
