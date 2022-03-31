@@ -342,6 +342,29 @@ class Interrupt(Template):
     def rawString(self): #Used to get status
         return f"interrupts/{self.name}"
 ########################################################
+class Variable(Template):
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.value = int(args)
+        self.status.set(self.value)
+    def updateStatus(self) -> str:
+        Status.checkDeps(self)
+        return str(self.value)
+    def midExec(self) -> None:
+        pass
+    def rawString(self):
+        return f"var/{self.name}"
+########################################################
+class ChangeVar(Template):
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        parsed = args.split("/")
+        self._var = parsed[0]
+        self._sign = parsed[1]
+        self._val = parsed[2]
+    def midExec(self) -> None:
+        pass
+########################################################
 class Timer(Template):
     name = "timer"
     def __init__(self, name):
@@ -349,22 +372,26 @@ class Timer(Template):
         self.time = 0 
         self.status.set("0")
         self.last_time = rospy.Time.now()
+        self._allow_flag = False
     async def midExec(self) -> None:
-        pass
+        self._allow_flag = True
     def delete(self):
         Timer.list.remove(self)
     def updateStatus(self):
-        #print (f"{self.time = }")
-        #print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
-        self.time += round((rospy.Time.now() - self.last_time).to_sec())
-        self.last_time = rospy.Time.now()
-        if not self.status.get() == str(self.time):
-            self.status.checkDeps(self) 
-        return str(self.time)
+        if self._allow_flag:
+            #print (f"{self.time = }")
+            #print(f"{(rospy.Time.now() - self.last_time).to_sec() = }")
+            self.time += round((rospy.Time.now() - self.last_time).to_sec())
+            self.last_time = rospy.Time.now()
+            if not self.status.get() == str(self.time):
+                self.status.checkDeps(self) 
+            return str(self.time)
+        else:
+            return "0"
     def __str__(self) -> str:
         return f"{self.name}|status: {self.status.get()}"
     def rawString(self):
-        return f"timer/{self.name}"
+        return f"timers/{self.name}"
 ##########################################################
 class Goto(Template):
     def __init__(self, parent, name, args):
@@ -382,14 +409,14 @@ class Goto(Template):
 class Schedule(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        self._interrupt_name = args
+        self._task_name = args
     async def midExec(self) -> None:
-        if not "Interrupt" in Manager.obj_dict.keys():
-            return
-        for inter in Manager.obj_dict["Interrupt"]:
-            if inter.name == self._interrupt_name:
-                inter.trigger()
-        rospy.logerr(f"Interrupt {self._interrupt_name} trigger failed! (No such interrupt)!")
+        if not "Task" in Manager.obj_dict.keys():
+            return 1
+        for task in Manager.obj_dict["Task"]:
+            if task.name == self._task_name:
+                return await task.exec()
+        rospy.logerr(f"Task {self._task_name} trigger failed! (No such task)!")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
         "call":Call,
@@ -404,7 +431,7 @@ constructors_dict = {  #syntax for route.yaml
         "dynamic_call": DynamicCall,
         "sleep": Sleep,
         "goto": Goto,
-        "schedule_interrupt": Schedule,
+        "schedule_task": Schedule,
         "new_timer": Timer
         } 
 
