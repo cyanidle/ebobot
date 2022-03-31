@@ -231,19 +231,19 @@ class Move:
         self.client.send_goal(goal, feedback_cb=self.cb)
     def fetchResult(self):
         return self.client.get_result()
-    def checkResult(self)->int:
+    def checkResult(self)->str:
         "ACTIVE = 0, SUCCESS = 1, ABORTED = 2, LOST = 3, ELSE = 4"
         state = self.client.get_state()
         if state == GoalStatus.ACTIVE:
-            return 2
+            return "executing"
         elif state == GoalStatus.SUCCEEDED:
-            return 0
+            return "done"
         elif state == GoalStatus.ABORTED:
-            return 1
+            return "fail"
         elif state == GoalStatus.LOST:
-            return 3
+            return "fail"
         else:
-            return 4
+            return "executing"
     def waitResult(self):
         self.client.wait_for_result()
 
@@ -255,10 +255,10 @@ rospy.loginfo("Done parsing calls!")
 
 #out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
 #ip = int(out.stdout.split(".")[-1])
-# try:
-#     asyncio.run(showPrediction(0000))
-# except:
-#     rospy.logwarn("Arduino disconnected!")
+try:
+    asyncio.run(showPrediction(0000))
+except:
+    rospy.logwarn("Arduino disconnected!")
 
 
 

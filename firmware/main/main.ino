@@ -14,7 +14,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1500> nh; //receive/publish
+ros::NodeHandle_<ArduinoHardware, 8, 4, 1524, 1400> nh; //recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -216,16 +216,16 @@ void update_mot(int mot)
   }
 }
 //////////////////////////////////////////////////////
-void debugServo(int num){
-    struct Servo_mot *servo = ptr_list[num];
-    char buffer[40];
-    int target;
-    if (servo->target_state) target = 1;
-    else target = 0;
-    sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
-    num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
-    nh.loginfo(buffer);
-}
+// void debugServo(int num){
+//     struct Servo_mot *servo = ptr_list[num];
+//     char buffer[40];
+//     int target;
+//     if (servo->target_state) target = 1;
+//     else target = 0;
+//     sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
+//     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
+//     nh.loginfo(buffer);
+// }
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -257,8 +257,9 @@ void setup(){
   nh.advertiseService(lcd_server);
   nh.advertiseService(ohm_reader_server);
   // Инициализация наших хедеров
+  pinMode(_start_pin,INPUT_PULLUP);
+  pinMode(_switch_pin,INPUT_PULLUP);
   pinMode(A0, INPUT_PULLUP);
-  setStartPin(25);
   lcdSetup();
   if (servosSetup()) nh.logwarn("Servos shield found");
   else nh.logerror("Servos shield not found!");

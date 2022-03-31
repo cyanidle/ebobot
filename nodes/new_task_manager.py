@@ -7,7 +7,7 @@ from threading import Thread
 import asyncio
 rospy.init_node("task_manager")
 #
-from std_msgs.msg import Bool
+from std_msgs.msg import Int8
 from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
@@ -18,7 +18,24 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 from abc import ABC, abstractmethod
 
-
+#####################################
+def startCallback(start):
+    Flags._execute = 0
+    if not start.data:
+        Flags._execute = 1
+        rospy.logwarn(f"Executing default route!")
+    else:
+        Manager.reset()
+        if start.data == 1:
+            rospy.logwarn(f"Parsing route1!")
+            rospy.sleep(0.5)
+            parse(1)
+        elif start.data == 2:
+            rospy.logwarn(f"Parsing route2!")
+            rospy.sleep(0.5)
+            parse(2)
+        elif start.data == 3:
+            Flags._execute = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
@@ -176,17 +193,17 @@ class Move(Template):
         _stat = self.status.get()
         _ended = 0
         while not _ended and not rospy.is_shutdown():
-            #await Task.checkForInterrupt()
             _stat = type(self).client.checkResult()
-            #rospy.logwarn(f"{_stat = }| {type(_stat) = }")
             rospy.loginfo(f"Move server feedback {_stat}")
-            if _stat == 2 or _stat == 4:
+            if _stat == "executing":
                 if await Task.checkForInterrupt():
                     await asyncio.sleep(0.1)
                     type(self).client.setTarget(self.pos,self.th)
             else:
                _ended = 1
                self.status.set(_stat)
+               if _stat == "fail":
+                   self.parent._fail_flag = 1
             await asyncio.sleep((1/Status.update_rate) / Status.amplify_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
@@ -378,8 +395,8 @@ class ChangeVar(Template):
 ########################################################
 class Timer(Template):
     name = "timer"
-    def __init__(self, name):
-        super().__init__(Timer, name, name)
+    def __init__(self, parent,name,args):
+        super().__init__(parent, name, args)
         self.time = 0 
         self.status.set("0")
         self.last_time = rospy.Time.now()
@@ -443,13 +460,11 @@ constructors_dict = {  #syntax for route.yaml
         "sleep": Sleep,
         "goto": Goto,
         "schedule_task": Schedule,
-        "new_timer": Timer
+        "timer": Timer
         } 
 
 
-#####################################
-def startCallback(start):
-    Flags._execute = start.data
+
 ##############
 class Manager:
     current_task = 0
@@ -458,16 +473,19 @@ class Manager:
     #Params
     debug = rospy.get_param("~debug", 1)
     #
-    file = rospy.get_param("~file", "config/routes/test_route.yaml")
+    file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
+    file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
+    default_file = rospy.get_param("~default_file", "config/routes/test_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    start_subscriber = rospy.Subscriber(start_topic, Bool, startCallback)
+    curr_file = default_file
+    start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     route = {}
     rate = rospy.Rate(Status.update_rate)
     @classmethod
     def read(cls):
-        with open(cls.file, "r") as stream:
+        with open(cls.curr_file, "r") as stream:
             try:
                 cls.route = (yaml.safe_load(stream))
             except yaml.YAMLError as exc:
@@ -476,16 +494,17 @@ class Manager:
     def parse(cls):
         for interrupt_name in cls.route["interrupts"]:
             unparsed_list = cls.route["interrupts"][interrupt_name]
-            #rospy.logerr(f"{unparsed_list = }")
             new_inter = Interrupt(interrupt_name,unparsed_list)
         for task_name in cls.route["tasks"]:
             unparsed_list = cls.route["tasks"][task_name]
-            #rospy.logerr(f"{unparsed_list = }")
             new_task = Task(task_name,unparsed_list)
     @staticmethod
+    def reset():
+        Manager.route.clear()
+        Manager.obj_dict.clear()
+    @staticmethod
     async def exec():
-        await asyncio.sleep(0.5)
-        #rospy.logerr(f"{Task.list = }")
+        await asyncio.sleep(0.2)
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
             if Manager.current_task<len(Manager.obj_dict["Task"]):
@@ -506,8 +525,16 @@ class Manager:
 class Flags:
     _execute = 0
     _goto = False
-def main():
-    rospy.on_shutdown(shutdownHook)
+def parse(route = 0):
+    Manager.reset()
+    if not route:
+        Manager.curr_file = Manager.default_file
+    elif route == 1:
+        Manager.curr_file = Manager.file1
+    elif route == 2:
+        Manager.curr_file = Manager.file2
+    else:
+        rospy.logerr("Unavailable route called")
     Manager.read()
     rospy.loginfo(f"Got dict!")
     if not Manager.route:
@@ -520,21 +547,28 @@ def main():
     rospy.loginfo(f"{Manager.obj_dict}")
     rospy.loginfo("Waiting for start topic...")
     
-    status_task = Thread(target=Status.updateCycle)
-    status_task.start()
+def main():
+    parse()
     while not rospy.is_shutdown():
         if Flags._execute:
             asyncio.run(executeRoute())
+        rospy.loginfo("Waiting for start topic...")
+        rospy.sleep(1/Status.update_rate)
+    
+    
         
 ##################
 async def executeRoute():
     rospy.logwarn(f"Starting route!")
-    main_timer = Timer("main")
-    main_task = asyncio.create_task(Manager.exec())
-    await main_task
+    main_timer = Timer(Timer,"main","main")
+    main_timer._allow_flag = 1
+    await Manager.exec()
 ##################
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")
 ##################
 if __name__=="__main__":
+    status_task = Thread(target=Status.updateCycle)
+    status_task.start()
+    rospy.on_shutdown(shutdownHook)
     main()

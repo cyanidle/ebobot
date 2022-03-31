@@ -36,6 +36,9 @@
       - "state": 1
     - "ohm_reader_service":
       - "pin": 1
+
+
+      
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!
     - service_name # call with args passed as: {service_arg_1: arg1, service_arg_2: arg2}
