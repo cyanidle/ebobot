@@ -360,7 +360,7 @@ class Interrupt(Template):
         super().__init__(Manager, name, args)
         self.micros_list = list()
         num_of_conds = 0
-        #self.name = f"{type(self).__name__} '{self.name}'"
+        self._fail_flag = 0
         for exec, subargs in Task.parseMicroList(args):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
