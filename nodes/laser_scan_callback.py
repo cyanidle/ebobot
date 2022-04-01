@@ -387,7 +387,8 @@ class Beacons(Laser):
                 _sum_th += _th
             _max = len(cls.deltas)
             cls.delta_th = _sum_th/_max
-            cls.delta_pos = (_sum_y/_max+ (Laser.robot_twist[0]/Laser.update_rate),_sum_x/_max+ (Laser.robot_twist[1]/Laser.update_rate))
+            cls.delta_pos = (_sum_y/_max+ (Laser.robot_twist[0]/(Laser.update_rate/cls.cycles_per_update)),
+                             _sum_x/_max+ (Laser.robot_twist[1]/(Laser.update_rate/cls.cycles_per_update)))
             if (not -cls.max_th_adj < cls.delta_th < cls.max_th_adj
              or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
                 cls.delta_th = 0
