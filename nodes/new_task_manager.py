@@ -18,37 +18,62 @@ from calls_executer import Move as move_client_constructor
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 from abc import ABC, abstractmethod
-
+##
+rospy.sleep(1)
 #####################################
 def startCallback(start):
     Flags._execute = 0
     rospy.logwarn(Manager.route)
-    if not start.data:
-        parse(0)
-        rospy.sleep(1)
-        asyncio.run(showPrediction(3))
-        rospy.sleep(1)
-        asyncio.run(showPrediction(2))
-        rospy.sleep(1)
-        asyncio.run(showPrediction(1))
-        rospy.sleep(1)
-        asyncio.run(showPrediction(0))
-        Flags._execute = 1
-        rospy.logwarn(f"Executing default route!")
-    else:
+    if Flags._test_routes:
         if start.data == 1:
             asyncio.run(showPrediction(7771))
+            rospy.logwarn(f"Parsing test_route1!")
+            Flags._current_route_num = 1
+            rospy.sleep(0.5)  
+            parse(11)
+        elif start.data == 2:
+            asyncio.run(showPrediction(7772))
+            rospy.logwarn(f"Parsing test_route2!")
+            Flags._current_route_num = 2
+            rospy.sleep(0.5)
+            parse(12)
+        elif start.data == 0:
+            Flags._test_routes = 0
+            rospy.sleep(1)
+            for n in range(3,0,-1):
+                asyncio.run(showPrediction(n))
+                rospy.sleep(1)
+            Flags._execute = 1
+            rospy.logwarn(f"Executing test route!")
+        else:
+            rospy.logerr("Incorrect start sequence!")
+            asyncio.run(showPrediction(9999))
+    else:
+        if start.data == 9:
+            asyncio.run(showPrediction(1000 + Flags._current_route_num))
+            rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
+            rospy.sleep(0.5)
+            parse(Flags._current_route_num)
+        elif start.data == 1:
+            asyncio.run(showPrediction(1001))
             rospy.logwarn(f"Parsing route1!")
+            Flags._current_route_num = 1
             rospy.sleep(0.5)
             parse(1)
         elif start.data == 2:
-            asyncio.run(showPrediction(7772))
+            asyncio.run(showPrediction(1002))
             rospy.logwarn(f"Parsing route2!")
+            Flags._current_route_num = 2
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
-            asyncio.run(showPrediction(0))
+            Flags._test_routes = 1
             Flags._execute = 1
+            rospy.logwarn(f"Executing chosen route!")
+        else:
+            rospy.logerr("Incorrect start sequence!")
+            asyncio.run(showPrediction(9999))
+            Flags._test_routes = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
@@ -521,11 +546,12 @@ class Manager:
     #
     file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
     file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
-    default_file = rospy.get_param("~default_file", "config/routes/test_route.yaml")
+    test_file1 = rospy.get_param("~test_file1", "config/routes/test_route.yaml")
+    test_file2 = rospy.get_param("~test_file2", "config/routes/test_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    curr_file = default_file
+    curr_file = test_file1
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     route = {}
     rate = rospy.Rate(Status.update_rate)
@@ -548,6 +574,13 @@ class Manager:
             for task_name in cls.route["tasks"]:
                 unparsed_list = cls.route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
+            ###
+            _color_step = 1/len(Manager.obj_dict["Move"])
+            pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
+            for num, _mv in enumerate(Manager.obj_dict["Move"]):
+               pubMarker(_mv.pos,num,40,frame_name="task_moves",
+               type="cube",size=0.05,g=0.5,r=((num+1) * _color_step),b=0.5,debug=1,add=1)
+            ###
         else:
             rospy.logerr("NO TASKS IN ROUTE FILE!")
         if "variables" in cls.route.keys():
@@ -576,6 +609,8 @@ class Manager:
                     Manager.current_task += 1
             else:
                 rospy.logwarn("No tasks left!")
+                if not Flags._test_routes:
+                    startCallback(Int8(9))
             await asyncio.sleep(0.1)
         Manager.current_task = 0
         Flags._execute = 0
@@ -583,11 +618,15 @@ class Manager:
 ##############################
 class Flags:
     _execute = 0
+    _test_routes=1
+    _current_route_num = 1
     _goto = False
 def parse(route = 0):
     Manager.reset()
-    if not route:
-        Manager.curr_file = Manager.default_file
+    if route == 11:
+        Manager.curr_file = Manager.test_file1
+    elif route == 12:
+        Manager.curr_file = Manager.test_file2
     elif route == 1:
         Manager.curr_file = Manager.file1
     elif route == 2:

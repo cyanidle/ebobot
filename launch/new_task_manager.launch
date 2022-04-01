@@ -3,9 +3,9 @@
     <arg name="debug" default="0"/>
     <arg name="calls_file" default="$(find ebobot)/config/routes/calls/calls_dict.yaml"/>
     <arg name="file1" default="$(find ebobot)/config/routes/new_route.yaml"/>
-    <arg name="file2" default="$(find ebobot)/config/routes/test_route.yaml"/>
-    <arg name="default_file" default="$(find ebobot)/config/routes/test_route.yaml"/>
-
+    <arg name="file2" default="$(find ebobot)/config/routes/new_route.yaml"/>
+    <arg name="test_file1" default="$(find ebobot)/config/routes/test_route.yaml"/>
+    <arg name="test_file2" default="$(find ebobot)/config/routes/test_route.yaml"/>
     <arg name="use_own" default="true"/>
 
     <group if="$(arg use_own)">
@@ -17,7 +17,8 @@
         <param name = "calls_file" value = "$(arg calls_file)"/>
         <param name = "file1" value = "$(arg file1)"/>
         <param name = "file2" value = "$(arg file2)"/>
-        <param name = "default_file" value = "$(arg default_file)"/>
+        <param name = "test_file1" value = "$(arg test_file1)"/>
+        <param name = "test_file2" value = "$(arg test_file2)"/>
     </node>
     
 

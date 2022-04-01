@@ -8,13 +8,13 @@
   - "ArmUp":
     - "servos_service":
       - "num": 0
-      - "state": 1
+      - "state": 100
     - "servos_service":
       - "num": 1
-      - "state": 0
+      - "state": 30
     - "servos_service":
       - "num": 2
-      - "state": 1
+      - "state": 100
 
   - "ArmDown":
     - "servos_service":
