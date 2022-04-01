@@ -1,5 +1,5 @@
 import roslib
-import subprocess
+#import subprocess
 roslib.load_manifest('ebobot')
 import rospy
 import actionlib
@@ -70,6 +70,8 @@ class Calls: #Async
             rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
                 return "fail"
+            elif not 0 in resps:
+                return str(resps[-1])
             else:
                 return "done"
         except:
@@ -86,6 +88,8 @@ class Calls: #Async
             rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
             if 1 in resp:
                 return "fail"
+            elif not 0 in resps:
+                return str(resps[-1])
             else:
                 return "done"
         except:
@@ -130,13 +134,13 @@ class Calls: #Async
     @staticmethod
     async def ohmsExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
-        resp = round(float(proxy(args).ohms)/1000,2)
+        resp = round(float(1023*50_000*(1023 - proxy(args).resp))/1000,2)
         if abs(resp-1) < 0.2:
-            return 1
+            return "low"
         elif resp < 1:
-            return 0
+            return "mid"
         else:
-            return 2 
+            return "high"
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
