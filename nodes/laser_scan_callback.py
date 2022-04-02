@@ -299,12 +299,12 @@ class Beacons(Laser):
         for num,beacon in enumerate(cls.rel_list):
             if beacon._pub or _all:
                 rel_pos = (beacon.pose[0],  beacon.pose[1])
-                pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+                pubMarker(rel_pos,num,1/cls.update_rate+0.3,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
     @classmethod
     def pubExpected(cls):
         for num,beacon in enumerate(cls.expected_list):
             exp_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(exp_pos,num,1/cls.update_rate+1,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
