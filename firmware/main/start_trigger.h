@@ -6,7 +6,7 @@ ros::Publisher start_trigger("/ebobot/begin", &start_msg);
 bool _started = false;
 bool _route = false;
 int _start_pin = 25;
-int _switch_pin = 27;
+int _switch_pin = 29;
 
 void startUpdate(){
   
@@ -28,19 +28,16 @@ void startUpdate(){
     if (_started){
       if (digitalRead(_start_pin) == HIGH){
         _started = false;
-        start_msg.data = 0;
+        start_msg.data = 3;
         start_trigger.publish(&start_msg);
       }
     }
     else{
-      if (digitalRead(_start_pin) == HIGH){
+      if (digitalRead(_start_pin) == LOW){
         _started = true;
-        start_msg.data = 3;
+        start_msg.data = 0;
         start_trigger.publish(&start_msg);
       }
     }
   }
   ///////////////////////////////////////
-
-
-}
