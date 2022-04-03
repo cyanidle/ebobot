@@ -21,8 +21,8 @@ struct Servo_mot{
     int speed;
     int min_val;
     int max_val;
-    int8_t curr_val;
-    int8_t target_state;
+    int curr_val;
+    int target_state;
     };
 //
 char servos_debug[50] = "Servos ready for debug!";
