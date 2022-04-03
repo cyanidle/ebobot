@@ -14,7 +14,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 8, 8, 1224, 1400> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 8, 8, 1324, 1300> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -112,9 +112,11 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds[mot]) > absolute_max_speed / 2)
+    if (abs(spd - last_spds[mot]) > (absolute_max_speed / 2.0))
     {
-      termsReset(mot);
+      for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
+      termsReset(sub_mot);
+      }
     }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
     if (spd < 0.01 and spd > -0.01)
@@ -219,10 +221,10 @@ void update_mot(int mot)
 //////////////////////////////////////////////////////
 void debugServo(int num){
      Servo_mot* servo = ptr_list[num];
-     char buffer[40];
+     char buffer[60];
      int target;
-     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d",
-     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val);
+     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d,bytes%d",
+     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
      nh.loginfo(buffer);
 }
 //////////////////////////////////////////////////////////////
@@ -312,9 +314,7 @@ void loop()
     servosUpdate();
     if (not servos_debugged){
       nh.logwarn(servos_debug);}
-      debugServo(0);
-    
-      
+      //debugServo(0);
     servos_debugged = true;
   }
   if (start_loop.tick())

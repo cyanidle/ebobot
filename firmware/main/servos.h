@@ -35,7 +35,7 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
 {
     Servo_mot *servo = ptr_list[req.num];
     //servo->target_state = req.state;
-    servo->target_state = (int) (servo->min_val + (servo->max_val - servo->min_val) * (req.state / 100.0))
+    servo->target_state = (int) (servo->min_val + (servo->max_val - servo->min_val) * (req.state / 100.0));
     //
     sprintf(servos_debug, "Srv moved!serv%d:state %d (%d),curr%d", req.num,
  req.state,servo->target_state,servo->curr_val);

@@ -63,9 +63,12 @@ class Calls: #Async
         return await proc
     async def executeStatic(self):
         resps = []
-        try:
+        async def subExec():
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 _corout = exec(parser(args))
+                if Execute.debug:
+                    rospy.loginfo(f"Executing static {exec}, parser = {parser}, args = {args}")
+                    rospy.loginfo(f"Couroutine = {_corout}")
                 resps.append(await _corout)
             rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
@@ -74,27 +77,37 @@ class Calls: #Async
                 return str(resps[-1])
             else:
                 return "done"
-        except:
-            rospy.logerr(f"Call {self.name} unavailable!")
-            return "fail"
+        if Execute.debug:
+            return await subExec()
+        else:
+            try:
+                return subExec()
+            except:
+                rospy.logerr(f"Call {self.name} unavailable!")
+                return "fail"
     async def executeDynamic(self,args):
         sub_calls = []
-        try:
+        async def subExec():
             for tup in zip(self.executables, self.parsers):
                 exec, parser = tup
                 _corout = exec(parser(args))
                 sub_calls.append(asyncio.create_task(_corout))
-            resp = await asyncio.gather(*sub_calls)
-            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
-            if 1 in resp:
+            resps = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resps}")
+            if 1 in resps:
                 return "fail"
             elif not 0 in resps:
                 return str(resps[-1])
             else:
                 return "done"
-        except:
-            rospy.logerr(f"Call {self.name} unavailable!")
-            return "fail"
+        if Execute.debug:
+            return await subExec()
+        else:
+            try:
+                return subExec()
+            except:
+                rospy.logerr(f"Call {self.name} unavailable!")
+                return "fail"
     @staticmethod
     def parseServos(args):
         parsed = ServosRequest()
@@ -144,19 +157,19 @@ class Calls: #Async
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
-    ####
+    ###############################
     @staticmethod
     def getAdjExec():
-        return rospy.ServiceProxy("adjust_pos_service", Empty)
+        return Calls.adjExec
     @staticmethod
-    def adjExec(args):
+    async def adjExec(args):
         proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
         proxy(args)
         return 0
     @staticmethod
-    def parseAdj(_place):
+    def parseAdj(_placeholder):
         return EmptyRequest()
-    ####
+    ################################
     @staticmethod
     def getPinExec():
         return Calls.pinExec
@@ -183,6 +196,7 @@ async def showPrediction(num):
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")
+    debug = rospy.get_param("~debug", 1)
     #/Params
     #Globals
     dict = {}

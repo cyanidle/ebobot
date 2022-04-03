@@ -1,5 +1,6 @@
 tasks:
   top_right: 
+    - call: ArmUp
     - call: Adjust
     - move: 1/0.55/0 #x/y/th
     - call: Adjust
@@ -9,7 +10,7 @@ tasks:
   start:
     - call: Adjust
     - move: 0.8/0.4/0
-    - score: 7
+    - score: 1000
     - call: Adjust
 variables:
   default: 0

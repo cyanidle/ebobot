@@ -40,7 +40,7 @@ def startCallback(start):
         elif start.data == 0:
             Flags._test_routes = 0
             rospy.sleep(1)
-            for n in range(3,0,-1):
+            for n in range(3,-1,-1):
                 asyncio.run(showPrediction(n))
                 rospy.sleep(1)
             Flags._execute = 1
@@ -578,8 +578,8 @@ class Manager:
             _color_step = 1/len(Manager.obj_dict["Move"])
             pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
             for num, _mv in enumerate(Manager.obj_dict["Move"]):
-               pubMarker(_mv.pos,num,40,frame_name="task_moves",
-               type="cube",size=0.05,g=0.5,r=((num+1) * _color_step),b=0.5,debug=1,add=1)
+               pubMarker(_mv.pos,num,300,frame_name="task_moves",
+               type="cube",size=0.05,g=1-((num) * _color_step),r=1,b=1-((num) * _color_step),debug=1,add=1)
             ###
         else:
             rospy.logerr("NO TASKS IN ROUTE FILE!")
@@ -622,7 +622,7 @@ class Flags:
     _test_routes=1
     _current_route_num = 1
     _goto = False
-def parse(route = 0):
+def parse(route = 11):
     Manager.reset()
     if route == 11:
         Manager.curr_file = Manager.test_file1
