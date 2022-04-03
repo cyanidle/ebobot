@@ -50,7 +50,7 @@ def startCallback(start):
             asyncio.run(showPrediction(9999))
     else:
         if start.data == 9:
-            asyncio.run(showPrediction(1000 + Flags._current_route_num))
+            
             rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
             rospy.sleep(0.5)
             parse(Flags._current_route_num)
@@ -610,6 +610,7 @@ class Manager:
             else:
                 rospy.logwarn("No tasks left!")
                 if not Flags._test_routes:
+                    await showPrediction(1000 + Flags._current_route_num)
                     startCallback(Int8(9))
             await asyncio.sleep(0.1)
         Manager.current_task = 0
