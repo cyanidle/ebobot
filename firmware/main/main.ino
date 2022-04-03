@@ -217,16 +217,14 @@ void update_mot(int mot)
   }
 }
 //////////////////////////////////////////////////////
-// void debugServo(int num){
-//     Servo_mot* servo = ptr_list[num];
-//     char buffer[40];
-//     int target;
-//     if (servo->target_state) target = 1;
-//     else target = 0;
-//     sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
-//     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
-//     nh.loginfo(buffer);
-// }
+void debugServo(int num){
+     Servo_mot* servo = ptr_list[num];
+     char buffer[40];
+     int target;
+     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d",
+     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val);
+     nh.loginfo(buffer);
+}
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -313,9 +311,9 @@ void loop()
   {
     servosUpdate();
     if (not servos_debugged){
-      nh.logwarn(servos_debug);
-      //debugServo(0);
-    }
+      nh.logwarn(servos_debug);}
+      debugServo(0);
+    
       
     servos_debugged = true;
   }
