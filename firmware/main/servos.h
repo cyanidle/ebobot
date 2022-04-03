@@ -34,10 +34,11 @@ Servo_mot *ptr_list[MAX_SERVOS];
 void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response &resp)
 {
     Servo_mot *servo = ptr_list[req.num];
-    servo->target_state = req.state;
+    //servo->target_state = req.state;
+    servo->target_state = (int) (servo->min_val + (servo->max_val - servo->min_val) * (req.state / 100.0))
     //
-    sprintf(servos_debug, "Srv moved!serv%d:state %d (%d),curr%d", req.num ,servo->target_state,
-    servo->min_val + (servo->max_val - servo->min_val) * (servo->target_state / 100.0),servo->curr_val);
+    sprintf(servos_debug, "Srv moved!serv%d:state %d (%d),curr%d", req.num,
+ req.state,servo->target_state,servo->curr_val);
     servos_debugged = false;
     //
     resp.resp = 0;
@@ -93,18 +94,18 @@ void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::S
     
 }
 void servoUp(Servo_mot *servo){
-    int target = servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0;
-    if (abs(target - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
+    //int target = (int)(servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0);
+    if (abs(servo->target_state - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
     else {
-        servo->curr_val = target;
+        servo->curr_val = servo->target_state;
     }
     servos_shield.set_channel_value(servo->channel,servo->curr_val);
 }
 void servoDown(Servo_mot *servo){
-    int target = servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0;
-    if (abs(target - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
+    //int target = (int)(servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0);
+    if (abs(servo->target_state - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
     else {
-        servo->curr_val = target;
+        servo->curr_val = servo->target_state;
     }
     servos_shield.set_channel_value(servo->channel,servo->curr_val);
 }
