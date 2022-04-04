@@ -14,7 +14,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 8, 8, 1324, 1300> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1324, 1300> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 #define BAUD_RATE 115200

@@ -4,6 +4,9 @@ roslib.load_manifest('ebobot')
 import rospy
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseWithCovarianceStamped
+###
+from std_srvs.srv import Empty, EmptyResponse
+###
 import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
@@ -12,6 +15,12 @@ from nav_msgs.msg import Odometry
 
 rospy.init_node('motors_info_callback')
 
+def resetCB(req):
+    Motors.reset()
+    return EmptyResponse()
+####
+rospy.Service("reset_odom_service", Empty, resetCB)
+###
 def estimateCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.pose.orientation.x,target.pose.pose.orientation.y,target.pose.pose.orientation.z,target.pose.pose.orientation.w])
     goal = [target.pose.pose.position.x,target.pose.pose.position.y,euler[2]]
@@ -31,9 +40,12 @@ class Motors():
     wheels_footprint_rad = rospy.get_param('~wheels_footprint_radius',0.15) #in meters
     #/Params
     num = 3
-    theta = rospy.get_param('~start_theta', 3.1415/2)
-    x = rospy.get_param('~start_x',1)
-    y = rospy.get_param('~start_y',0.1)
+    start_theta = rospy.get_param('~start_theta', 3.1415/2)
+    theta = start_theta
+    start_x = rospy.get_param('~start_x',1)
+    x = start_x
+    start_y = rospy.get_param('~start_y',0.1)
+    y = start_y
     list = []
     last_x = 0
     last_y = 0
@@ -45,11 +57,15 @@ class Motors():
     current_time = rospy.Time.now()
     last_time = rospy.Time.now()
     last_theta = 0
-
+    
 
 
     
-
+    @staticmethod
+    def reset():
+        Motors.x = Motors.start_x
+        Motors.y = Motors.start_y
+        Motors.theta = Motors.start_theta
     def __init__(self, num, angle,curr = 0, targ = 0,dist = 0,ddist = 0):
         self.num = num
         self.curr = curr

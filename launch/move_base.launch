@@ -31,12 +31,11 @@
     </include>
 
     
-
+    <include file="$(find ebobot)/launch/robot_model.launch">
+        <arg name="fake_joint" value = "$(arg rviz)"/>
+      </include>
     <group if="$(arg rviz)">
         <include file="$(find ebobot)/launch/rviz.launch"/>
-        <include file="$(find ebobot)/launch/robot_model.launch">
-          <arg name="fake_joint" value = "true"/>
-        </include>
     </group>
 
     <group if="$(arg laser)">

@@ -8,8 +8,8 @@ costmap_server:
   #
   inflation_skip_cells: 1 # default = 1 (skip none) DO NOT SET TO 0!
   resolution: 0.02 #meters/cell. Better not to touch
-  inflation_radius: 0.27 #in meters
-  base_inflation_coeff: 0.0142 #slight change = zhopa
+  inflation_radius: 0.22 #in meters
+  base_inflation_coeff: 0.0162 #slight change = zhopa
   inflation_threshhold: 99 #inflate cell if its cost is > than 'n'
   update_rate: 2 #per seconds, if publish_on_obstacles_recieve disabled
   interpolation_radius: 1 #in cells
