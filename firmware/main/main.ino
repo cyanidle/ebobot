@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <ros.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/MultiArrayLayout.h>
-#include <std_msgs/MultiArrayDimension.h>
+#include <ebobot/MotorsInfo.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 /////////////////////////
@@ -14,9 +12,12 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1500> nh; // recieve/publish
-std_msgs::Float32MultiArray motors_msg;
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1624, 1600> nh; // recieve/publish
+
+//######################
+ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
+
 #define BAUD_RATE 115200
 //////////////////////////
 #define ENCODER_PINA0 18
@@ -185,8 +186,7 @@ void PID(int mot)
   pwm[mot] = constrain(pwm[mot], -255, 255);
 }
 //////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
-void update_mot(int mot)
-{
+void update_mot(int mot){
   dX[mot] = X[mot] - lastX[mot];
   ddist[mot] = dX[mot] * (rad / ticks_per_rotation) * coeff;
   lastX[mot] = X[mot];
@@ -269,9 +269,9 @@ void setup()
   else
     nh.logerror("Servos shield not found!");
   ////////////////////////////////
-  motors_msg.layout.data_offset = 0;
-  motors_msg.data_length = 12;
-  motors_msg.data = (float *)malloc(sizeof(float) * 12);
+  // motors_msg.layout.data_offset = 0;
+  // motors_msg.data_length = 12;
+  // motors_msg.data = (float *)malloc(sizeof(float) * 12);
   ///////////////////////////////
   attachInterrupt(digitalPinToInterrupt(ENCODER_PINA0), encoder0, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PINA1), encoder1, RISING); //Не забудь объявить (войну неграм)
@@ -292,36 +292,28 @@ void setup()
 ////////////////////////////////
 void loop()
 {
-  if (main_loop.tick())
-  {
+  if (main_loop.tick()){
     for (int mot = 0; mot < num_motors; mot++)
       update_mot(mot);
     for (int mot = 0; mot < num_motors; mot++)
     {
-      motors_msg.data[mot * 4] = targ_spd[mot];
-      motors_msg.data[mot * 4 + 1] = curr_spd[mot];
-      motors_msg.data[mot * 4 + 2] = dist[mot];
-      motors_msg.data[mot * 4 + 3] = ddist[mot];
+      motors_msg.num = mot;
+      motors_msg.target_speed = targ_spd[mot];
+      motors_msg.current_speed = curr_spd[mot];
+      motors_msg.ddist = ddist[mot];
     }
-    //if (not pin_reader_debugged){
-    //  nh.logwarn(pin_reader_debug);
-    //pin_reader_debugged = true;
-    //}
-      
+    motors_info.publish(&motors_msg);
   }
 
-  if (servo_loop.tick())
-  {
+  if (servo_loop.tick()){
     servosUpdate();
     if (not servos_debugged){
       nh.logwarn(servos_debug);}
       //debugServo(0);
     servos_debugged = true;
   }
-  if (start_loop.tick())
-  {
+  if (start_loop.tick()){
     startUpdate();
   }
-  motors_info.publish(&motors_msg);
   nh.spinOnce();
 }

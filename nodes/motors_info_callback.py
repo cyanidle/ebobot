@@ -2,7 +2,7 @@
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
-from std_msgs.msg import Float32MultiArray
+from ebobot.msg import MotorsInfo
 from geometry_msgs.msg import PoseWithCovarianceStamped
 ###
 from std_srvs.srv import Empty, EmptyResponse
@@ -57,10 +57,6 @@ class Motors():
     current_time = rospy.Time.now()
     last_time = rospy.Time.now()
     last_theta = 0
-    
-
-
-    
     @staticmethod
     def reset():
         Motors.x = Motors.start_x
@@ -88,42 +84,16 @@ class Motors():
         Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
         Motors.spd_turn = Motors.theta - Motors.last_theta
         Motors.theta = Motors.theta % (2 * math.pi)
-      
-
-
-
-
+#######################################################      
 def callback(info):
-    for mot in Motors.list:
-        setattr(mot , "targ" , info.data[getattr(mot,"num")*4])
-        setattr(mot , "curr" , info.data[getattr(mot,"num")*4 + 1])
-        setattr(mot , "dist" , info.data[getattr(mot,"num")*4 + 2])
-        setattr(mot , "ddist" , info.data[getattr(mot,"num")*4 + 3])
+    Motors.list[info.num].curr = info.current_speed
+    Motors.list[info.num].targ = info.target_speed
+    Motors.list[info.num].ddist = info.ddist
     Motors.updateOdom()
     Motors.last_time = rospy.Time.now()
 #######################################################
-if __name__=="__main__":
-    motors_info_subscriber = rospy.Subscriber("motors_info", Float32MultiArray, callback)
-    odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
-    estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
-    #
-    odom_broadcaster = tf.TransformBroadcaster()
-    rate = rospy.Rate(Motors.Hz)
-    report_count = 0
-    
-    #init motors with their angles
-    motor0 = Motors(0,90) 
-    rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
-    motor1 = Motors(1,210)
-    rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
-    motor2 = Motors(2,330)
-    rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
-    rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
-   
-    ###################
-    rospy.sleep(1)
+def main():
     while not rospy.is_shutdown():
-        
         if Motors.debug:
             report_count += 1
             if report_count > 10:
@@ -132,9 +102,6 @@ if __name__=="__main__":
                 rospy.loginfo(f"x = {Motors.x},y = {Motors.y},th = {Motors.theta}")
                 for mot in Motors.list:    
                     rospy.loginfo(f"motor {mot.num}: {mot.curr}, {mot.targ},{mot.dist},{mot.ddist}")
-     
-       
-
         current_time = rospy.Time.now()
         odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
         odom_broadcaster.sendTransform(
@@ -151,6 +118,24 @@ if __name__=="__main__":
         odom.child_frame_id = "costmap"
         odom.twist.twist = Twist(Vector3(Motors.spd_x, Motors.spd_y, 0), Vector3(0, 0, Motors.spd_turn))
         odom_pub.publish(odom)
-        last_time = current_time
-            
+        last_time = current_time   
         rate.sleep()
+if __name__=="__main__":
+    motors_info_subscriber = rospy.Subscriber("motors_info", MotorsInfo, callback)
+    odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
+    estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
+    #
+    odom_broadcaster = tf.TransformBroadcaster()
+    rate = rospy.Rate(Motors.Hz)
+    report_count = 0
+    #init motors with their angles
+    motor0 = Motors(0,90) 
+    rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
+    motor1 = Motors(1,210)
+    rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
+    motor2 = Motors(2,330)
+    rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
+    rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
+    ###################
+    rospy.sleep(1)
+    main()

@@ -26,6 +26,7 @@ add_message_files(
    PID.msg
    Obstacle.msg
    Obstacles.msg
+   MotorsInfo.msg
   )
 add_action_files(
   DIRECTORY action 
