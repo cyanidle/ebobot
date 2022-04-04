@@ -491,13 +491,28 @@ class Timer(Template):
 class Goto(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        if type(args) == str:
+            self._type = "name"
+        elif type(args) == int:
+            self._type = "num"
         self._task_name = args
     async def midExec(self) -> None:
+        if self._type != "name":
+            Manager.current_task = self._task_name
+            Flags._goto = True
+            return
         if not "Task" in Manager.obj_dict.keys():
             return
         for task in Manager.obj_dict["Task"]:
             if task.name == self._task_name:
                 Manager.current_task = self.num
+                Flags._goto = True
+                return
+        if not "Variable" in Manager.obj_dict.keys():
+            return
+        for var in Manager.obj_dict["Variable"]:
+            if var.name == self._task_name:
+                Manager.current_task = int(var.value)
                 Flags._goto = True
                 return
         rospy.logerr(f"Jump to {self._task_name} fail! (No such task)!")

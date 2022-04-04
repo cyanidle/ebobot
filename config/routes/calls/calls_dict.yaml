@@ -1,50 +1,67 @@
 # Available services: 
 # servos_service, prediction_service
-# ohm_reader_service, adjust_pos_service
+# ohm_reader_service, adjust_pos_service, pin_service
 "Static":
   - "Adjust":
     - "adjust_pos_service":
       - "empty": 0 #even if the call is empty you should state at least one argument in static call
+  ###################
   - "ArmUp":
     - "servos_service":
       - "num": 0
-      - "state": 100
+      - "state": 80
     - "servos_service":
       - "num": 1
-      - "state": 30
-    - "servos_service":
-      - "num": 2
-      - "state": 100
-
+      - "state": 20
+  #############
   - "ArmDown":
     - "servos_service":
       - "num": 0
-      - "state": 0
+      - "state": 20
     - "servos_service":
       - "num": 1
-      - "state": 1
+      - "state": 80
+  #############
+  - "ArmHalfUp":
     - "servos_service":
-      - "num": 2
-      - "state": 0
-
-  - "OhmsWithServos":
+      - "num": 0
+      - "state": 40
     - "servos_service":
-      - "num": 3
-      - "state": 0
+      - "num": 1
+      - "state": 60
+  ##
+  - "ArmHalfDown":
     - "servos_service":
-      - "num": 4
-      - "state": 1
+      - "num": 0
+      - "state": 60
+    - "servos_service":
+      - "num": 1
+      - "state": 40
+#######################
+  - "Ohms":
     - "ohm_reader_service":
-      - "pin": 1
-
-
+      - "pin": 0 #(read ohms on "num" analog pin to ground)
+  - "PumpOn":
+    - pin_service:
+        pin: 48
+        digital: true
+        write: true
+        pullup: false
+        value: 1
+  - "PumpOff":
+    - pin_service: 
+        pin: 48
+        digital: true
+        write: true
+        pullup: false
+        value: 0
       
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!
     - service_name # call with args passed as: {service_arg_1: arg1, service_arg_2: arg2}
   - "MoveServo":
     - "servos_service"
-  - "ShowPrediction":
+  - "ShowNumber":
     - "prediction_service"
   - "OhmReader":
     - "ohm_reader_service"

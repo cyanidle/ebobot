@@ -1,26 +1,40 @@
 tasks:
-  start: 
+  get_flipped: 
     #- call: Adjust
-    - move: 1/1.5/0
-    - score: 10  
-    - call: ArmUp
-  top:
-    - move: 1.5/1/1
+    - move: 1.37/1.7/3.5
+    - call: ArmHalfDown
+    - call: PumpOn
     - call: Adjust
-    - log: "E: We chilling on task top"
+    - change_var: get_flipped_var/add/1
+    - goto: get_flipped_var
+  deliver_blue_flipped:
+    - move: 1.42/1/3.5
+    - call: Adjust
+    - log: "E: Delivering blue"
     - score: -5
     - call: ArmUp
     - sleep: 1
-  left:
-    - move: 0.5/1/0
-    - score: 55
+    - goto: get_flipped
+  deliver_green_flipped:
+    - move: 1.5/1/3.5
+    - call: Adjust
+    - log: "E: Delivering green"
+    - score: -5
+    - call: ArmUp
     - sleep: 1
-  return:
-    - move: 1/1.5/0
-    - score: 9
-    - goto: start
+    - goto: get_flipped
+  deliver_red_flipped:
+    - move: 1.5/1/3.5
+    - call: Adjust
+    - log: "E: Delivering red"
+    - score: -5
+    - call: ArmUp
+    - sleep: 1
+
+
 variables:
   default: 0
+  get_flipped_var: 0
 interrupts: 
   return_to_base:
     - interrupt_condition: "timers/main/40"
