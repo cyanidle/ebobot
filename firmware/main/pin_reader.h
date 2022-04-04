@@ -2,13 +2,13 @@
 #include <ros.h>
 #include <ebobot/PinReader.h>
 
-char pin_reader_debug[40];
-bool pin_reader_debugged = true;
+//char pin_reader_debug[40]; //Uncomment all for debug
+//bool pin_reader_debugged = true;
 
 void PinReaderCallback(const ebobot::PinReader::Request &req, ebobot::PinReader::Response &resp){
-    sprintf(pin_reader_debug, "Pin %d, write%d, digital%d, value-%d,pullup%d",
-     req.pin, req.write,req.digital, req.value, req.pullup);
-    pin_reader_debugged = false;
+    //sprintf(pin_reader_debug, "Pin %d, write%d, digital%d, value-%d,pullup%d",
+    // req.pin, req.write,req.digital, req.value, req.pullup);
+    //pin_reader_debugged = false;
     int _num = req.pin;
     if (not req.digital) _num = _num + 54;
     if (req.digital){

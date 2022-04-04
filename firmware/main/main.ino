@@ -17,6 +17,7 @@
 ros::NodeHandle_<ArduinoHardware, 8, 8, 1324, 1300> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
+#define BAUD_RATE 115200
 //////////////////////////
 #define ENCODER_PINA0 18
 #define ENCODER_PINB0 31
@@ -248,6 +249,7 @@ void encoder2()
 /////////////////////////////////////////////////
 void setup()
 {
+  nh.getHardware()-> setBaud(BAUD_RATE);
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
@@ -302,10 +304,10 @@ void loop()
       motors_msg.data[mot * 4 + 2] = dist[mot];
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
-    if (not pin_reader_debugged){
-      nh.logwarn(pin_reader_debug);
-    pin_reader_debugged = true;
-    }
+    //if (not pin_reader_debugged){
+    //  nh.logwarn(pin_reader_debug);
+    //pin_reader_debugged = true;
+    //}
       
   }
 

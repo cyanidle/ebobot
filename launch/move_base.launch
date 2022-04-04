@@ -1,14 +1,17 @@
 <launch>
+
       <arg name="arduino" default="true"/>
       <arg name="rviz" default="false"/>
       <arg name="laser" default="true"/>
       <arg name="arduino_port" default="/dev/ttyACM0"/>
+      <arg name="arduino_baud" default="115200"/>
       <arg name="debug" default="0"/>
       <arg name="use_own" default="true"/>
       <arg name="costmap_dir" default="$(find ebobot)/config/costmap"/>
       <arg name="costmap_file" default="$(find ebobot)/config/costmap/costmap.png"/>
 
     <include file="$(find ebobot)/launch/arduino_odom.launch">
+      <arg name="arduino_baud" value="$(arg arduino_baud)"/>
       <arg name="use_own" value="$(arg use_own)"/>
       <arg name="port" value="$(arg arduino_port)"/>
       <arg name="debug" value="$(arg debug)"/>
