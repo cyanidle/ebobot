@@ -14,7 +14,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 8, 4, 1524, 1400> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 8, 8, 1324, 1300> nh; // recieve/publish
 std_msgs::Float32MultiArray motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //////////////////////////
@@ -112,9 +112,11 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds[mot]) > absolute_max_speed / 2)
+    if (abs(spd - last_spds[mot]) > (absolute_max_speed / 2.0))
     {
-      termsReset(mot);
+      for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
+      termsReset(sub_mot);
+      }
     }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
     if (spd < 0.01 and spd > -0.01)
@@ -217,16 +219,14 @@ void update_mot(int mot)
   }
 }
 //////////////////////////////////////////////////////
-// void debugServo(int num){
-//     struct Servo_mot *servo = ptr_list[num];
-//     char buffer[40];
-//     int target;
-//     if (servo->target_state) target = 1;
-//     else target = 0;
-//     sprintf(buffer, "Servo %d channel %d, min%d,  max %d, spd %d, targ_st %d, curr %d",
-//     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, target, servo->curr_val);
-//     nh.loginfo(buffer);
-// }
+void debugServo(int num){
+     Servo_mot* servo = ptr_list[num];
+     char buffer[60];
+     int target;
+     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d,bytes%d",
+     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
+     nh.loginfo(buffer);
+}
 //////////////////////////////////////////////////////////////
 
 void encoder0()
@@ -267,18 +267,6 @@ void setup()
     nh.logwarn("Servos shield found");
   else
     nh.logerror("Servos shield not found!");
-  //
-  /*
-  motors_msg.layout.dim = (std_msgs::MultiArrayDimension *)malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
-  motors_msg.layout.dim_length = 2;
-  motors_msg.layout.dim[0].label = "Motor";
-  motors_msg.layout.dim[0].size = 3;
-  motors_msg.layout.dim[0].stride = 12;
-  motors_msg.layout.dim[1].label = "Info";
-  motors_msg.layout.dim[1].size = 4;
-  motors_msg.layout.dim[0].stride = 4;
-  */
-
   ////////////////////////////////
   motors_msg.layout.data_offset = 0;
   motors_msg.data_length = 12;
@@ -315,7 +303,7 @@ void loop()
       motors_msg.data[mot * 4 + 3] = ddist[mot];
     }
     if (not pin_reader_debugged){
-      nh.loginfo(pin_reader_debug);
+      nh.logwarn(pin_reader_debug);
     pin_reader_debugged = true;
     }
       
@@ -323,10 +311,10 @@ void loop()
 
   if (servo_loop.tick())
   {
-    // debugServo(0);
     servosUpdate();
-    if (not servos_debugged)
-      nh.loginfo(servos_debug);
+    if (not servos_debugged){
+      nh.logwarn(servos_debug);}
+      //debugServo(0);
     servos_debugged = true;
   }
   if (start_loop.tick())

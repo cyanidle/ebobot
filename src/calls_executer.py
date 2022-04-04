@@ -1,5 +1,5 @@
 import roslib
-import subprocess
+#import subprocess
 roslib.load_manifest('ebobot')
 import rospy
 import actionlib
@@ -36,10 +36,11 @@ class Calls: #Async
                 self.parsers.append(Execute.parsers_dict[exec_name])
                 rospy.loginfo(f"Appended parser {self.parsers[-1]}")
                 pargs = {}
-                for sub_args in sub_dict[exec_name]:
-                    pargs = {**pargs, **sub_dict}
+                print (sub_dict[exec_name])
+                for sub_dict_args in sub_dict[exec_name]:
+                    pargs = {**pargs, **sub_dict_args}
                 self.args.append(pargs)
-                rospy.loginfo(f"Appended args {self.args}")
+                rospy.loginfo(f"Appended args {pargs} to {self.args}")
         else:
             for exec in execs:
                 rospy.loginfo(f"Parsing {exec}")
@@ -62,48 +63,65 @@ class Calls: #Async
         return await proc
     async def executeStatic(self):
         resps = []
-        try:
+        async def subExec():
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 _corout = exec(parser(args))
+                if Execute.debug:
+                    rospy.loginfo(f"Executing static {exec}, parser = {parser}, args = {args}")
+                    rospy.loginfo(f"Couroutine = {_corout}")
                 resps.append(await _corout)
-            rospy.loginfo(f"Executing static {self.name}, responces = {resps}")
+            rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
                 return "fail"
+            elif not 0 in resps:
+                return str(resps[-1])
             else:
                 return "done"
-        except:
-            rospy.logerr(f"Call {self.name} unavailable!")
-            return "fail"
+        if Execute.debug:
+            return await subExec()
+        else:
+            try:
+                return subExec()
+            except:
+                rospy.logerr(f"Call {self.name} unavailable!")
+                return "fail"
     async def executeDynamic(self,args):
         sub_calls = []
-        try:
+        async def subExec():
             for tup in zip(self.executables, self.parsers):
                 exec, parser = tup
                 _corout = exec(parser(args))
                 sub_calls.append(asyncio.create_task(_corout))
-            resp = await asyncio.gather(*sub_calls)
-            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resp}")
-            if 1 in resp:
+            resps = await asyncio.gather(*sub_calls)
+            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resps}")
+            if 1 in resps:
                 return "fail"
+            elif not 0 in resps:
+                return str(resps[-1])
             else:
                 return "done"
-        except:
-            rospy.logerr(f"Call {self.name} unavailable!")
-            return "fail"
+        if Execute.debug:
+            return await subExec()
+        else:
+            try:
+                return subExec()
+            except:
+                rospy.logerr(f"Call {self.name} unavailable!")
+                return "fail"
     @staticmethod
-    def parseServos(args,static:bool):
+    def parseServos(args):
         parsed = ServosRequest()
         rospy.loginfo(f"Parsing args for servo")
         parsed.num = args["num"]
         parsed.state = int(args["state"])
         return parsed
     @staticmethod
-    def parseLcd(args,static):
+    def parseLcd(args):
         parsed = LcdShowRequest()
         parsed.num = args["num"]
         return parsed
     @staticmethod
-    def parseOhm(args,static:bool):
+    def parseOhm(args):
         parsed = PinReaderRequest()
         parsed.digital = False
         parsed.write = False
@@ -129,29 +147,29 @@ class Calls: #Async
     @staticmethod
     async def ohmsExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
-        resp = round(float(proxy(args).ohms)/1000,2)
+        resp = round(float(1023*50_000*(1023 - proxy(args).resp))/1000,2)
         if abs(resp-1) < 0.2:
-            return 1
+            return "low"
         elif resp < 1:
-            return 0
+            return "mid"
         else:
-            return 2 
+            return "high"
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
-    ####
+    ###############################
     @staticmethod
     def getAdjExec():
-        return rospy.ServiceProxy("adjust_pos_service", Empty)
+        return Calls.adjExec
     @staticmethod
-    def adjExec(args):
+    async def adjExec(args):
         proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
         proxy(args)
         return 0
     @staticmethod
-    def parseAdj(_place, _holder):
+    def parseAdj(_placeholder):
         return EmptyRequest()
-    ####
+    ################################
     @staticmethod
     def getPinExec():
         return Calls.pinExec
@@ -161,7 +179,7 @@ class Calls: #Async
         proxy(args)
         return 0
     @staticmethod
-    def parsePin(args,static:bool):
+    def parsePin(args):
         parsed =  PinReaderRequest()
         parsed.pin = args["pin"]
         parsed.digital = args["digital"]
@@ -178,6 +196,7 @@ async def showPrediction(num):
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")
+    debug = rospy.get_param("~debug", 1)
     #/Params
     #Globals
     dict = {}
@@ -268,7 +287,7 @@ rospy.loginfo("Done parsing calls!")
 #out = int(subprocess.run(["ifconfig"], ["|"], ["sed"] ,["-En"], ["'s/127.0.0.1//;s/.*inet"], ["(addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'",text=True]).stdout.split(".")[-1])
 #ip = int(out.stdout.split(".")[-1])
 try:
-    asyncio.run(showPrediction(0000))
+    asyncio.run(showPrediction(7770))
 except:
     rospy.logwarn("Arduino disconnected!")
 

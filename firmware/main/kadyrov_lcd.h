@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 #include <ebobot/LcdShow.h>
-LiquidCrystal_I2C lcd(0x3F,16,2);
+LiquidCrystal_I2C lcd(0x3F,16,2); // 3F or 27
 ////////////////////убейте меня//////////////////
 byte LT[8] = {0x07,0x0F,0x1F,0x1F,0x1F,0x1F,0x1F,0x1F}; //or byte
 byte UB[8] = {0x1F,0x1F,0x1F,0x00,0x00,0x00,0x00,0x00};
@@ -19,7 +19,7 @@ void lcdSetup(){
   lcd.backlight();
   lcd.home();
   lcd.clear();
-  lcd.print("Ebobot V1.1.8");
+  lcd.print("Prodam garazh");
   lcd.createChar(0,LT);
   lcd.createChar(1,UB);
   lcd.createChar(2,RT);

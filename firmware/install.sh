@@ -1,5 +1,5 @@
 port="/dev/ttyACM0"
-firmware_dir=$(find ~/ -type d | grep /ebobot/firmware/main | xargs dirname)
+firmware_dir=$(find ~/ /ebobot/firmware/main | grep /ebobot/firmware/main | xargs dirname)
 echo "Found firmware directory - $firmware_dir"
 arduino_dir=$(find ~/ Arduino/libraries/ | grep /Arduino/libraries | head -n 1 | xargs dirname)
 if [ -d $arduino_dir ];then

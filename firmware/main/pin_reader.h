@@ -3,7 +3,7 @@
 #include <ebobot/PinReader.h>
 
 char pin_reader_debug[40];
-pin_reader_debugged = true;
+bool pin_reader_debugged = true;
 
 void PinReaderCallback(const ebobot::PinReader::Request &req, ebobot::PinReader::Response &resp){
     sprintf(pin_reader_debug, "Pin %d, write%d, digital%d, value-%d,pullup%d",

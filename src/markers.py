@@ -4,10 +4,11 @@ from visualization_msgs.msg import Marker
 marker_publisher = rospy.Publisher("markers", Marker, queue_size = 50)
 broadcaster = tf.TransformBroadcaster()
 
-def pubMarker(point:tuple,num:int,duration = 10,height = 0,size=0.08,frame_name = "default",text = 0,debug = 1,deletall=0,add = 1,type = "sphere",r=0,g=1,b=0):
+def pubMarker(point:tuple,num:int,duration = 10,height = 0,size=0.08,
+frame_name = "default",text = 0,debug = 1,deletall=0,add = 1,type = "sphere",r=0,g=1,b=0):
     "Publishes a marker into 'markers' topic and (frame_name) namespace, types = [cube, sphere, cylinder (or arrow)]"
-    #if debug:
-        #rospy.loginfo(f"Pubbing marker {num} {point} in ns {frame_name}")
+    if debug:
+        rospy.loginfo(f"Pubbing marker {num} {point} in ns {frame_name} with r={r}, g={g}, b={b}")
     mark = Marker()
     mark.header.frame_id = f"{frame_name}_markers"
     mark.header.stamp = rospy.Time.now()

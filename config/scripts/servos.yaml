@@ -1,25 +1,25 @@
 0: #num
   - 0 #channel
   - 5 #speed
-  - 0 #min value
-  - 200 #max value
+  - 100 #min value
+  - 500 #max value
 1:
   - 1 #channel
   - 5 #speed
-  - 0 #min value
-  - 200 #max value
+  - 100 #min value
+  - 500 #max value
 2:
   - 2 #channel
   - 5 #speed
-  - 0 #min value
-  - 200 #max value
+  - 100 #min value
+  - 500 #max value
 3:
   - 3 #channel
   - 5 #speed
-  - 0 #min value
-  - 200 #max value
+  - 100 #min value
+  - 500 #max value
 4:
   - 4 #channel
   - 5 #speed
-  - 0 #min value
-  - 200 #max value
+  - 100 #min value
+  - 500 #max value

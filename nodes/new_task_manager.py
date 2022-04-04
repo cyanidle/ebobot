@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from math import floor
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -17,25 +18,62 @@ from calls_executer import Move as move_client_constructor
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 #
 from abc import ABC, abstractmethod
-
+##
+rospy.sleep(1)
 #####################################
 def startCallback(start):
     Flags._execute = 0
-    if not start.data:
-        Flags._execute = 1
-        rospy.logwarn(f"Executing default route!")
-    else:
-        Manager.reset()
+    rospy.logwarn(Manager.route)
+    if Flags._test_routes:
         if start.data == 1:
+            asyncio.run(showPrediction(7771))
+            rospy.logwarn(f"Parsing test_route1!")
+            Flags._current_route_num = 1
+            rospy.sleep(0.5)  
+            parse(11)
+        elif start.data == 2:
+            asyncio.run(showPrediction(7772))
+            rospy.logwarn(f"Parsing test_route2!")
+            Flags._current_route_num = 2
+            rospy.sleep(0.5)
+            parse(12)
+        elif start.data == 0:
+            Flags._test_routes = 0
+            rospy.sleep(1)
+            for n in range(3,-1,-1):
+                asyncio.run(showPrediction(n))
+                rospy.sleep(1)
+            Flags._execute = 1
+            rospy.logwarn(f"Executing test route!")
+        else:
+            rospy.logerr("Incorrect start sequence!")
+            asyncio.run(showPrediction(9999))
+    else:
+        if start.data == 9:
+            
+            rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
+            rospy.sleep(0.5)
+            parse(Flags._current_route_num)
+        elif start.data == 1:
+            asyncio.run(showPrediction(1001))
             rospy.logwarn(f"Parsing route1!")
+            Flags._current_route_num = 1
             rospy.sleep(0.5)
             parse(1)
         elif start.data == 2:
+            asyncio.run(showPrediction(1002))
             rospy.logwarn(f"Parsing route2!")
+            Flags._current_route_num = 2
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
+            Flags._test_routes = 1
             Flags._execute = 1
+            rospy.logwarn(f"Executing chosen route!")
+        else:
+            rospy.logerr("Incorrect start sequence!")
+            asyncio.run(showPrediction(9999))
+            Flags._test_routes = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
@@ -193,7 +231,7 @@ class Move(Template):
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
         _ended = 0
-        while not _ended and not rospy.is_shutdown():
+        while not _ended and not rospy.is_shutdown() and Flags._execute:
             _stat = type(self).client.checkResult()
             rospy.loginfo(f"Move server feedback {_stat}")
             if _stat == "executing":
@@ -313,7 +351,7 @@ class Task(Template):
         rospy.logwarn(f"Micros in task {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            if self._fail_flag:
+            if self._fail_flag or not Flags._execute:
                 self.status.set("fail")
                 break
         if not self._fail_flag:
@@ -347,7 +385,7 @@ class Interrupt(Template):
         super().__init__(Manager, name, args)
         self.micros_list = list()
         num_of_conds = 0
-        #self.name = f"{type(self).__name__} '{self.name}'"
+        self._fail_flag = 0
         for exec, subargs in Task.parseMicroList(args):
             micro = constructors_dict[exec](self,exec,subargs)
             self.micros_list.append(micro)
@@ -358,6 +396,11 @@ class Interrupt(Template):
         rospy.logwarn(f"Micros in interrupt {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
+            if self._fail_flag or not Flags._execute:
+                self.status.set("fail")
+                break
+        if not self._fail_flag:
+            self.status.set("done")
     def trigger(self):
         Interrupt.queue.append(self)
     @staticmethod
@@ -382,9 +425,6 @@ class Variable(Template):
         super().__init__(parent, name, args)
         self.value = int(args)
         self.status.set(self.value)
-    # #def updateStatus(self) -> str:
-    #     Status.checkDeps(self)
-    #     return str(self.value)
     def set(self, num: int):
         self.value = num
         Status.checkDeps(self)
@@ -467,10 +507,13 @@ class Schedule(Template):
         self._task_name = args
     async def midExec(self) -> None:
         if not "Task" in Manager.obj_dict.keys():
-            return 1
+            self.status.set("fail")
+            return
         for task in Manager.obj_dict["Task"]:
             if task.name == self._task_name:
-                return await task.exec()
+                await task.exec()
+                self.status.set(task.status.get())
+                return 
         rospy.logerr(f"Task {self._task_name} trigger failed! (No such task)!")
 ############################################################
 constructors_dict = {  #syntax for route.yaml
@@ -503,11 +546,12 @@ class Manager:
     #
     file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
     file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
-    default_file = rospy.get_param("~default_file", "config/routes/test_route.yaml")
+    test_file1 = rospy.get_param("~test_file1", "config/routes/test_route.yaml")
+    test_file2 = rospy.get_param("~test_file2", "config/routes/test_route.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    curr_file = default_file
+    curr_file = test_file1
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     route = {}
     rate = rospy.Rate(Status.update_rate)
@@ -530,6 +574,13 @@ class Manager:
             for task_name in cls.route["tasks"]:
                 unparsed_list = cls.route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
+            ###
+            _color_step = 1/len(Manager.obj_dict["Move"])
+            pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
+            for num, _mv in enumerate(Manager.obj_dict["Move"]):
+               pubMarker(_mv.pos,num,300,frame_name="task_moves",
+               type="cube",size=0.05,g=1-((num) * _color_step),r=1,b=1-((num) * _color_step),debug=1,add=1)
+            ###
         else:
             rospy.logerr("NO TASKS IN ROUTE FILE!")
         if "variables" in cls.route.keys():
@@ -542,6 +593,7 @@ class Manager:
     def reset():
         Manager.route.clear()
         Manager.obj_dict.clear()
+        Prediction.score = 0
     @staticmethod
     async def exec():
         await asyncio.sleep(0.2)
@@ -557,6 +609,9 @@ class Manager:
                     Manager.current_task += 1
             else:
                 rospy.logwarn("No tasks left!")
+                if not Flags._test_routes:
+                    await showPrediction(1000 + Flags._current_route_num)
+                    startCallback(Int8(9))
             await asyncio.sleep(0.1)
         Manager.current_task = 0
         Flags._execute = 0
@@ -564,11 +619,15 @@ class Manager:
 ##############################
 class Flags:
     _execute = 0
+    _test_routes=1
+    _current_route_num = 1
     _goto = False
-def parse(route = 0):
+def parse(route = 11):
     Manager.reset()
-    if not route:
-        Manager.curr_file = Manager.default_file
+    if route == 11:
+        Manager.curr_file = Manager.test_file1
+    elif route == 12:
+        Manager.curr_file = Manager.test_file2
     elif route == 1:
         Manager.curr_file = Manager.file1
     elif route == 2:

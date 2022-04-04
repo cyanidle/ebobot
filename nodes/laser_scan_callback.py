@@ -27,6 +27,10 @@ rospy.init_node('laser_scan_callback')
 def robotPosCallback(odom):
     quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
     Laser.robot_pos = np.array([odom.pose.pose.position.y,odom.pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]]) 
+    Laser.robot_twist = Laser.twist_amplify_coeff * (np.array([odom.twist.twist.linear.y,
+    odom.twist.twist.linear.x,
+    odom.twist.twist.angular.z])
+    )
 def laserScanCallback(scan):
     if Laser.skipped_counter < Laser.skip_scans:
         Laser.skipped_counter += 1
@@ -60,6 +64,7 @@ class Laser:
     range_max_custom = rospy.get_param("~range_max_custom",6) 
     objects_centre_coeff = rospy.get_param("~objects_centre_coeff",1)
     radius_thresh = rospy.get_param("~radius_thresh",0.5)
+    twist_amplify_coeff = rospy.get_param("~twist_amplify_coeff",0.5)
     #
     #/Features
     #Params
@@ -128,7 +133,7 @@ class Laser:
     def update(cls):
         new_list = list()
         cls.updateTF()
-        rotor = getRotor(-cls.robot_pos[2]-cls.rads_offset)
+        rotor = getRotor(-cls.robot_pos[2]+cls.rads_offset)
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
@@ -294,12 +299,12 @@ class Beacons(Laser):
         for num,beacon in enumerate(cls.rel_list):
             if beacon._pub or _all:
                 rel_pos = (beacon.pose[0],  beacon.pose[1])
-                pubMarker(rel_pos,num,1/cls.update_rate,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+                pubMarker(rel_pos,num,1/cls.update_rate+0.3,frame_name="relative_beacon",type="cylinder",height=0.4,size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
     @classmethod
     def pubExpected(cls):
         for num,beacon in enumerate(cls.expected_list):
             exp_pos = (beacon.pose[0],  beacon.pose[1])
-            pubMarker(exp_pos,num,1/cls.update_rate,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
+            pubMarker(exp_pos,num,1/cls.update_rate+1,frame_name="expected_beacon",type="cylinder",height=0.35,size=0.1,g=1,r=1,b=1,debug=Laser.debug,add=1)
     @classmethod
     def clearRelative(cls):
         cls.rel_list.clear()
@@ -377,12 +382,13 @@ class Beacons(Laser):
         if cls.cycle >= cls.cycles_per_update and cls.enable_adjust and len(cls.deltas):
             _sum_x,_sum_y, _sum_th = 0,0,0
             for _y, _x, _th in cls.deltas:
-                _sum_x += _x
-                _sum_y += _y
+                _sum_x += _x 
+                _sum_y += _y 
                 _sum_th += _th
             _max = len(cls.deltas)
             cls.delta_th = _sum_th/_max
-            cls.delta_pos = (_sum_y/_max,_sum_x/_max)
+            cls.delta_pos = (_sum_y/_max+ (Laser.robot_twist[0]/(Laser.update_rate/cls.cycles_per_update)),
+                             _sum_x/_max+ (Laser.robot_twist[1]/(Laser.update_rate/cls.cycles_per_update)))
             if (not -cls.max_th_adj < cls.delta_th < cls.max_th_adj
              or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
                 cls.delta_th = 0
