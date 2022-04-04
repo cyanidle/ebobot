@@ -615,7 +615,7 @@ class Manager:
             await asyncio.sleep(0.1)
         Manager.current_task = 0
         Flags._execute = 0
-        Manager.rate.sleep()
+        #Manager.rate.sleep()
 ##############################
 class Flags:
     _execute = 0

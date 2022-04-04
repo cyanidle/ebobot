@@ -164,8 +164,6 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
     nh.loginfo("set diff");
     diff_coeff[mot] = set_pid.data;
     break;
-    // case 3:
-    // max_speed = set_pid.data
   }
   pid_count++;
   if (pid_count > 8)
@@ -254,13 +252,14 @@ void setup()
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
-  nh.advertise(start_trigger);
+  
   //
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
+  nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
   ///////////////////////////////

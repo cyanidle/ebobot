@@ -37,7 +37,7 @@ void PinReaderCallback(const ebobot::PinReader::Request &req, ebobot::PinReader:
         else{
             pinMode(_num, INPUT);
             resp.resp = analogRead(_num);
-    }
+        }
     }
     
     

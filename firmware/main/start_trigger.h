@@ -6,7 +6,7 @@ ros::Publisher start_trigger("/ebobot/begin", &start_msg);
 bool _started = false;
 bool _route = false;
 int _start_pin = 25;
-int _switch_pin = 29;
+int _switch_pin = 27;
 
 void startUpdate(){
   

@@ -10,7 +10,7 @@ FaBoPWM servos_shield;
 bool servosSetup(){
   if (servos_shield.begin()){
     servos_shield.init(300);
-    servos_shield.set_hz(200);
+    servos_shield.set_hz(50);
     return true;
   }
 }
@@ -44,7 +44,7 @@ void servoCallback(const ebobot::Servos::Request &req, ebobot::Servos::Response 
     resp.resp = 0;
 }
 void createNewServo(int num,  int channel, int speed, int min_val, int max_val, int curr_val){
-    Servo_mot *ptr = malloc(sizeof(Servo_mot));
+    Servo_mot *ptr = (Servo_mot *) malloc(sizeof(Servo_mot));
     ptr_list[num] = ptr;
     ptr->num = num;
     if (speed) ptr->speed = speed;
