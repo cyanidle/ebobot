@@ -53,8 +53,8 @@ long dX[3];
 long lastX[3];
 
 ///////////////////////// MOTORS
-const float turn_max_speed = 0.25; /////////MUST GIVE ABOSOLUTE MAX SPEED IN SUM
-const float max_speed = 0.50;      /////////////With headroom (<~80)
+const float turn_max_speed = 0.25;  /////////MUST GIVE ABSOLUTE MAX SPEED IN SUM
+const float max_speed = 0.50;       /////////////With headroom (<~80)
 bool stop_mot[3];
 float dist[3];
 float absolute_max_speed = 0.75;
@@ -72,7 +72,7 @@ float to_radians(float ang)
 {
   return (ang * 6.283 / 360.0);
 }
-
+////////////////////////////
 int mots_angles[] = {90, 210, 330};
 float mots_x_coeffs[] = {cos(to_radians(mots_angles[0])), cos(to_radians(mots_angles[1])), cos(to_radians(mots_angles[2]))};
 float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])), sin(to_radians(mots_angles[1])), sin(to_radians(mots_angles[2]))};
@@ -190,7 +190,7 @@ void PID(int mot)
 void update_mot(int mot)
 {
   dX[mot] = X[mot] - lastX[mot];
-  ddist[mot] = dX[mot] * (1.0 / ticks_per_rotation) * rad * coeff;
+  ddist[mot] = dX[mot] * (rad / ticks_per_rotation) * coeff;
   lastX[mot] = X[mot];
   dist[mot] = dist[mot] + ddist[mot];
   curr_spd[mot] = ddist[mot] * 1000.0 / loop_delay;
