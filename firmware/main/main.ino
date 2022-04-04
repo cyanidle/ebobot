@@ -301,8 +301,8 @@ void loop()
       motors_msg.target_speed = targ_spd[mot];
       motors_msg.current_speed = curr_spd[mot];
       motors_msg.ddist = ddist[mot];
+      motors_info.publish(&motors_msg);
     }
-    motors_info.publish(&motors_msg);
   }
 
   if (servo_loop.tick()){

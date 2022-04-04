@@ -1,7 +1,7 @@
 port="/dev/ttyACM0"
-firmware_dir=$(find ~/ install.sh | grep /ebobot/firmware/main| head -n 1  | xargs dirname)
+firmware_dir=$(find ~/ -type d | grep /ebobot/firmware/main | head -n 1| xargs dirname)
 echo "Found firmware directory - $firmware_dir"
-arduino_dir=$(find ~/ Arduino/libraries/ | grep /Arduino/libraries | head -n 1 | xargs dirname)
+arduino_dir=$(find ~/ -type d | grep /Arduino/libraries | head -n 1 | xargs dirname)
 if [ -d $arduino_dir ];then
 echo "Found Arduino directory - $arduino_dir"
 cp -rf "$firmware_dir/FaBo_PWM_PCA9685" "$arduino_dir/libraries"
