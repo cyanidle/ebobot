@@ -41,7 +41,7 @@ const int loop_delay = 50;
 const int servo_loop_delay = 100;
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs servo_loop(servo_loop_delay, 1, 0);
-TimerMs start_loop(100, 1, 0);
+TimerMs start_loop(200, 1, 0);
 
 ///////////////////////// ENCODER
 

@@ -55,6 +55,20 @@
         write: true
         pullup: false
         value: 0
+  - "ValveOn":
+    - pin_service:
+        pin: 47
+        digital: true
+        write: true
+        pullup: false
+        value: 1
+  - "ValveOff":
+    - pin_service: 
+        pin: 47
+        digital: true
+        write: true
+        pullup: false
+        value: 0
       
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!

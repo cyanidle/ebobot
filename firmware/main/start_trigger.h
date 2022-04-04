@@ -5,8 +5,8 @@ std_msgs::Int8 start_msg;
 ros::Publisher start_trigger("/ebobot/begin", &start_msg);
 bool _started = false;
 bool _route = false;
-int _start_pin = 25;
-int _switch_pin = 27;
+const int _start_pin = 25;
+const int _switch_pin = 29;
 
 void startUpdate(){
   
