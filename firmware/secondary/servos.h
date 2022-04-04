@@ -10,7 +10,7 @@ FaBoPWM servos_shield;
 bool servosSetup(){
   if (servos_shield.begin()){
     servos_shield.init(300);
-    servos_shield.set_hz(200);
+    servos_shield.set_hz(1516);
     return true;
   }
 }
@@ -49,6 +49,7 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->min_val = min_val;
     ptr->curr_val = curr_val;
     ptr->target_state = min_val;
+    //struct Servo_mot new_servo{num,channel,speed,min_val,max_val,curr_val,false,false};
     if (num > max_num) max_num = num;
 }
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
