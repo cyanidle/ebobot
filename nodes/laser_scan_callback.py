@@ -140,14 +140,14 @@ class Laser:
         else:
             container = zip(cls.ranges, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.coeffs)}|{cls.coeffs[0]}|{cls.coeffs[-1]}")
-        for _cont in container:
+        for num,_cont in enumerate(container):
             if cls.enable_intensities:
                 range, intensity, coeffs = _cont
             else: 
                 range,coeffs = _cont
             y_coeff, x_coeff = coeffs
             if range < cls.range_max_custom and range > cls.range_min:
-                meters_pos = (range * y_coeff, range * x_coeff) 
+                meters_pos = (range * y_coeff+cls.robot_twist[0]*num*cls.time_increment, range * x_coeff + cls.robot_twist[1]*num*cls.time_increment) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
                 prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
