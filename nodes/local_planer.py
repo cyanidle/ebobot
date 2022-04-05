@@ -100,7 +100,7 @@ class Local():
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
     
-    
+    skip_thresh=rospy.get_param('~skip_thresh', 4)
     
     
     num_of_circles = rospy.get_param('~num_of_circles', 2)
@@ -282,7 +282,7 @@ class Local():
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
-        if cls.skipped + cls.current_target >= len(cls.targets):
+        if cls.skipped >= cls.skip_thresh:
             rospy.loginfo(f"Goal failed! Sending Stop!")
             cls.status_publisher.publish(String('fail'))
             cls.goal_reached = 1
