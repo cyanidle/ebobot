@@ -311,14 +311,13 @@ class Local():
                     rospy.loginfo(f"Point failed cost check({point_cost})! Recursing...")
                 cls.skipped += 1
                 #cls.current_target += 1
-                #cls.fetchPoint(current, target)e
-                return cls.fetchPoint()
-        else:
-            if cls.debug:
-                rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
-            cls.skipped = 0 
-            cls.current_target += 1
-            return point 
+                #cls.fetchPoint(current, target)
+                return cls.fetchPoint(current_pos)
+        if cls.debug:
+            rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
+        cls.skipped = 0 
+        cls.current_target += 1
+        return point 
        
     ####################################################################       
     # @classmethod
