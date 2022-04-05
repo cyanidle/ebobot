@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 rospy.sleep(1)
 #####################################
 def startCallback(start):
+    rospy.logwarn(f"Got new start command {start.data}")
     Flags._execute = 0
     if Manager.debug:
         rospy.logwarn(Manager.route)
@@ -147,7 +148,10 @@ class Template(ABC):
     @abstractmethod
     def __init__(self,parent,name,args):
         if Manager.debug:
-            rospy.loginfo(f"Initialising {name} with args {args}, inside of {parent}")
+            if type(self) == Task:
+                rospy.loginfo(f"Initialising {name} with {len(args)} subtasks")
+            else:
+                rospy.loginfo(f"Initialising {name} with args {args}, inside of {parent}")
         self.parent = parent
         self._activate_flag = False
         self.num = 0
@@ -164,7 +168,7 @@ class Template(ABC):
                 if obj.name == self.name:
                     self.num += 1
         else:
-            self.num = len(Manager.obj_dict[type(self).__name__])
+            self.num = len(Manager.obj_dict[type(self).__name__])-1
         ###
         self.status = Status(self)
     @abstractmethod
@@ -189,6 +193,8 @@ class Template(ABC):
         self._activate_flag = True
     def updateStatus(self) -> str:
         return self.status.get()  
+    def __repr__(self) -> str:
+        return f"<{type(self).__name__} {self.num}|{self.parent.name}/{self.name}/{self.num}>"
     def __str__(self) -> str:
         return f"<{type(self).__name__} {self.num}|status:{self.status.get()}>"
     def rawString(self):
@@ -278,13 +284,19 @@ class Log(Template):
         self.text = args    
     async def midExec(self) -> None:
         text = self.text
-        pref = text[:2]
-        if pref == "L:":
+        pref = text.split(":")[0]
+        if pref == "L":
             rospy.loginfo(f"Log:{text[2:]}")
-        elif pref == "W:":
+        elif pref == "W":
             rospy.logwarn(f"Log:{text[2:]}")
-        elif pref == "E:":
+        elif pref == "E":
             rospy.logerr(f"Log:{text[2:]}")
+        elif pref == "VAR":
+            var = Variable.find(text[4:])
+            if not var:
+                rospy.logerr(f"No such variable available ({text[4:]})")
+                self.status.set("fail")
+            rospy.logwarn(f"Variable {var}")
         else:
             rospy.logerr(f"(Incorrect log prefix!) {text}")
             self.status.set("fail") 
@@ -377,9 +389,10 @@ class Task(Template):
             rospy.logwarn(f"Micros in task {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            if self._fail_flag or not Flags._execute:
+            if self._fail_flag:
                 self.status.set("fail")
-                break
+            if not Flags._execute:
+                return
         if not self._fail_flag:
             self.status.set("done")
     @staticmethod
@@ -452,13 +465,25 @@ class Interrupt(Template):
         return f"interrupts/{self.name}"
 ########################################################
 class Variable(Template):
+    name = "Variable"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.value = int(args)
         self.status.set(self.value)
     def set(self, num: int):
         self.value = num
+        self.status.set(self.value)
         Status.checkDeps(self)
+    @staticmethod
+    def find(str):
+        if "Variable" in Manager.obj_dict.keys():
+            for var in Manager.obj_dict["Variable"]:
+                if var.name == str:
+                    return var
+            rospy.logerr("Find var called with zero init variables!")
+            return None
+        else:
+            rospy.logerr("Find var called with zero init variables!")
     def midExec(self) -> None:
         pass
     def rawString(self):
@@ -470,7 +495,7 @@ class ChangeVar(Template):
         parsed = args.split("/")
         self._var = parsed[0]
         self._action = parsed[1]
-        self._value = parsed[2]
+        self._value = int(parsed[2])
     def apply(self, val: int):
         if self._action == "add":
             return val + self._value
@@ -484,14 +509,16 @@ class ChangeVar(Template):
             if Manager.debug:
                 rospy.logerr(f"Value change ({self._action}) not implemented!")
     async def midExec(self) -> None:
-        try:
-            for var in Manager.obj_dict["Variable"]:
-                if var.name == self._var:
-                    var.set(self.apply(var.value))
-            self.status.set("done")
-        except:
-            if Manager.debug:
-                rospy.logerr("No variables available")
+        #try:
+        for var in Manager.obj_dict["Variable"]:
+            if var.name == self._var:
+                var.set(self.apply(var.value))
+                self.status.set("done")
+                return
+        # except:
+        #     if Manager.debug:
+        #         rospy.logerr("No variables available")
+        #     self.status.set("fail")
 ########################################################
 class Timer(Template):
     name = "timer"
@@ -593,6 +620,8 @@ class Manager:
     name = "Tasks"
     #Params
     debug = rospy.get_param("~debug", 1)
+    if debug:
+        rospy.logerr(f"Manager uses debug!")
     #
     file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
     file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
@@ -638,6 +667,7 @@ class Manager:
                 rospy.logerr("NO TASKS IN ROUTE FILE!")
         if "variables" in cls.route.keys():
             for var_name in cls.route["variables"]:
+                print (f"variable {var_name}")
                 var_val = cls.route["variables"][var_name]
                 new_var = Variable(Variable, var_name, var_val)
         else:

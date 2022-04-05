@@ -6,6 +6,7 @@ from ebobot.msg import MotorsInfo
 from geometry_msgs.msg import PoseWithCovarianceStamped
 ###
 from std_srvs.srv import Empty, EmptyResponse
+from std_msgs.msg import Int8
 ###
 import math
 import tf
@@ -17,6 +18,7 @@ rospy.init_node('motors_info_callback')
 
 def startCallback(start):
     if start.data == 1 or start.data == 2:
+        rospy.logwarn(f"Side switched to side {start.data}! ")
         Motors.side = start.data
     Motors.reset()
 ############
@@ -33,9 +35,11 @@ def estimateCallback(target):
     Motors.x,Motors.y,Motors.theta = goal[0], goal[1], goal[2]
 class Motors():
     #Params
+    side_topic = rospy.get_param("~side_topic", "/ebobot/begin")
+    #
+    side_subscriber = rospy.Subscriber(side_topic,Int8,startCallback)
+    ###
     estimate_pos = rospy.get_param('~estimate_pos',"initialpose")
-
-
     default_side = rospy.get_param('~default_side',2)
     debug = rospy.get_param('~debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
     theta_coeff =rospy.get_param('~theta_coeff',1)

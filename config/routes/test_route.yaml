@@ -1,5 +1,7 @@
 tasks: #move: x/y/th
-  top_right: 
+  init:
+    - change_var: test_var/add/999 #delete later
+    - log: "VAR:test_var"
     - call: PumpOn
     - call: ValveOn
     - call: ArmUp
@@ -11,6 +13,7 @@ tasks: #move: x/y/th
     - call: ArmDown
     - sleep: 0.5
     - call: Adjust
+  top_right: 
     - move: 1.02/0.44/0 
     - call: Adjust
     - call: PumpOff
@@ -24,5 +27,6 @@ tasks: #move: x/y/th
     - score: 1000
 variables:
   default: 0
+  test_var: 0
 
 

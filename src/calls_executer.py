@@ -20,42 +20,52 @@ def getMoveClient():
 class Calls: #Async
     #move_servo = rospy.ServiceProxy("servos_service", Servos)
     def __init__(self, name,execs, static = True):
-        rospy.logwarn(f"Initialising a call {name}, static:{static}")
+        if Execute.debug:
+            rospy.logwarn(f"Initialising a call {name}, static:{static}")
         self.executables = []
         self.args = []
         self.parsers = []
         self.static = static
         self.name = name   
-        rospy.loginfo(f"Parsing through execs...\n{execs}")
+        if Execute.debug:
+            rospy.loginfo(f"Parsing through execs...\n{execs}")
         if static:
             for sub_dict in execs:
                 exec_name = list(sub_dict.keys())[0]
-                rospy.loginfo(f"Parsing {exec_name}")
+                if Execute.debug:
+                    rospy.loginfo(f"Parsing {exec_name}")
                 self.executables.append(Execute.exec_dict[exec_name]())
-                rospy.loginfo(f"Appended executable {self.executables[-1]}")
+                if Execute.debug:
+                    rospy.loginfo(f"Appended executable {self.executables[-1]}")
                 self.parsers.append(Execute.parsers_dict[exec_name])
-                rospy.loginfo(f"Appended parser {self.parsers[-1]}")
+                if Execute.debug:
+                    rospy.loginfo(f"Appended parser {self.parsers[-1]}")
                 pargs = {}
-                print (sub_dict[exec_name])
+                #print (sub_dict[exec_name])
                 for sub_dict_args in sub_dict[exec_name]:
                     pargs = {**pargs, **sub_dict_args}
                 self.args.append(pargs)
-                rospy.loginfo(f"Appended args {pargs} to {self.args}")
+                if Execute.debug:
+                    rospy.loginfo(f"Args = {self.args}")
         else:
             for exec in execs:
-                rospy.loginfo(f"Parsing {exec}")
+                if Execute.debug:
+                    rospy.loginfo(f"Parsing {exec}")
                 args = []
                 self.executables.append(Execute.exec_dict[exec]())
-                rospy.loginfo(f"Appended executable {self.executables[-1]}")
+                if Execute.debug:
+                    rospy.loginfo(f"Appended executable {self.executables[-1]}")
                 self.parsers.append(Execute.parsers_dict[exec])
-                rospy.loginfo(f"Appended parser {self.parsers[-1]}")
+                if Execute.debug:
+                    rospy.loginfo(f"Appended parser {self.parsers[-1]}")
     def __str__(self):
         return f"Call {self.name}:\n###{self.executables}\n###{self.parsers}\n###{self.args}\n"
     def __repr__(self):
         return f"Call {self.name}:\n###{self.executables}\n###{self.parsers}\n###{self.args}\n"
     async def exec(self,args=None):
         "If the call is dynamic, you should pass args to exec() method! Use dict for kwargs of the service"
-        rospy.loginfo(f"static:{self.static}")
+        if Execute.debug:
+            rospy.loginfo(f"static:{self.static}")
         if self.static:
             proc = asyncio.create_task(self.executeStatic())
         else:
@@ -67,10 +77,13 @@ class Calls: #Async
             for exec, args, parser in zip(self.executables, self.args, self.parsers):
                 _corout = exec(parser(args))
                 if Execute.debug:
-                    rospy.loginfo(f"Executing static {exec}, parser = {parser}, args = {args}")
-                    rospy.loginfo(f"Couroutine = {_corout}")
+                    if Execute.debug:
+                        rospy.loginfo(f"Executing static {exec}, parser = {parser}, args = {args}")
+                    if Execute.debug:
+                        rospy.loginfo(f"Couroutine = {_corout}")
                 resps.append(await _corout)
-            rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
+            if Execute.debug:
+                rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
                 return "fail"
             elif not 0 in resps:
@@ -93,7 +106,8 @@ class Calls: #Async
                 _corout = exec(parser(args))
                 sub_calls.append(asyncio.create_task(_corout))
             resps = await asyncio.gather(*sub_calls)
-            rospy.loginfo(f"Executing dynamic {self.name}, responces = {resps}")
+            if Execute.debug:
+                rospy.loginfo(f"Executing dynamic {self.name}, responces = {resps}")
             if 1 in resps:
                 return "fail"
             elif not 0 in resps:
@@ -111,7 +125,8 @@ class Calls: #Async
     @staticmethod
     def parseServos(args):
         parsed = ServosRequest()
-        rospy.loginfo(f"Parsing args for servo")
+        if Execute.debug:
+            rospy.loginfo(f"Parsing args for servo")
         parsed.num = args["num"]
         parsed.state = int(args["state"])
         return parsed
@@ -135,7 +150,8 @@ class Calls: #Async
     async def ServoExec(args):
         rospy.sleep(0.2)
         proxy = rospy.ServiceProxy("servos_service", Servos)
-        rospy.logwarn(f"Calling servos_service with args:{args}")
+        if Execute.debug:
+            rospy.logwarn(f"Calling servos_service with args:{args}")
         return proxy(args).resp
     @staticmethod
     def getLcdExec():
@@ -174,7 +190,7 @@ class Calls: #Async
     def getPinExec():
         return Calls.pinExec
     @staticmethod
-    def pinExec(args):
+    async def pinExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
         proxy(args)
         return 0
@@ -196,7 +212,9 @@ async def showPrediction(num):
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")
-    debug = rospy.get_param("~debug", 1)
+    debug = rospy.get_param("~calls_debug", 1)
+    if debug:
+        rospy.logerr("CALLS EXECUTER HAS DEBUG ON!")
     #/Params
     #Globals
     dict = {}
@@ -217,42 +235,52 @@ class Execute:
     }
     @classmethod
     def read(cls):
-        rospy.loginfo("Reading file...")
+        if Execute.debug:
+            rospy.loginfo("Reading file...")
         with open(cls.file, "r") as stream:
             try:
                 cls.raw_dict = (yaml.safe_load(stream))
-                rospy.loginfo(f"Got dict!")
+                if Execute.debug:
+                    rospy.loginfo(f"Got dict!")
             except yaml.YAMLError as exc:
-                rospy.logerr(f"Loading failed ({exc})")
+                if Execute.debug:
+                    rospy.logerr(f"Loading failed ({exc})")
     @classmethod
     def parse(cls):
-        #rospy.loginfo(f"Raw dict = {cls.raw_dict}")
+        #if Execute.debug:
+        #    rospy.loginfo(f"Raw dict = {cls.raw_dict}")
         static = cls.raw_dict["Static"]
         for call_dict in static:
             call_name = list(call_dict.keys())[0]
-            rospy.loginfo(f"Parsing {call_name}")
+            if Execute.debug:
+                rospy.loginfo(f"Parsing {call_name}")
             try:
                 cls.dict[call_name] = Calls(call_name, call_dict[call_name])
             except:
-                rospy.logerr(f"Syntax error for static {call_name}! (No available services or duplicate call name)")
+                if Execute.debug:
+                    rospy.logerr(f"Syntax error for static {call_name}! (No available services or duplicate call name)")
         dynamic = cls.raw_dict["Dynamic"]
         for call_dict in dynamic:
             call_name = list(call_dict.keys())[0]
-            rospy.logwarn(f"Parsing {call_name}")
+            if Execute.debug:
+                rospy.logwarn(f"Parsing {call_name}")
             try:
                 cls.dict[call_name] = Calls(call_name, call_dict[call_name], static=False)
             except:
-                rospy.logerr(f"Syntax error for dynamic {call_name}! (No available services or duplicate call name)")
+                if Execute.debug:
+                    rospy.logerr(f"Syntax error for dynamic {call_name}! (No available services or duplicate call name)")
 
 class Move:
     def __init__(self,cb):
         "Init a client with a callback function!"
         self.cb = cb
         self.client = actionlib.SimpleActionClient('move', MoveAction)
-        rospy.logwarn(f"Waiting for server 'move'...")
+        if Execute.debug:
+            rospy.logwarn(f"Waiting for server 'move'...")
         self.client.wait_for_server()
     def setTarget(self,target_pos,target_th):
-        rospy.loginfo(f"##Set new goal for {target_pos}, {target_th}")
+        if Execute.debug:
+            rospy.loginfo(f"##Set new goal for {target_pos}, {target_th}")
         self.target_pos = target_pos
         self.target_th = target_th
         goal = MoveGoal()

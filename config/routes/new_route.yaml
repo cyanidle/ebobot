@@ -1,5 +1,6 @@
 tasks:
   flip_ohms_second:
+    - change_var: get_flipped_var/add/1 #delete later
     - call: ArmDown
     - move: 0.35/0.88/3.1415
     - call: ArmHalfUp
@@ -37,9 +38,9 @@ tasks:
     - sleep: 1
 
 
-variables:
+variables: #MUST BE INTS
   default: 0
-  get_flipped_var: 1s
+  get_flipped_var: 1 
 interrupts: 
   return_to_base:
     - interrupt_condition: "timers/main/40"

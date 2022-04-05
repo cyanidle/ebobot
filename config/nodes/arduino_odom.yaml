@@ -1,13 +1,15 @@
 #rosserial_arduino: #pkg
 motors_info_callback:
   default_side: 2 #purple - default
+  side_topic: /ebobot/begin
+  #
   2/start_x: 1.4
   2/start_y: 0.25
   2/start_theta: 5.5
   ########
   1/start_x: 1.4
   1/start_y: 2.75
-  1/start_theta: 2.36
+  1/start_theta: 5.5
   ########
   footprint_radius: 0.9
   update_rate: 20
