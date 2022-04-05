@@ -1,5 +1,7 @@
 tasks: #move: x/y/th
   top_right: 
+    - call: PumpOn
+    - call: ValveOn
     - call: ArmUp
     - sleep: 0.5
     - call: ArmHalfUp
@@ -11,6 +13,8 @@ tasks: #move: x/y/th
     - call: Adjust
     - move: 1.02/0.44/0 
     - call: Adjust
+    - call: PumpOff
+    - call: ValveOff
   top_left:
     - move: 1.62/0.44/1
     - call: Adjust
