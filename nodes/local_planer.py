@@ -175,7 +175,7 @@ class Local():
         if not cls.rotate_at_end:
             delta_theta = (final_target[2] - current_theta) / (len(cls.targets) + 1)
         else:
-            delta_theta = current_theta
+            delta_theta = 0
         # else:
         #     delta_theta = final_target[2]
         min_dist = 100
