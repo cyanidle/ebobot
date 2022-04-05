@@ -43,32 +43,32 @@
       - "pin": 0 #(read ohms on "num" analog pin to ground)
   - "PumpOn":
     - pin_service:
-        pin: 48
-        digital: true
-        write: true
-        pullup: false
-        value: 1
+      - pin: 48
+      - digital: true
+      - write: true
+      - pullup: false
+      - value: 1
   - "PumpOff":
     - pin_service: 
-        pin: 48
-        digital: true
-        write: true
-        pullup: false
-        value: 0
+      - pin: 48
+      - digital: true
+      - write: true
+      - pullup: false
+      - value: 0
   - "ValveOn":
     - pin_service:
-        pin: 47
-        digital: true
-        write: true
-        pullup: false
-        value: 1
+      - pin: 47
+      - digital: true
+      - write: true
+      - pullup: false
+      - value: 1
   - "ValveOff":
     - pin_service: 
-        pin: 47
-        digital: true
-        write: true
-        pullup: false
-        value: 0
+      - pin: 47
+      - digital: true
+      - write: true
+      - pullup: false
+      - value: 0
       
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!

@@ -1,9 +1,13 @@
 tasks: #move: x/y/th
   top_right: 
     - call: ArmUp
+    - sleep: 0.5
     - call: ArmHalfUp
+    - sleep: 0.5
     - call: ArmHalfDown
+    - sleep: 0.5
     - call: ArmDown
+    - sleep: 0.5
     - call: Adjust
     - move: 1.02/0.44/0 
     - call: Adjust
@@ -11,7 +15,7 @@ tasks: #move: x/y/th
     - move: 1.62/0.44/1
     - call: Adjust
   start:
-    - move: 0.8/0.4/3.6
+    - move: 1.4/0.25/3.6
     - call: Adjust
     - score: 1000
 variables:

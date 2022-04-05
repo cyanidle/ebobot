@@ -108,6 +108,7 @@ class Laser:
     intensities = []
     costmap = []
     robot_pos = np.array([0,0,0])
+    robot_twist = np.array([0,0,0])
     #/Global values
     @classmethod
     def precalcCoeffs(cls):

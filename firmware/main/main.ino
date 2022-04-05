@@ -12,7 +12,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 20, 20, 1624, 1600> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1324, 1324> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
@@ -287,6 +287,8 @@ void setup()
   pinMode(EN2, OUTPUT);
   pinMode(FWD2, OUTPUT);
   pinMode(BCK2, OUTPUT);
+  ////////
+  //_allow_publish = true;
 }
 ////////////////////////////////
 void loop()
