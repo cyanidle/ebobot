@@ -2,7 +2,7 @@
 motors_info_callback:
   start_x: 1.4
   start_y: 0.25
-  start_theta: 3.6
+  start_theta: deg(220)
   footprint_radius: 0.15
   update_rate: 20
   theta_coeff: 1
