@@ -258,9 +258,9 @@ class Local():
     @staticmethod
     def getRadNorm(rad):
         if rad >= 0:
-            return rad
+            return 6.283%rad
         else:
-            return 6.283 + rad
+            return 6.283%(6.283 + rad)
     @classmethod
     def rotateAtEnd(cls):
         if cls.debug:
