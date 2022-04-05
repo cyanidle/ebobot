@@ -258,9 +258,9 @@ class Local():
     @staticmethod
     def getRadNorm(rad):
         if rad >= 0:
-            return 6.283%rad
+            return rad
         else:
-            return 6.283%(6.283 + rad)
+            return 6.283 + rad
     @classmethod
     def rotateAtEnd(cls):
         if cls.debug:
@@ -270,7 +270,7 @@ class Local():
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if abs(diff) > 3.1415:
-               diff = -abs(6.283 - diff)
+               diff = abs(-6.283 - diff)
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1
