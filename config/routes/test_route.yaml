@@ -16,10 +16,10 @@ tasks: #move: x/y/th
     - call: PumpOff
     - call: ValveOff
   top_left:
-    - move: 1.62/0.44/1
+    - move: 1.62/0.44/0
     - call: Adjust
   start:
-    - move: 1.4/0.25/3.6
+    - move: 1.4/0.25/5.5
     - call: Adjust
     - score: 1000
 variables:

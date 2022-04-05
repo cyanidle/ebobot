@@ -1,4 +1,9 @@
 tasks:
+  flip_ohms_second:
+    - call: ArmDown
+    - move: 0.35/0.88/3.1415
+    - call: ArmHalfUp
+    - move: 0.25/0.88/3.1415
   get_flipped: 
     #- call: Adjust
     - move: 1.37/1.7/3.5
@@ -34,7 +39,7 @@ tasks:
 
 variables:
   default: 0
-  get_flipped_var: 0
+  get_flipped_var: 1s
 interrupts: 
   return_to_base:
     - interrupt_condition: "timers/main/40"

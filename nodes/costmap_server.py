@@ -179,12 +179,12 @@ class Costmap():
                 sum = 0
                 for dy in range(-1,2):
                     for dx in range(-1,2):
-                        sum += cls.pixels[y+dy][x+dx] > cls.inflation_threshhold
+                        sum += int(cls.pixels[y+dy][x+dx] > cls.inflation_threshhold)
                 if sum > 8:
                     return  
             for d_y, d_x in cls.inflation_coords_list:
                 next_y, next_x = y+d_y, x + d_x
-                if (next_x >= 0 and next_x < cls.width) and (next_y>=0 and next_y <cls.height):    
+                if (next_x >= 0 and next_x < cls.width) and (next_y>=0 and next_y <cls.height) and not rospy.is_shutdown():    
                     dist = np.linalg.norm(np.array([next_y,next_x]-np.array([y,x])))
                     inflation = cls.getInflation(dist,y,x)
                     cls.grid[next_y][next_x] += inflation

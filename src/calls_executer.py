@@ -81,7 +81,7 @@ class Calls: #Async
             return await subExec()
         else:
             try:
-                return subExec()
+                return await subExec()
             except:
                 rospy.logerr(f"Call {self.name} unavailable!")
                 return "fail"
@@ -104,7 +104,7 @@ class Calls: #Async
             return await subExec()
         else:
             try:
-                return subExec()
+                return await subExec()
             except:
                 rospy.logerr(f"Call {self.name} unavailable!")
                 return "fail"

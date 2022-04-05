@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from cmath import acos
 import roslib
 import rospy
 from math import sin, cos
@@ -253,8 +254,8 @@ class Local():
         return final_coeff
     @classmethod
     def checkTurn(cls): 
-        #rospy.loginfo(f"Checking turn {cls.robot_pos[2]=}{cls.last_target[2]=}...")
-        return abs(cls.getRadNorm(cls.robot_pos[2]) - cls.getRadNorm(cls.last_target[2])) > cls.turn_threshhold
+        #rospy.loginfo(f"Checking turn {cls.getRadNorm(cls.robot_pos[2])=}{cls.getRadNorm(cls.last_target[2])=}...")
+        return abs(cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2])) > cls.turn_threshhold
     @staticmethod
     def getRadNorm(rad):
         if rad >= 0:
@@ -269,8 +270,10 @@ class Local():
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
-            if abs(diff) > 3.1415:
-               diff = abs(-6.283 - diff)
+            if diff >= 3.1415:
+               diff = -(6.283 - diff)
+            elif diff < -3.1415:
+                diff = 6.283 + diff
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1

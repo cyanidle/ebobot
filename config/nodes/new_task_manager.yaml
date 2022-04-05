@@ -1,4 +1,5 @@
 new_task_manager:
+  debug: 1
   start_service: /ebobot/begin
   status:
     update_rate: 4
