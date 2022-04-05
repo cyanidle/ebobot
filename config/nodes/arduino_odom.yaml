@@ -1,8 +1,14 @@
 #rosserial_arduino: #pkg
 motors_info_callback:
-  start_x: 1.4
-  start_y: 0.25
-  start_theta: 5.5
+  default_side: 2 #purple - default
+  2/start_x: 1.4
+  2/start_y: 0.25
+  2/start_theta: 5.5
+  ########
+  1/start_x: 1.4
+  1/start_y: 2.75
+  1/start_theta: 2.36
+  ########
   footprint_radius: 0.9
   update_rate: 20
   #####

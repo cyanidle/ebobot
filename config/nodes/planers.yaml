@@ -41,7 +41,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   dead_end_dist_diff_threshhold: 5 #if planer backtracks this number of cells, 
   #the last point is removed (considered a dead end)
   cleanup_repeats_len: 5       # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 7   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_threshhold: 6   # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
 
 ##################################
@@ -63,7 +63,7 @@ local_planer:
   #Turn
   pause_before_turn: 0.2 #seconds
   turn_threshhold: 0.08 
-  cells_per_radian: 5 #idk
+  cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
   min_turn_coeff: 0.25 #final!
   #speed coeffs

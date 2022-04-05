@@ -15,6 +15,11 @@ from nav_msgs.msg import Odometry
 
 rospy.init_node('motors_info_callback')
 
+def startCallback(start):
+    if start.data == 1 or start.data == 2:
+        Motors.side = start.data
+    Motors.reset()
+############
 def resetCB(req):
     Motors.reset()
     return EmptyResponse()
@@ -31,19 +36,20 @@ class Motors():
     estimate_pos = rospy.get_param('~estimate_pos',"initialpose")
 
 
-
+    default_side = rospy.get_param('~default_side',2)
     debug = rospy.get_param('~debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
     theta_coeff =rospy.get_param('~theta_coeff',1)
     y_coeff = rospy.get_param('~y_coeff',1)
     x_coeff = rospy.get_param('~x_coeff',1)
     wheels_footprint_rad = rospy.get_param('~wheels_footprint_radius',0.15) #in meters
     #/Params
+    side = default_side
     num = 3
-    start_theta = rospy.get_param('~start_theta', 3.1415/2)
+    start_theta = rospy.get_param(f'~{side}/start_theta', 3.1415/2)
     theta = start_theta
-    start_x = rospy.get_param('~start_x',1)
+    start_x = rospy.get_param(f'~{side}/start_x',1)
     x = start_x
-    start_y = rospy.get_param('~start_y',0.1)
+    start_y = rospy.get_param(f'~{side}/start_y',0.1)
     y = start_y
     list = []
     last_x = 0
@@ -58,6 +64,9 @@ class Motors():
     last_theta = 0
     @staticmethod
     def reset():
+        Motors.start_theta = rospy.get_param(f'~{Motors.side}/start_theta', 3.1415/2)
+        Motors.start_x = rospy.get_param(f'~{Motors.side}/start_x',1)
+        Motors.start_y = rospy.get_param(f'~{Motors.side}/start_y',0.1)
         Motors.x = Motors.start_x
         Motors.y = Motors.start_y
         Motors.theta = Motors.start_theta
@@ -130,12 +139,11 @@ if __name__=="__main__":
     rate = rospy.Rate(Motors.Hz)
     #init motors with their angles
     motor0 = Motors(0,90) 
-    rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")
     motor1 = Motors(1,210)
-    rospy.loginfo(f"Motor 2 initialised with angle - {motor1.angle}, radians - {motor1.radians}")
     motor2 = Motors(2,330)
-    rospy.loginfo(f"Motor 3 initialised with angle - {motor2.angle}, radians - {motor2.radians}")
-    rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
+    for mot in Motors.list:
+        rospy.loginfo(f"Motor {mot.num} initialised with angle - {mot.angle}, radians - {mot.radians}")
+    #rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
     ###################
     rospy.sleep(1)
     main()

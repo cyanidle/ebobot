@@ -11,6 +11,7 @@ from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
 from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
+from std_msgs.msg import Int8
 ######################
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry#, OccupancyGrid
@@ -22,8 +23,10 @@ rospy.init_node('laser_scan_callback')
 
 
 ###############
-
-
+def startCallback(start):
+    if start.data == 1 or start.data == 2:
+        Laser.side = start.data
+    Beacons.resetExpected()
 def robotPosCallback(odom):
     quat = [odom.pose.pose.orientation.x,odom.pose.pose.orientation.y,odom.pose.pose.orientation.z,odom.pose.pose.orientation.w]
     Laser.robot_pos = np.array([odom.pose.pose.position.y,odom.pose.pose.position.x,tf.transformations.euler_from_quaternion(quat)[2]]) 
@@ -76,6 +79,7 @@ class Laser:
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_max = rospy.get_param('~dist_between_dots_max', 0.05) #in meters
     #
+    default_side = rospy.get_param('~default_side',2)
     update_rate = rospy.get_param("~update_rate",2) #updates/sec
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(radians counterclockwise)
     #/Params
@@ -83,8 +87,10 @@ class Laser:
     laser_scan_topic = rospy.get_param("~laser_scan_topic", "/scan")
     robot_pos_topic = rospy.get_param("~robot_pos_topic", "/odom")
     robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "/initialpose")
+    side_topic = rospy.get_param("~side_topic", "/ebobot/begin")
     #
     broadcaster = tf.TransformBroadcaster()
+    side_subscriber = rospy.Subscriber(side_topic,Int8,startCallback)
     adjust_publisher = rospy.Publisher(robot_pos_adj_topic, PoseWithCovarianceStamped, queue_size = 5)
     laser_scan_subscriber = rospy.Subscriber(laser_scan_topic,LaserScan,laserScanCallback)
     robot_pos_subscriber = rospy.Subscriber(robot_pos_topic,Odometry,robotPosCallback)
@@ -92,6 +98,7 @@ class Laser:
     #Global values
     list = []
     #
+    side = default_side
     _updated = False
     allow_time_test = 0
     time_test_done = 0
@@ -255,7 +262,7 @@ class Beacons(Laser):
     # Auto-init beacons 
     num_beacons = rospy.get_param('~beacons/num_beacons', 3)
     for n in range(num_beacons):
-        raw_list.append(rospy.get_param(f'~beacons/beacon{n}'))
+        raw_list.append(rospy.get_param(f'~beacons/{Laser.side}/beacon{n}'))
     #
     ############# Manual init
     # raw_list.append(rospy.get_param('~beacons/beacon0',[0.02,1])) #in meters, first beacon is top-left, then - counterclockwise
@@ -287,6 +294,13 @@ class Beacons(Laser):
         else:
             self._pub = False
             Beacons.rel_list.append(self)
+    @classmethod
+    def resetExpected(cls):
+        cls.raw_list.clear()
+        cls.expected_list.clear()
+        for n in range(cls.num_beacons):
+            cls.raw_list.append(rospy.get_param(f'~beacons/{Laser.side}/beacon{n}'))
+        cls.initExpected()
     def __sub__(self,other):
         return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
     def __truediv__(self,other):
