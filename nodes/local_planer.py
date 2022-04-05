@@ -100,7 +100,7 @@ class Local():
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
     
-    
+    skip_thresh=rospy.get_param('~skip_thresh', 4)
     
     
     num_of_circles = rospy.get_param('~num_of_circles', 2)
@@ -175,7 +175,7 @@ class Local():
         if not cls.rotate_at_end:
             delta_theta = (final_target[2] - current_theta) / (len(cls.targets) + 1)
         else:
-            delta_theta = current_theta
+            delta_theta = 0
         # else:
         #     delta_theta = final_target[2]
         min_dist = 100
@@ -258,9 +258,9 @@ class Local():
     @staticmethod
     def getRadNorm(rad):
         if rad >= 0:
-            return rad
+            return 6.283%rad
         else:
-            return abs(-6.283 - rad)
+            return 6.283%(6.283 + rad)
     @classmethod
     def rotateAtEnd(cls):
         if cls.debug:
@@ -270,7 +270,7 @@ class Local():
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if abs(diff) > 3.1415:
-               diff = abs(-6.283 - diff)
+               diff = -abs(6.283 - diff)
             coeff = cls.turn_coeff * abs(diff)
             if coeff > 1:
                 coeff = 1
@@ -282,7 +282,7 @@ class Local():
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
-        if cls.skipped + cls.current_target >= len(cls.targets):
+        if cls.skipped >= cls.skip_thresh:
             rospy.loginfo(f"Goal failed! Sending Stop!")
             cls.status_publisher.publish(String('fail'))
             cls.goal_reached = 1
@@ -311,14 +311,13 @@ class Local():
                     rospy.loginfo(f"Point failed cost check({point_cost})! Recursing...")
                 cls.skipped += 1
                 #cls.current_target += 1
-                #cls.fetchPoint(current, target)e
-                return cls.fetchPoint()
-        else:
-            if cls.debug:
-                rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
-            cls.skipped = 0 
-            cls.current_target += 1
-            return point 
+                #cls.fetchPoint(current, target)
+                return cls.fetchPoint(current_pos)
+        if cls.debug:
+            rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
+        cls.skipped = 0 
+        cls.current_target += 1
+        return point 
        
     ####################################################################       
     # @classmethod

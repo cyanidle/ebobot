@@ -33,7 +33,6 @@ class Motors():
 
 
     debug = rospy.get_param('~debug',1) #довольно неприятно, ДА ГДЕ СУКА ОШИБКА
-    info_len = rospy.get_param('~motors_info_len',12) 
     theta_coeff =rospy.get_param('~theta_coeff',1)
     y_coeff = rospy.get_param('~y_coeff',1)
     x_coeff = rospy.get_param('~x_coeff',1)
@@ -75,11 +74,11 @@ class Motors():
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
         for mot in Motors.list:
-            Motors.theta += mot.ddist / Motors.num / (Motors.wheels_footprint_rad) /4 * Motors.theta_coeff  #по че му? (temporary)
+            Motors.theta += mot.ddist / Motors.num / (Motors.wheels_footprint_rad) * Motors.theta_coeff  #по че му? (temporary)
         for mot in Motors.list:
             if mot.ddist != 0:
-                Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / Motors.num /2 * Motors.x_coeff#temporary
-                Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / Motors.num /2 * Motors.y_coeff#temporary
+                Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / len(Motors.list) * 2 * Motors.x_coeff#temporary
+                Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / len(Motors.list) * 2 * Motors.y_coeff#temporary
         Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) / delta_secs, (Motors.y - Motors.last_y)/delta_secs
         Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
         Motors.spd_turn = Motors.theta - Motors.last_theta
@@ -89,10 +88,12 @@ def callback(info):
     Motors.list[info.num].curr = info.current_speed
     Motors.list[info.num].targ = info.target_speed
     Motors.list[info.num].ddist = info.ddist
-    Motors.updateOdom()
-    Motors.last_time = rospy.Time.now()
+    if info.num == len(Motors.list)-1:
+        Motors.updateOdom()
+        Motors.last_time = rospy.Time.now()
 #######################################################
 def main():
+    report_count = 0
     while not rospy.is_shutdown():
         if Motors.debug:
             report_count += 1
@@ -127,7 +128,6 @@ if __name__=="__main__":
     #
     odom_broadcaster = tf.TransformBroadcaster()
     rate = rospy.Rate(Motors.Hz)
-    report_count = 0
     #init motors with their angles
     motor0 = Motors(0,90) 
     rospy.loginfo(f"Motor 1 initialised with angle - {motor0.angle}, radians - {motor0.radians}")

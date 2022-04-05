@@ -4,11 +4,10 @@
 Все работает с первого раза, как и должно
 :100:
 
-**Работаю над автопрошивкой через баш скрипт**
 
 # Настройка
 Все настройки содержатся в папке **config**. Перед запуском экспортируйте нужный маршрут в EBOBOT_ROUTE
-(**export EBOBOT_ROUTE my_route(без расширения .yaml)**), по умолчанию test_route.yaml.
+(**export EBOBOT_ROUTE1/EBOBOT_TEST_ROUTE1 my_route(без расширения .yaml)**), по умолчанию test_route.yaml.
 Для прошивки ардуино следует скинуть библиотеки из папки **firmware** в корень библиотек ArduinoIDE
 Установите ros-noetic-rosserial-arduino
 

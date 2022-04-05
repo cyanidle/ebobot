@@ -2,7 +2,7 @@
     
     <arg name="port" default="/dev/ttyACM0"/>
     <arg name="arduino_baud" default="115200"/>
-    <arg name="debug" default="0"/>
+    <arg name="debug" default="1"/>
 
     <arg name="use_own" default="true"/>
     <group if="$(arg use_own)">
