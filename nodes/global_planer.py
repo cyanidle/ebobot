@@ -452,6 +452,8 @@ class Global(): ##Полная жопа
                 rviz_targ = PoseStamped()
                 rviz_targ.pose.position.y = target[0] / rviz_coeff
                 rviz_targ.pose.position.x = target[1]/rviz_coeff
+                if len(target) < 3:
+                    np.append(target, 0)
                 rviz_quat = tf.transformations.quaternion_from_euler(0, 0, target[2]/ (1/Global.costmap_resolution))
                 rviz_targ.pose.orientation.x = rviz_quat[0]
                 rviz_targ.pose.orientation.y = rviz_quat[1]

@@ -40,8 +40,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   #################################
   dead_end_dist_diff_threshhold: 5 #if planer backtracks this number of cells, 
   #the last point is removed (considered a dead end)
-  cleanup_repeats_len: 16        # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 30   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_len: 5       # These two are important. Enabled by experimental cleanup.
+  cleanup_repeats_threshhold: 7   # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
 
 ##################################
