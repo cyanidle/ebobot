@@ -11,7 +11,7 @@ motors_info_callback:
   1/start_y: 2.75
   1/start_theta: 4.71
   ########
-  footprint_radius: 0.15
+  footprint_radius: 0.09
   update_rate: 20
   #####
   theta_coeff: 1

@@ -17,7 +17,7 @@ tasks:
     - change_var: get_flipped_var/add/1
     - call: ArmUp
     - score: 1
-    - goto: get_flipped_var
+    #- goto: get_flipped_var
   deliver_blue_flipped:
     - log: "E: Delivering blue"
     - move: 1.75/0.6/5.2
