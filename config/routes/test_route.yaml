@@ -3,7 +3,9 @@ tasks: #move: x/y/th
     - change_var: test_var/add/999 #delete later
     - log: "VAR:test_var"
     - call: PumpOn
+    - sleep: 0.5
     - call: ValveOn
+    - sleep: 0.5
     - call: ArmUp
     - sleep: 0.5
     - call: ArmHalfUp
@@ -17,7 +19,9 @@ tasks: #move: x/y/th
     - move: 1.02/0.44/0 
     - call: Adjust
     - call: PumpOff
+    - sleep: 0.5
     - call: ValveOff
+    - sleep: 0.5
   top_left:
     - move: 1.62/0.44/0
     - call: Adjust
