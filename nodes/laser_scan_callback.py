@@ -10,7 +10,7 @@ from dorlib import applyRotor, getRotor, turnVect
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
-from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
+from std_srvs.srv import Empty, EmptyRequest, EmptyResponse, SetBool, SetBoolResponse, SetBoolRequest
 from std_msgs.msg import Int8
 ######################
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -233,6 +233,10 @@ class Laser:
             rospy.logwarn_once(f"{new}")
         return (new[0], new[1])
 #################################################################
+def toggleCB(req):
+    rospy.logwarn(f"Adjust switched({int(req.data)})")
+    Beacons._adjust_flag = int(req.data)
+    return  SetBoolResponse(success = True)
 def adjCB(req):
         Beacons._adjust_flag = 1
         rospy.sleep(Beacons.adjust_time)
@@ -243,9 +247,14 @@ def adjCB(req):
 class Beacons(Laser):
     #Beacon params
     # Features
+    enable_adjust_toggle = rospy.get_param('~beacons/only_linear_adj', 1)
     only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
-    enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
+    if not enable_adjust_toggle:
+        enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
+        rospy.Service("adjust_toggle_service", SetBool, toggleCB)
+    else:
+        enable_adjust = 0
     adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 0)
     pub_all = rospy.get_param('~beacons/pub_all', 1)
     # /Features
