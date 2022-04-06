@@ -35,7 +35,7 @@ laser_scan_callback:
   ################
   beacons:
     ## Features
-    max_th_for_linear_adj: 0.01
+    max_th_for_linear_adj: 0.05
     
     enable_adjust: 1
     pub_all: 1
@@ -45,7 +45,7 @@ laser_scan_callback:
     min_rad: 0.0005
     max_rad: 0.1
     max_dist_from_expected: 0.3
-    adjust_time: 1.2
+    adjust_time: 3
     #####################
     num_beacons: 3 #needed for proper auto-init
     ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (smallest x --> first beacon|biggest x --> last beacon)
