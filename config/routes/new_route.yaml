@@ -2,37 +2,37 @@ tasks:
   flip_ohms_second:
     - call: ArmDown
     - move: 0.35/0.88/2.065
-    - call: ArmHalfUp
+    - call: ArmHalfDown
     - move: 0.16/0.88/2.065
     - score: 5
     - move: 0.35/0.88/2.065
     - call: ArmDown
   get_flipped: 
-    - move: 1.6/1.37/-1.04
+    - move: 1.6/1.37/-1.025
     - call: Adjust
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.75/1.37/-1.04
+    - move: 1.8/1.37/-1.025
     - call: ArmUp
     - sleep: 0.2
-    - move: 1.6/1.37/-1.04
+    - move: 1.6/1.37/-1.025
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
-    - move: 1.6/0.61/-1.05
-    - move: 1.75/0.61/-1.05
+    - move: 1.6/0.61/-1.025
+    - move: 1.82/0.61/-1.025
     - call: Adjust
     - call: ValveOn
     - sleep: 0.5
     - call: PumpOff
     - call: ValveOff
     - score: 3
-    - move: 1.6/0.61/-1.01
+    - move: 1.6/0.61/-1.025
     - call: ArmDown
   home:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
-    - score: 20
+    - score: 21 #20 for return 1 for hexagon
 
 variables: #MUST BE INTS
   default: 0
