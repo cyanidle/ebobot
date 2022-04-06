@@ -25,7 +25,7 @@
   - "ArmHalfUp":
     - "servos_service":
       - "num": 0
-      - "state": 40
+      - "state": 55
     - "servos_service":
       - "num": 1
       - "state": 60
@@ -33,7 +33,7 @@
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 25
+      - "state": 30
     - "servos_service":
       - "num": 1
       - "state": 40
