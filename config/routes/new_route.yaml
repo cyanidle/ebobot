@@ -21,7 +21,7 @@ tasks:
   deliver_blue_flipped:
     - log: "W: Delivering blue"
     - move: 1.62/0.61/-1
-    - move: 1.77/0.61/-1
+    - move: 1.83/0.61/-1
     - call: Adjust
     - call: ValveOn
     - sleep: 1
