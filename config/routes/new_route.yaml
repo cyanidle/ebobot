@@ -23,10 +23,10 @@ tasks:
     - move: 1.75/0.61/-1.1
     - call: Adjust
     - call: ValveOn
+    - sleep: 0.5
     - call: PumpOff
     - call: ValveOff
     - score: 3
-    - call: ArmUp
     - move: 1.6/0.61/-1.1
     - call: ArmDown
   home:

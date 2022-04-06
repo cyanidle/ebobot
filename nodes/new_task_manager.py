@@ -249,6 +249,7 @@ class Move(Template):
         return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.obj_dict["Move"])}")
         parsed = args.split("/")
         try:
             self.pos = (float(parsed[1]),float(parsed[0]))
