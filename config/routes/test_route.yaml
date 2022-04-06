@@ -22,7 +22,7 @@ tasks: #move: x/y/th
     - move: 1.62/0.44/0
     - call: Adjust
   start:
-    - move: 1.4/0.25/5.5
+    - move: 1.4/0.25/1.57
     - call: Adjust
     - score: 1000
 variables:

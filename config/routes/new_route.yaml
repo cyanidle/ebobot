@@ -1,41 +1,49 @@
 tasks:
   flip_ohms_second:
-    - change_var: get_flipped_var/add/1 #delete later
     - call: ArmDown
+    - change_var: get_flipped_var/add/1 #delete later
     - move: 0.35/0.88/3.1415
-    - call: ArmHalfUp
-    - move: 0.25/0.88/3.1415
+    - call: ArmHalfDown
+    - move: 0.18/0.88/3.1415
+    - score: 5
+    - move: 0.35/0.88/3.1415
+    - call: ArmDown
   get_flipped: 
-    #- call: Adjust
-    - move: 1.37/1.7/3.5
+    - move: 1.6/1.74/5.2
+    - call: Adjust
     - call: ArmHalfDown
     - call: PumpOn
-    - call: Adjust
+    - move: 1.7/1.74/5.2
     - change_var: get_flipped_var/add/1
+    - call: ArmUp
+    - score: 1
     - goto: get_flipped_var
   deliver_blue_flipped:
-    - move: 1.42/1/3.5
-    - call: Adjust
     - log: "E: Delivering blue"
-    - score: -5
-    - call: ArmUp
-    - sleep: 1
-    - goto: get_flipped
-  deliver_green_flipped:
-    - move: 1.5/1/3.5
+    - move: 1.75/0.6/5.2
     - call: Adjust
-    - log: "E: Delivering green"
-    - score: -5
+    - call: ValveOn
+    - call: PumpOff
+    - call: ValveOff
+    - score: 3
     - call: ArmUp
-    - sleep: 1
-    - goto: get_flipped
-  deliver_red_flipped:
-    - move: 1.5/1/3.5
-    - call: Adjust
-    - log: "E: Delivering red"
-    - score: -5
-    - call: ArmUp
-    - sleep: 1
+    - move: 1.75/0.5/5.2
+    - call: ArmDown
+  # deliver_green_flipped:
+  #   - move: 1.5/1/3.5
+  #   - call: Adjust
+  #   - log: "E: Delivering green"
+  #   - score: -5
+  #   - call: ArmUp
+  #   - sleep: 1
+  #   - goto: get_flipped
+  # deliver_red_flipped:
+  #   - move: 1.5/1/3.5
+  #   - call: Adjust
+  #   - log: "E: Delivering red"
+  #   - score: -5
+  #   - call: ArmUp
+  #   - sleep: 1
 
 
 variables: #MUST BE INTS
