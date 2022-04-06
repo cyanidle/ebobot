@@ -1,6 +1,6 @@
 laser_scan_callback:
   update_rate: 7 # More than 7 is useless
-  rads_offset: 2.09 # radians offset of lidar front from robot first wheel 2.093 = 120deg
+  rads_offset: 2.084 # radians offset of lidar front from robot first wheel 2.093 = 120deg
   enable_centre_aprox: 1
   dist_between_dots_max: 0.08
   beacons/adjust_on_command: 1 #adjust_pos_using adjust_pos_service or all the time?
