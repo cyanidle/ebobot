@@ -17,7 +17,7 @@
   - "ArmDown":
     - "servos_service":
       - "num": 0
-      - "state": 5
+      - "state": 20
     - "servos_service":
       - "num": 1
       - "state": 80

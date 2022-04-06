@@ -65,6 +65,6 @@ laser_scan_callback:
     1/beacon1:
       - 3.06
       - 1
-    1/beacon3:
+    1/beacon2:
       - -0.06
       - 1.94

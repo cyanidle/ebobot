@@ -308,10 +308,10 @@ void loop()
 
   if (servo_loop.tick()){
     servosUpdate();
-    if (not servos_debugged){
-      nh.logwarn(servos_debug);}
-      //debugServo(0);
-    servos_debugged = true;
+    //if (not servos_debugged){
+    //  nh.logwarn(servos_debug);}
+    //  //debugServo(0);
+    //servos_debugged = true;
   }
   if (start_loop.tick()){
     startUpdate();
