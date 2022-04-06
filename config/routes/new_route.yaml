@@ -38,6 +38,6 @@ variables: #MUST BE INTS
   default: 0
   get_flipped_var: 1 
 interrupts: 
-  return_to_base:
-    - interrupt_condition: "timers/main/40"
-    - move: 1/0.4/1.5 
+  # return_to_base:
+  #   - interrupt_condition: "timers/main/40"
+  #   - move: 1/0.4/1.5 
