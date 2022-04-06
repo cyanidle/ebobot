@@ -1,5 +1,5 @@
 <launch>
-    
+    <arg name="inflate" default="0"/>
     <arg name="debug" default="0"/>
     <arg name="file_dir" default="$(find ebobot)/config/costmap"/>
     <arg name="file" default="$(find ebobot)/config/costmap/costmap.png"/>
@@ -10,6 +10,7 @@
     </group>
 
     <node pkg="ebobot" type="costmap_server.py" name="costmap_server" output="log" respawn="true" respawn_delay="10"> 
+        <param name = "inflate_enable" value = "$(arg inflate)"/>
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "file_dir" value = "$(arg file_dir)"/>
         <param name = "file" value = "$(arg file)"/>

@@ -1,5 +1,5 @@
 <launch>
-
+      <arg name="inflate" default="0"/>
       <arg name="arduino" default="true"/>
       <arg name="rviz" default="false"/>
       <arg name="laser" default="true"/>
@@ -19,6 +19,7 @@
     </include>
 
     <include file="$(find ebobot)/launch/costmap.launch">
+      <arg name="inflate" value="$(arg inflate)"/>
       <arg name="use_own" value="$(arg use_own)"/>
       <arg name="debug" value="$(arg debug)"/>
       <arg name="file_dir" default="$(arg costmap_dir)"/>
