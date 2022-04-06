@@ -5,18 +5,22 @@ import rospy
 import actionlib
 import yaml
 import asyncio
+from functools import partial
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import (Servos, ServosRequest, ServosResponse, LcdShow,
  LcdShowRequest, LcdShowResponse, PinReaderRequest, PinReader)
 from actionlib_msgs.msg import GoalStatus
-from std_srvs.srv import Empty, EmptyRequest
+from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
 #from ebobot.srv import Catcher
 #
 def executer_dict():
     return Execute.dict
 def getMoveClient():
     return Move()
+def reprExec(_,*,obj):
+    asyncio.run(obj.exec())
+    return EmptyResponse()
 class Calls: #Async
     #move_servo = rospy.ServiceProxy("servos_service", Servos)
     def __init__(self, name,execs, static = True):
@@ -47,6 +51,7 @@ class Calls: #Async
                 self.args.append(pargs)
                 if Execute.debug:
                     rospy.loginfo(f"Args = {self.args}")
+            rospy.Service(f"{self.name}", Empty, partial(reprExec,obj=self))
         else:
             for exec in execs:
                 if Execute.debug:
