@@ -4,6 +4,7 @@ laser_scan_callback:
   enable_centre_aprox: 1
   dist_between_dots_max: 0.08
   beacons/adjust_on_command: 1 #adjust_pos_using adjust_pos_service or all the time?
+  beacons/enable_adjust_toggle: 1
   default_side: 2 #purple - default
   ############### TOPICS
   side_topic: "/ebobot/begin"

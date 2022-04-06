@@ -235,19 +235,19 @@ class Laser:
 #################################################################
 def toggleCB(req):
     rospy.logwarn(f"Adjust switched({int(req.data)})")
+    Beacons.resetAdjust()
     Beacons._adjust_flag = int(req.data)
     return  SetBoolResponse(success = True)
 def adjCB(req):
-        Beacons._adjust_flag = 1
-        rospy.sleep(Beacons.adjust_time)
-        Beacons._adjust_flag = 0
-        Beacons.cycle = 1
-        Beacons.deltas.clear()
-        return EmptyResponse()
+    Beacons.resetAdjust()
+    Beacons._adjust_flag = 1
+    rospy.sleep(Beacons.adjust_time)
+    Beacons._adjust_flag = 0
+    return EmptyResponse()
 class Beacons(Laser):
     #Beacon params
     # Features
-    enable_adjust_toggle = rospy.get_param('~beacons/only_linear_adj', 1)
+    enable_adjust_toggle = rospy.get_param('~beacons/enable_adjust_toggle', 1)
     only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
     if not enable_adjust_toggle:
@@ -305,6 +305,10 @@ class Beacons(Laser):
         else:
             self._pub = False
             Beacons.rel_list.append(self)
+    @classmethod
+    def resetAdjust(cls):
+        cls.cycle = 1
+        cls.deltas.clear()
     @classmethod
     def resetExpected(cls):
         cls.raw_list.clear()
@@ -430,8 +434,7 @@ class Beacons(Laser):
                     cls._pubbing_rot = 1
                     cls.delta_th = 0
             cls.publishAdjust()
-            cls.cycle = 1
-            cls.deltas.clear()
+            cls.resetAdjust()
         else:
             cls.cycle += 1
                
