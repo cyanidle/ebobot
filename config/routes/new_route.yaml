@@ -8,27 +8,27 @@ tasks:
     - move: 0.35/0.88/2.065
     - call: ArmDown
   get_flipped: 
-    - move: 1.62/1.39/-0.98
+    - move: 1.62/1.39/-0.97
     - call: Adjust
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.75/1.39/-0.98
+    - move: 1.72/1.39/-0.97
     - sleep: 1
     - call: ArmUp
     - sleep: 0.5
-    - move: 1.62/1.39/-0.98
+    - move: 1.62/1.39/-0.97
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
-    - move: 1.62/0.61/-1
-    - move: 1.83/0.61/-1
+    - move: 1.62/0.61/-0.97
+    - move: 1.75/0.61/-0.97
     - call: Adjust
     - call: ValveOn
     - sleep: 1
     - call: PumpOff
     - call: ValveOff
     - score: 3
-    - move: 1.62/0.61/-1
+    - move: 1.62/0.61/-0.97
     - call: ArmDown
   home:
     - log: "W: Going home!"

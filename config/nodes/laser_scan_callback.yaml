@@ -50,21 +50,21 @@ laser_scan_callback:
     num_beacons: 3 #needed for proper auto-init
     ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (smallest x --> first beacon|biggest x --> last beacon)
     2/beacon0:
-      - 3.06
-      - 0.06
+      - 3.07
+      - 0.07
     2/beacon1:
-      - -0.06 #meters, y
+      - -0.07 #meters, y
       - 1    #meters, x
     2/beacon2:
-      - 3.06
-      - 1.94
+      - 3.07
+      - 1.93
     # yellow side
     1/beacon0:
-      - -0.06      #meters, y
-      - 0.06    #meters, x
+      - -0.07      #meters, y
+      - 0.07    #meters, x
     1/beacon1:
-      - 3.06
+      - 3.07
       - 1
     1/beacon2:
-      - -0.06
-      - 1.94
+      - -0.07
+      - 1.93
