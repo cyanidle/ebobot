@@ -14,6 +14,7 @@ tasks:
     - call: ArmHalfDown
     - call: PumpOn
     - move: 1.75/1.37/-1.1
+    - sleep: 0.2
     - move: 1.6/1.37/-1.1
     - change_var: get_flipped_var/add/1
     - call: ArmUp

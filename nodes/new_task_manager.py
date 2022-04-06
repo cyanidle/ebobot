@@ -675,8 +675,8 @@ class Manager:
                 rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
-        Manager.route.clear()
-        Manager.obj_dict.clear()
+        Manager.route = {}
+        Manager.obj_dict = {}
         Prediction.score = 0
     @staticmethod
     async def exec():
