@@ -115,7 +115,7 @@ void servosUpdate(){
         Servo_mot *servo = ptr_list[num];
         if (servo->target_state > servo->curr_val) servoUp(servo); 
         else if (servo->target_state < servo->curr_val) servoDown(servo);
-        //servos_shield.set_channel_value(servo->channel,servo->curr_val);   
+        servos_shield.set_channel_value(servo->channel,servo->curr_val);   
         }  
          
     }
