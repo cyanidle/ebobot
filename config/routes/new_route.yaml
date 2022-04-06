@@ -4,9 +4,9 @@ tasks:
     - change_var: get_flipped_var/add/1 #delete later
     - move: 0.35/0.88/3.1415
     - call: ArmHalfDown
-    - move: 0.18/0.88/3.1415
+    - move: 0.18/0.88/2.01
     - score: 5
-    - move: 0.35/0.88/3.1415
+    - move: 0.35/0.88/2.01
     - call: ArmDown
   get_flipped: 
     - move: 1.6/1.74/5.2
