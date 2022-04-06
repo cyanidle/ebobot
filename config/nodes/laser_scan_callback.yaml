@@ -18,7 +18,7 @@ laser_scan_callback:
   range_max_custom: 6 #meters
   #############
   min_dots: 1
-  max_dots_per_obj: 40
+  max_dots_per_obj: 60
   objects_centre_coeff: 20 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
   radius_thresh: 1.5
   ################

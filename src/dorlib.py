@@ -33,7 +33,7 @@ def dCoordsInRad(rad: int,resolution:int = 3):
 def getRotor(turn):
     return sin(turn) + 1j*cos(turn)
 def applyRotor(vect,rotor):
-    comp = rotor * (vect[0] + 1j * vect[1])
+    comp = rotor * (vect[1] + 1j * vect[0])
     return (comp.real , comp.imag)
 def turnVect(vect,turn: float, dims = 2):
     "Turn vector using complex rotor by (turn) rads"
