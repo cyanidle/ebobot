@@ -156,10 +156,12 @@ class Laser:
                 range,coeffs = _cont
             y_coeff, x_coeff = coeffs
             if range < cls.range_max_custom and range > cls.range_min:
-                meters_pos = (range * y_coeff+cls.robot_twist[0]*num*cls.time_increment, range * x_coeff + cls.robot_twist[1]*num*cls.time_increment) 
+                meters_pos = (range * y_coeff, range * x_coeff) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
                 rospy.logerr_once(f"{meters_pos}|{rotated_meters_pos}")
-                prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
+                prob_meters_pos =  (
+                    rotated_meters_pos[0] + cls.robot_pos[0] + cls.robot_twist[0]*num*cls.time_increment,
+                    rotated_meters_pos[1] + cls.robot_pos[1] + cls.robot_twist[1]*num*cls.time_increment)
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     if cls.enable_intensities:
