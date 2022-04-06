@@ -122,13 +122,14 @@ class Laser:
         for num in range(
         int(floor(Laser.angle_min/cls.angle_increment)),
         int(ceil(Laser.angle_max/cls.angle_increment))):
-            Laser.coeffs.append((sin(Laser.angle_increment*num -cls.rads_offset),cos(Laser.angle_increment*num-cls.rads_offset))) 
+            Laser.coeffs.append((sin(Laser.angle_increment*num+cls.rads_offset),
+                                 cos(Laser.angle_increment*num+cls.rads_offset))) 
         cls.angles_done = 1
     #####################
     @classmethod
     def updateTF(cls):
         #rospy.logerr(f"epic")
-        quat = tf.transformations.quaternion_from_euler(0,0, +cls.robot_pos[2]+cls.rads_offset)
+        quat = tf.transformations.quaternion_from_euler(0,0, cls.robot_pos[2]+cls.rads_offset)
         cls.broadcaster.sendTransform(
             (cls.robot_pos[1], cls.robot_pos[0], 0),
             quat,
@@ -141,7 +142,7 @@ class Laser:
     def update(cls):
         new_list = list()
         cls.updateTF()
-        rotor = getRotor(-(cls.robot_pos[2]+cls.rads_offset))
+        rotor = getRotor(cls.robot_pos[2])
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
@@ -157,6 +158,7 @@ class Laser:
             if range < cls.range_max_custom and range > cls.range_min:
                 meters_pos = (range * y_coeff+cls.robot_twist[0]*num*cls.time_increment, range * x_coeff + cls.robot_twist[1]*num*cls.time_increment) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
+                rospy.logerr_once(f"{meters_pos}|{rotated_meters_pos}")
                 prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
