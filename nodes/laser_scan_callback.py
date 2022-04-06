@@ -207,7 +207,7 @@ class Laser:
                         else:
                             Objects(pos, radius*Objects.radius_coeff)
                 else:
-                    rospy.logwarn(f"Object is too big {pos}")
+                    rospy.logwarn(f"Object is too big")
                 curr_obst.clear()
             else:
                 curr_obst.clear()
