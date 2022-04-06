@@ -245,6 +245,8 @@ def mv_cb(fb):
     Move.curr_obj.status.set(fb.status) 
 class Move(Template):
     curr_obj = None
+    def __str__(self) -> str:
+        return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         parsed = args.split("/")

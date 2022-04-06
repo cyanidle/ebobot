@@ -294,7 +294,7 @@ class Move:
         goal.theta = target_th
         self.client.send_goal(goal, feedback_cb=self.cb)
     def fetchResult(self):
-        return self.client.get_result()
+        return self.checkResult()
     def checkResult(self)->str:
         "ACTIVE = 0, SUCCESS = 1, ABORTED = 2, LOST = 3, ELSE = 4"
         state = self.client.get_state()
