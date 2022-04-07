@@ -128,10 +128,10 @@ class Local():
     cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
     disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
+    ###
+    disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8)
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
-    if rotate_at_end:
-        disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8)
     rviz_broadcaster = tf.TransformBroadcaster()
     status_publisher = rospy.Publisher(status_publish_topic, String, queue_size = 5)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
