@@ -3,7 +3,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
-  update_rate: 1.5
+  update_rate: 2
   step: 2
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
