@@ -3,7 +3,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
-  update_rate: 3
+  update_rate: 1.5
   step: 2
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
@@ -11,7 +11,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
   #
-  recovery_cost_step: 5 #if stuck in beginnig increases allowed cost
+  recovery_cost_step: 2 #if stuck in beginnig increases allowed cost
   twist_amplify_coeff: 0.5
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
   update_stop_thresh: 8 # Dist from target, when stops updating route
@@ -50,7 +50,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 ##################################
 local_planer:
   skip_thresh: 5 #max points to skip if fails by cost
-  threshhold: 2 #in cells, how close to target should robot ride
+  threshhold: 1.5 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
@@ -65,7 +65,7 @@ local_planer:
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.3 #seconds
-  turn_threshhold: 0.09 
+  turn_threshhold: 0.1 
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
   min_turn_coeff: 0.2 #final!
