@@ -142,7 +142,7 @@ class Laser:
     def update(cls):
         new_list = list()
         cls.updateTF()
-        rotor = getRotor(-cls.robot_pos[2])
+        rotor = getRotor(-cls.robot_pos[2] - cls.robot_twist[2]/Laser.update_rate)
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
