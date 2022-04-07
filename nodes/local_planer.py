@@ -12,7 +12,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
-from std_msgs.msg import String
+from std_msgs.msg import String, Int8
 ######
 from dorlib import turnVect, dCoordsOnCircle
 import markers
