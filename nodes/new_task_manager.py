@@ -101,8 +101,8 @@ class Status:
         self._status = "init"
         self.parent = parent
     def update(self):
-        if Manager.debug:
-            rospy.loginfo(f"Updating status of {self.parent}")
+        #if Manager.debug:
+        #    rospy.loginfo(f"Updating status of {self.parent}")
         self._status = self.parent.updateStatus()
     def get(self) -> str:
         return self._status
@@ -114,9 +114,9 @@ class Status:
             if "Timer" in Manager.obj_dict.keys():
                 for timer in Manager.obj_dict["Timer"]:
                     timer.status.update()
-            else:
-                if Manager.debug:
-                    rospy.logwarn(f"No timers found!")
+            #else:
+                #if Manager.debug:
+                #    #rospy.logwarn(f"No timers found!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):
