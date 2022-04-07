@@ -575,7 +575,7 @@ class MoveServer:
         if status:
             self._success_flag = 1
         else:
-            def shutdownHook()
+            shutdownHook()
             self._fail_flag = 1
 if __name__=="__main__":
     move_server = MoveServer()
