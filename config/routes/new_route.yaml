@@ -5,6 +5,7 @@ tasks:
     - call: ArmHalfDown
     - move: 0.16/0.88/2.07
     - score: 5
+    - score: 12
     - move: 0.35/0.88/2.07
     - call: ArmDown
   get_flipped: 
