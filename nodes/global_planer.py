@@ -61,7 +61,7 @@ def targetCallback(target):
     Global.goal_reached = 0
     Global.target = np.array(goal)
     Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
-    Global.start_pos = Global.robot_pos + Global.robot_twist
+    Global.start_pos = Global.robot_pos - Global.robot_twist
     Global.consecutive_jumps = 0
     Global.target_set = 1
     if Global.rviz_enable:
