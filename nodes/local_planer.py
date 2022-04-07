@@ -292,11 +292,7 @@ class Local():
             cls.skipped = 0
             shutdownHook()
             return current_pos
-        correction = cls.robot_twist * len(cls.targets)/(len(cls.targets) - cls.current_target)
-        corr_norm = np.linalg.norm(correction)
-        if corr_norm > cls.twist_amplify_coeff:
-            corr_norm = cls.twist_amplify_coeff
-        target = cls.targets[cls.current_target+cls.skipped] + correction
+        target = cls.targets[cls.current_target+cls.skipped]
         if cls.debug:
             rospy.loginfo(f"Fetching point with curr = {current_pos}, target = {target}")
         point = target
