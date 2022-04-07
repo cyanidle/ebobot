@@ -180,7 +180,7 @@ class Laser:
             return 
         Beacons.clearRelative()
         Objects.clear()
-        curr_obst.append(cls.list[0][0])
+        #curr_obst.append(cls.list[0][0])
         pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.08,g=1,r=1,b=1,debug=Laser.debug,add=1)
         for scan, last_scan in zip(cls.list[1:],cls.list[:-1]):
             pose, intencity = scan
