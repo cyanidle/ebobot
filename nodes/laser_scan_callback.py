@@ -10,7 +10,7 @@ from dorlib import applyRotor, getRotor, turnVect
 from markers import pubMarker#, transform
 from ebobot.msg import Obstacles, Obstacle
 ######################
-from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
+from std_srvs.srv import Empty, EmptyRequest, EmptyResponse, SetBool, SetBoolResponse, SetBoolRequest
 from std_msgs.msg import Int8
 ######################
 from geometry_msgs.msg import PoseWithCovarianceStamped
@@ -142,7 +142,7 @@ class Laser:
     def update(cls):
         new_list = list()
         cls.updateTF()
-        rotor = getRotor(cls.robot_pos[2])
+        rotor = getRotor(-cls.robot_pos[2])
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
@@ -156,10 +156,12 @@ class Laser:
                 range,coeffs = _cont
             y_coeff, x_coeff = coeffs
             if range < cls.range_max_custom and range > cls.range_min:
-                meters_pos = (range * y_coeff+cls.robot_twist[0]*num*cls.time_increment, range * x_coeff + cls.robot_twist[1]*num*cls.time_increment) 
+                meters_pos = (range * y_coeff, range * x_coeff) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
                 rospy.logerr_once(f"{meters_pos}|{rotated_meters_pos}")
-                prob_meters_pos =  (rotated_meters_pos[0]+ cls.robot_pos[0],  rotated_meters_pos[1]+ cls.robot_pos[1])
+                prob_meters_pos =  (
+                    rotated_meters_pos[0] + cls.robot_pos[0] + cls.robot_twist[0]*num*cls.time_increment,
+                    rotated_meters_pos[1] + cls.robot_pos[1] + cls.robot_twist[1]*num*cls.time_increment)
                 if (cls.minimal_x < prob_meters_pos[1] < cls.maximum_x
                  and cls.minimal_y < prob_meters_pos[0] < cls.maximum_y):
                     if cls.enable_intensities:
@@ -233,19 +235,28 @@ class Laser:
             rospy.logwarn_once(f"{new}")
         return (new[0], new[1])
 #################################################################
+def toggleCB(req):
+    rospy.logwarn(f"Adjust switched({int(req.data)})")
+    Beacons.resetAdjust()
+    Beacons._adjust_flag = int(req.data)
+    return  SetBoolResponse(success = True)
 def adjCB(req):
-        Beacons._adjust_flag = 1
-        rospy.sleep(Beacons.adjust_time)
-        Beacons._adjust_flag = 0
-        Beacons.cycle = 1
-        Beacons.deltas.clear()
-        return EmptyResponse()
+    Beacons.resetAdjust()
+    Beacons._adjust_flag = 1
+    rospy.sleep(Beacons.adjust_time)
+    Beacons._adjust_flag = 0
+    return EmptyResponse()
 class Beacons(Laser):
     #Beacon params
     # Features
+    enable_adjust_toggle = rospy.get_param('~beacons/enable_adjust_toggle', 1)
     only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
-    enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
+    if not enable_adjust_toggle:
+        enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
+        rospy.Service("adjust_toggle_service", SetBool, toggleCB)
+    else:
+        enable_adjust = 0
     adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 0)
     pub_all = rospy.get_param('~beacons/pub_all', 1)
     # /Features
@@ -296,6 +307,10 @@ class Beacons(Laser):
         else:
             self._pub = False
             Beacons.rel_list.append(self)
+    @classmethod
+    def resetAdjust(cls):
+        cls.cycle = 1
+        cls.deltas.clear()
     @classmethod
     def resetExpected(cls):
         cls.raw_list.clear()
@@ -421,8 +436,7 @@ class Beacons(Laser):
                     cls._pubbing_rot = 1
                     cls.delta_th = 0
             cls.publishAdjust()
-            cls.cycle = 1
-            cls.deltas.clear()
+            cls.resetAdjust()
         else:
             cls.cycle += 1
                

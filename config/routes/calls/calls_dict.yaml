@@ -17,7 +17,7 @@
   - "ArmDown":
     - "servos_service":
       - "num": 0
-      - "state": 20
+      - "state": 0
     - "servos_service":
       - "num": 1
       - "state": 80
@@ -25,7 +25,7 @@
   - "ArmHalfUp":
     - "servos_service":
       - "num": 0
-      - "state": 40
+      - "state": 60
     - "servos_service":
       - "num": 1
       - "state": 60
@@ -33,7 +33,7 @@
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 60
+      - "state": 45
     - "servos_service":
       - "num": 1
       - "state": 40
@@ -69,7 +69,17 @@
       - write: true
       - pullup: false
       - value: 0
-      
+  - "AdjustOn":
+    - adjust_toggle_service:
+      - toggle: true
+  - "AdjustOff":
+    - adjust_toggle_service:
+      - toggle: false
+
+
+
+
+#########
 "Dynamic": #plain call of service, but one at a time!
   - "Example": #with kwargs!
     - service_name # call with args passed as: {service_arg_1: arg1, service_arg_2: arg2}

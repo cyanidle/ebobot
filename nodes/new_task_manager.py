@@ -245,8 +245,11 @@ def mv_cb(fb):
     Move.curr_obj.status.set(fb.status) 
 class Move(Template):
     curr_obj = None
+    def __str__(self) -> str:
+        return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
+        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.obj_dict['Move'])}")
         parsed = args.split("/")
         try:
             self.pos = (float(parsed[1]),float(parsed[0]))
@@ -675,8 +678,8 @@ class Manager:
                 rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
-        Manager.route.clear()
-        Manager.obj_dict.clear()
+        Manager.route = {}
+        Manager.obj_dict = {}
         Prediction.score = 0
     @staticmethod
     async def exec():

@@ -11,7 +11,7 @@ from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
 from ebobot.srv import (Servos, ServosRequest, ServosResponse, LcdShow,
  LcdShowRequest, LcdShowResponse, PinReaderRequest, PinReader)
 from actionlib_msgs.msg import GoalStatus
-from std_srvs.srv import Empty, EmptyRequest, EmptyResponse
+from std_srvs.srv import Empty, EmptyRequest, EmptyResponse, SetBool, SetBoolResponse, SetBoolRequest
 #from ebobot.srv import Catcher
 #
 def executer_dict():
@@ -186,10 +186,26 @@ class Calls: #Async
     async def adjExec(args):
         proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
         proxy(args)
-        return 0
+        return "done"
     @staticmethod
     def parseAdj(_placeholder):
         return EmptyRequest()
+    ################################
+    @staticmethod
+    def getAdjToggleExec():
+        return Calls.adjToggleExec
+    @staticmethod
+    async def adjToggleExec(args):
+        proxy = rospy.ServiceProxy("adjust_toggle_service", SetBool)
+        resp = proxy(args)
+        if resp.success == True:
+            return "done"
+        else:
+            return "fail"
+    @staticmethod
+    def parseAdjToggle(args):
+        parsed = SetBoolRequest(data= args['toggle'])
+        return parsed
     ################################
     @staticmethod
     def getPinExec():
@@ -198,7 +214,7 @@ class Calls: #Async
     async def pinExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
         proxy(args)
-        return 0
+        return "done"
     @staticmethod
     def parsePin(args):
         parsed =  PinReaderRequest()
@@ -229,14 +245,16 @@ class Execute:
         "prediction_service": Calls.getLcdExec,
         "ohm_reader_service": Calls.getOhmExec,
         "adjust_pos_service": Calls.getAdjExec,
-        "pin_service": Calls.getPinExec
+        "pin_service": Calls.getPinExec,
+        "adjust_toggle_service": Calls.getAdjToggleExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos,
         "prediction_service": Calls.parseLcd,
         "ohm_reader_service": Calls.parseOhm,
         "adjust_pos_service": Calls.parseAdj,
-        "pin_service": Calls.parsePin
+        "pin_service": Calls.parsePin,
+        "adjust_toggle_service": Calls.parseAdjToggle
     }
     @classmethod
     def read(cls):
@@ -294,7 +312,7 @@ class Move:
         goal.theta = target_th
         self.client.send_goal(goal, feedback_cb=self.cb)
     def fetchResult(self):
-        return self.client.get_result()
+        return self.checkResult()
     def checkResult(self)->str:
         "ACTIVE = 0, SUCCESS = 1, ABORTED = 2, LOST = 3, ELSE = 4"
         state = self.client.get_state()

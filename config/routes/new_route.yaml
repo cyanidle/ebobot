@@ -1,47 +1,44 @@
 tasks:
   flip_ohms_second:
-    - change_var: get_flipped_var/add/1 #delete later
     - call: ArmDown
-    - move: 0.35/0.88/3.1415
-    - call: ArmHalfUp
-    - move: 0.25/0.88/3.1415
+    - move: 0.35/0.88/2.07
+    - call: ArmHalfDown
+    - move: 0.16/0.88/2.07
+    - score: 5
+    - move: 0.35/0.88/2.07
+    - call: ArmDown
   get_flipped: 
-    #- call: Adjust
-    - move: 1.37/1.7/3.5
+    - move: 1.62/1.39/-0.95
+    - call: Adjust
     - call: ArmHalfDown
     - call: PumpOn
-    - call: Adjust
-    - change_var: get_flipped_var/add/1
-    - goto: get_flipped_var
+    - move: 1.73/1.39/-0.95
+    - sleep: 1
+    - call: ArmUp
+    - sleep: 0.5
+    - move: 1.62/1.39/-0.95
+    - score: 1
   deliver_blue_flipped:
-    - move: 1.42/1/3.5
+    - log: "W: Delivering blue"
+    - move: 1.62/0.61/-0.95
+    - move: 1.9/0.61/-0.95
     - call: Adjust
-    - log: "E: Delivering blue"
-    - score: -5
-    - call: ArmUp
+    - call: ValveOn
     - sleep: 1
-    - goto: get_flipped
-  deliver_green_flipped:
-    - move: 1.5/1/3.5
-    - call: Adjust
-    - log: "E: Delivering green"
-    - score: -5
-    - call: ArmUp
-    - sleep: 1
-    - goto: get_flipped
-  deliver_red_flipped:
-    - move: 1.5/1/3.5
-    - call: Adjust
-    - log: "E: Delivering red"
-    - score: -5
-    - call: ArmUp
-    - sleep: 1
-
+    - call: PumpOff
+    - call: ValveOff
+    - score: 3
+    - move: 1.62/0.61/-0.95
+    - call: ArmDown
+  home:
+    - log: "W: Going home!"
+    - move: 1.4/0.25/1.57
+    - score: 21 #20 for return 1 for hexagon
 
 variables: #MUST BE INTS
   default: 0
   get_flipped_var: 1 
-interrupts: 
-  return_to_base:
-    - interrupt_condition: "timers/main/40"
-    - move: 1/0.4/1.5 
+#interrupts: 
+  # return_to_base:
+  #   - interrupt_condition: "timers/main/40"
+  #   - move: 1/0.4/1.5 

@@ -1,12 +1,12 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  maximum_cost: 13 #Most important
+  maximum_cost: 12 #Most important
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
   update_rate: 3
   step: 2
   # Features
-  cleanup_feature: 0 #works well if you dont have to go closer to start point during route
+  cleanup_feature: 1 #works well if you dont have to go closer to start point during route
   resend: 1
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
@@ -29,6 +29,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   lock_dirs: #directions which get tried one after another if planer is stuck
     - 0 # first should be always zero
     - left
+    - left
+    - bot
     - right
     - top
     - bot
@@ -38,16 +40,16 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 #### Cleanup
   cleanup_power: 2        # number of cleanups, ussualy one is enough
   #################################
-  dead_end_dist_diff_threshhold: 5 #if planer backtracks this number of cells, 
+  dead_end_dist_diff_threshhold: 4 #if planer backtracks this number of cells, 
   #the last point is removed (considered a dead end)
   cleanup_repeats_len: 5       # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 6   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_threshhold: 7   # If planer hasnt moved in (cl_repeats_len) jumps from each
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
 
 ##################################
 local_planer:
   skip_thresh: 5 #max points to skip if fails by cost
-  threshhold: 2 #in cells, how close to target should robot ride
+  threshhold: 2.3 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
@@ -61,15 +63,15 @@ local_planer:
   cost_coeff_enable: 0
   path_coeff_enable:  1
   #Turn
-  pause_before_turn: 0.2 #seconds
-  turn_threshhold: 0.08 
+  pause_before_turn: 0.3 #seconds
+  turn_threshhold: 0.09 
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
-  min_turn_coeff: 0.25 #final!
+  min_turn_coeff: 0.15 #final!
   #speed coeffs
   full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd
   static_coeff:  0.8
-  min_path_coeff: 0.3 #Final!!
+  min_path_coeff: 0.24 #Final!!
   path_speed_coeff: 1 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002
   
