@@ -272,8 +272,8 @@ class Local():
         if cls.debug:
             rospy.loginfo(f"Rotating...")
         shutdownHook()
-        cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         rospy.sleep(cls.pause_before_turn)
+        cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time)) 
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if diff >= 3.1415:
