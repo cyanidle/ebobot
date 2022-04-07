@@ -1,13 +1,14 @@
 tasks:
   flip_ohms_second:
+    - score: 10 #One flipped right
     - call: ArmDown
     - move: 0.35/0.86/2.07
     - call: ArmHalfDown
     - move: 0.17/0.86/2.07
-    - score: 10 #One flipped right
     #- score: 12
     - move: 0.35/0.86/2.07
     - call: ArmDown
+    - score: 10 #One flipped right
   get_flipped: 
     - move: 1.68/1.39/-1.047
     - call: ArmHalfDown
