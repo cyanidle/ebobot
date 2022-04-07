@@ -32,7 +32,7 @@ tasks:
   home:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
-    - score: 21 #20 for return 1 for hexagon
+    - score: 20 #20 for return 1 for hexagon
 
 variables: #MUST BE INTS
   default: 0
