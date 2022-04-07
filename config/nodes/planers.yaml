@@ -50,7 +50,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 ##################################
 local_planer:
   skip_thresh: 5 #max points to skip if fails by cost
-  threshhold: 2.3 #in cells, how close to target should robot ride
+  threshhold: 1 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
@@ -65,7 +65,7 @@ local_planer:
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.3 #seconds
-  turn_threshhold: 0.09 
+  turn_threshhold: 0.1 
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
   min_turn_coeff: 0.2 #final!
