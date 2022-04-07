@@ -70,7 +70,7 @@ local_planer:
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.1 #seconds
-  turn_threshhold: 0.11 
+  turn_threshhold: 0.094 
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
   min_turn_coeff: 0.3 #final!
