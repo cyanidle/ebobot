@@ -129,7 +129,8 @@ class Local():
     disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
     ###
-    disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8)
+    if rotate_at_end:
+        disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8, queue_size = 4)
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     rviz_broadcaster = tf.TransformBroadcaster()
@@ -271,7 +272,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f"Rotating...")
         shutdownHook()
-        disable_adjust_publisher(Int8(cls.disable_adjust_sec_time))
+        cls.disable_adjust_publisher(Int8(cls.disable_adjust_sec_time))
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
