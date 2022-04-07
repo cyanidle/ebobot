@@ -42,11 +42,11 @@ def startCallback(start):
             rospy.sleep(0.5)
             parse(12)
         elif start.data == 0:
-            Flags._test_routes = 0
             rospy.sleep(1)
             for n in range(3,-1,-1):
                 asyncio.run(showPrediction(n))
                 rospy.sleep(1)
+            Flags._test_routes = 0
             Flags._execute = 1
             if Manager.debug:
                 rospy.logwarn(f"Executing test route!")
