@@ -364,8 +364,6 @@ class Global(): ##Полная жопа
                 cls.goal_reached = 1
             else:
                 cls.goal_reached = 1
-            cls.list = [(cls.robot_pos,0)]
-            cls.publish()
             move_server.done(0)
             cls._fail_count = 0
             cls.error = 1
@@ -483,10 +481,12 @@ class Global(): ##Полная жопа
             #rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
 
-
+def shutdownHook():
+    Global.list = [(Global.robot_pos,0)]
+    Global.publish()
 def main():
     Global.initRotors()
-   
+    rospy.on_shutdown(shutdownHook)
     while not rospy.is_shutdown():
         ####
         if Global.resend:
@@ -575,6 +575,7 @@ class MoveServer:
         if status:
             self._success_flag = 1
         else:
+            def shutdownHook()
             self._fail_flag = 1
 if __name__=="__main__":
     move_server = MoveServer()
