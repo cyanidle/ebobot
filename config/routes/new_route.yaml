@@ -1,33 +1,33 @@
 tasks:
   flip_ohms_second:
     - call: ArmDown
-    - move: 0.35/0.88/2.07
+    - move: 0.35/0.86/2.07
     - call: ArmHalfDown
-    - move: 0.16/0.88/2.07
-    - score: 5
-    - score: 12
-    - move: 0.35/0.88/2.07
+    - move: 0.17/0.86/2.07
+    - score: 10 #One flipped right
+    #- score: 12
+    - move: 0.35/0.86/2.07
     - call: ArmDown
   get_flipped: 
-    - move: 1.62/1.39/-0.95
+    - move: 1.68/1.39/-1.047
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.73/1.39/-0.95
+    - move: 1.75/1.39/-1.047
     - sleep: 1
     - call: ArmUp
     - sleep: 0.5
-    - move: 1.62/1.39/-0.95
+    - move: 1.68/1.39/-1.047
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
-    - move: 1.62/0.61/-0.95
-    - move: 1.9/0.61/-0.95
+    - move: 1.68/0.61/-1.047
+    - move: 1.81/0.61/-1.047
     - call: ValveOn
     - sleep: 1
     - call: PumpOff
     - call: ValveOff
     - score: 3
-    - move: 1.62/0.61/-0.95
+    - move: 1.68/0.61/-1.047
     - call: ArmDown
   home:
     - log: "W: Going home!"
