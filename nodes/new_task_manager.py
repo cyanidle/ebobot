@@ -312,10 +312,10 @@ class Prediction(Template):
         super().__init__(parent, name, args)
         self.score = int(args)
     async def midExec(self) -> None:
-        Prediction.score += self.score
+        if not self.parent._fail_flag:
+            Prediction.score += self.score
         try:
-            if not self.parent._fail_flag:
-                await showPrediction(Prediction.score)
+            await showPrediction(Prediction.score)
         except:
             if Manager.debug:
                 rospy.logerr(f"Service for {self} unavailable!")
