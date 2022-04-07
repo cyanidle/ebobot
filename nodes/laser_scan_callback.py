@@ -250,13 +250,11 @@ class Beacons(Laser):
     #Beacon params
     # Features
     enable_adjust_toggle = rospy.get_param('~beacons/enable_adjust_toggle', 1)
+    if enable_adjust_toggle:
+        rospy.Service("adjust_toggle_service", SetBool, toggleCB)
     only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
-    if not enable_adjust_toggle:
-        enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
-        rospy.Service("adjust_toggle_service", SetBool, toggleCB)
-    else:
-        enable_adjust = 0
+    enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)
     adjust_on_command = rospy.get_param('~beacons/adjust_on_command', 0)
     pub_all = rospy.get_param('~beacons/pub_all', 1)
     # /Features

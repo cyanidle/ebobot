@@ -359,6 +359,8 @@ class Global(): ##Полная жопа
                 cls.goal_reached = 1
             else:
                 cls.goal_reached = 1
+            cls.list = [(cls.robot_pos,0)]
+            cls.publish()
             move_server.done(0)
             cls._fail_count = 0
             cls.error = 1

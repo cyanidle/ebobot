@@ -1,5 +1,5 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  maximum_cost: 12 #Most important
+  maximum_cost: 7 #Most important
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
@@ -24,12 +24,13 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   
                                   
   ##### dir locking
-  stuck_check_jumps: 4 #checks for 'stuck' per 'n' jumps
+  stuck_check_jumps: 10 #checks for 'stuck' per 'n' jumps
   stuck_dist_threshhold: 15 #dist which should be reached in (stuck_check_jumps)
   lock_dirs: #directions which get tried one after another if planer is stuck
     - 0 # first should be always zero
     - left
     - left
+    - bot
     - bot
     - right
     - top
