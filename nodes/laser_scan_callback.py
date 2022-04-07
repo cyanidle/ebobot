@@ -180,7 +180,7 @@ class Laser:
             return 
         Beacons.clearRelative()
         Objects.clear()
-        curr_obst.append(cls.list[0][0])
+        #curr_obst.append(cls.list[0][0])
         pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.08,g=1,r=1,b=1,debug=Laser.debug,add=1)
         for scan, last_scan in zip(cls.list[1:],cls.list[:-1]):
             pose, intencity = scan
@@ -246,12 +246,30 @@ def adjCB(req):
     rospy.sleep(Beacons.adjust_time)
     Beacons._adjust_flag = 0
     return EmptyResponse()
+def disableCB(req):
+    Beacons.resetAdjust()
+    _return = 0
+    if Beacons._adjust_flag:
+        _return = 1
+        Beacons._adjust_flag = 0
+    rospy.sleep(req.data)
+    if _return:
+        Beacons._adjust_flag = 1
+    Beacons.resetAdjust()
+##################################################################
 class Beacons(Laser):
     #Beacon params
     # Features
+    ####
+    disable_adjust_sec_topic = rospy.get_param("~disable_adjust_sec_topic", "/disable_adjust_sec")
+    rospy.Subscriber("/disable_adjust_sec", Int8, disableCB)
+
+
+    ###
     enable_adjust_toggle = rospy.get_param('~beacons/enable_adjust_toggle', 1)
     if enable_adjust_toggle:
         rospy.Service("adjust_toggle_service", SetBool, toggleCB)
+        
     only_linear_adj = rospy.get_param('~beacons/only_linear_adj', 0)
     switching_adjust = rospy.get_param('~beacons/switching_adjust', 0)#do not use
     enable_adjust = rospy.get_param('~beacons/enable_adjust', 1)

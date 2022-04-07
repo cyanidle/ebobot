@@ -12,7 +12,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
-from std_msgs.msg import String
+from std_msgs.msg import String, Int8
 ######
 from dorlib import turnVect, dCoordsOnCircle
 import markers
@@ -77,6 +77,7 @@ class Local():
     #Params
     #Features
     rotate_at_end = rospy.get_param('~rotate_at_end', 1)
+    
     get_lowest_cost = rospy.get_param('~get_lowest_cost', 0)
     cost_coeff_enable = rospy.get_param('~cost_coeff_enable', 0)
     path_coeff_enable = rospy.get_param('~path_coeff_enable', 0)
@@ -125,7 +126,11 @@ class Local():
     costmap_update_topic = rospy.get_param('~costmap_update_topic', '/costmap_server/updates')
     robot_pos_topic = rospy.get_param('~robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
-
+    disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
+    disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
+    ###
+    if rotate_at_end:
+        disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8, queue_size = 4)
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     rviz_broadcaster = tf.TransformBroadcaster()
@@ -267,6 +272,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f"Rotating...")
         shutdownHook()
+        cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))

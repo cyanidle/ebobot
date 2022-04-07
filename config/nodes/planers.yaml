@@ -3,7 +3,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
-  update_rate: 1.5
+  update_rate: 2
   step: 2
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
@@ -49,11 +49,16 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 
 ##################################
 local_planer:
+  ##############
+  #Topics:
+  disable_adjust_sec_topic: /disable_adjust_sec
+  ###############
   skip_thresh: 5 #max points to skip if fails by cost
   threshhold: 1.5 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
   # Important
+  disable_adjust_sec_time: 3
   cost_threshhold: 10000 #100 are walls, then there is inflation
   safe_footprint_radius: 0.20
   update_rate: 20 # in Hz
@@ -65,15 +70,15 @@ local_planer:
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.3 #seconds
-  turn_threshhold: 0.1 
+  turn_threshhold: 0.13 
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.35
-  min_turn_coeff: 0.2 #final!
+  min_turn_coeff: 0.3 #final!
   #speed coeffs
   full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd (the lower the faster)
-  static_coeff:  0.7
-  min_path_coeff: 0.24 #Final!!
-  path_speed_coeff: 1 #В тугриках. Robot slows down at start and finish of the route
+  static_coeff:  0.9
+  min_path_coeff: 0.3 #Final!!
+  path_speed_coeff: 0.9 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002
   
   # Circles on which planer tries to find lowest cost position

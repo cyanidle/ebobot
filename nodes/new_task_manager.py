@@ -52,11 +52,15 @@ def startCallback(start):
                 rospy.logwarn(f"Executing test route!")
         else:
             if Manager.debug:
-                rospy.logerr("Incorrect start sequence!")
-            asyncio.run(showPrediction(9999))
+                rospy.logerr("Fast start!")
+            Flags._test_routes = 0
+            parse(Flags._current_route_num)
+            for n in range(3,-1,-1):
+                asyncio.run(showPrediction(n))
+                rospy.sleep(1)
+            startCallback(Int8(3))
     else:
         if start.data == 9:
-            
             if Manager.debug:
                 rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
             rospy.sleep(0.5)

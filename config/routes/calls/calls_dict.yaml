@@ -33,7 +33,7 @@
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 45
+      - "state": 40
     - "servos_service":
       - "num": 1
       - "state": 40
