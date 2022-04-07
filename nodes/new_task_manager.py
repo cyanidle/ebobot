@@ -80,6 +80,7 @@ def startCallback(start):
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
+            asyncio.run(showPrediction(0))
             Flags._test_routes = 1
             Flags._execute = 1
             if Manager.debug:

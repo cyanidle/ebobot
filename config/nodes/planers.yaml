@@ -3,7 +3,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
-  update_rate: 2
+  update_rate: 10
   step: 2
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
@@ -11,8 +11,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
   #
-  recovery_cost_step: 2 #if stuck in beginnig increases allowed cost
-  twist_amplify_coeff: 0.5
+  recovery_cost_step: 0.5 #if stuck in beginnig increases allowed cost
+  twist_amplify_coeff: 0.02
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
   update_stop_thresh: 8 # Dist from target, when stops updating route
   
@@ -29,15 +29,9 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   lock_dirs: #directions which get tried one after another if planer is stuck
     - 0 # first should be always zero
     - left
-    - left
-    - bot
     - bot
     - right
     - top
-    - bot
-    - right
-    - top
-    - bot
 #### Cleanup
   cleanup_power: 2        # number of cleanups, ussualy one is enough
   #################################
@@ -53,10 +47,11 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: /disable_adjust_sec
   ###############
+  
   skip_thresh: 5 #max points to skip if fails by cost
   threshhold: 1.5 #in cells, how close to target should robot ride
-  twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
-  inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
+  twist_amplify_coeff: 0.5 #depends on resolution, allows to skip points behind
+  inertia_compensation_coeff: 0.04 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
   cost_threshhold: 10000 #100 are walls, then there is inflation
@@ -66,19 +61,20 @@ local_planer:
   get_lowest_cost: 0 #correct targets to follow lowest cost route
   #Params
   #Features
+  use_twist_before: 4 #targets
   cost_coeff_enable: 0
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.2 #seconds
-  turn_threshhold: 0.108 
+  turn_threshhold: 0.15
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
-  turn_coeff: 0.35
-  min_turn_coeff: 0.3 #final!
+  turn_coeff: 0.4
+  min_turn_coeff: 0.35 #final!
   #speed coeffs
   full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  0.9
-  min_path_coeff: 0.3 #Final!!
-  path_speed_coeff: 0.9 #В тугриках. Robot slows down at start and finish of the route
+  min_path_coeff: 0.35 #Final!!
+  path_speed_coeff: 2 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002
   
   # Circles on which planer tries to find lowest cost position

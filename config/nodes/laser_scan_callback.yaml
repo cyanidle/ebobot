@@ -30,6 +30,9 @@ laser_scan_callback:
     maximum_x: 1.95
     maximum_y: 2.95
     ####
+    rviz_point_topic: /clicked_point
+    point_pub_time: 30
+    ####
     radius_coeff: 1
     dots_thresh: 200
     min_dots: 1

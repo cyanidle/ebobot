@@ -405,7 +405,7 @@ class Global(): ##Полная жопа
                 popped = Global.list.pop(num-done)
                 if Global.debug:
                     rospy.loginfo(f"Removing repeats {popped}")
-        rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
+        #rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      
@@ -475,7 +475,7 @@ class Global(): ##Полная жопа
                 rospy.loginfo(f"Last point {target}") 
             msg.poses.append(target_pos)
             Global.path_publisher.publish(msg)    
-            rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
+            #rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
 
 
@@ -496,8 +496,8 @@ def main():
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
-            if len(Global.list):
-                rospy.loginfo(f"Last point {Global.list[-1]}")
+            #if len(Global.list):
+                #rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
             
             ######
@@ -506,7 +506,7 @@ def main():
                     Global.cleanupDeadEnds()
                     if Global.experimental_cleanup_enable:
                         Global.cleanupRepeats()
-                rospy.loginfo("Dead Ends cleaned up!")
+                #rospy.loginfo("Dead Ends cleaned up!")
             #######
             if len(Global.list) and not Global.error:
                 Global.publish()
