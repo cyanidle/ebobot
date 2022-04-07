@@ -77,6 +77,7 @@ class Local():
     #Params
     #Features
     rotate_at_end = rospy.get_param('~rotate_at_end', 1)
+    
     get_lowest_cost = rospy.get_param('~get_lowest_cost', 0)
     cost_coeff_enable = rospy.get_param('~cost_coeff_enable', 0)
     path_coeff_enable = rospy.get_param('~path_coeff_enable', 0)
@@ -125,9 +126,12 @@ class Local():
     costmap_update_topic = rospy.get_param('~costmap_update_topic', '/costmap_server/updates')
     robot_pos_topic = rospy.get_param('~robot_pos_topic', '/odom')
     cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
-
+    disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
+    disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
+    if rotate_at_end:
+        disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8)
     rviz_broadcaster = tf.TransformBroadcaster()
     status_publisher = rospy.Publisher(status_publish_topic, String, queue_size = 5)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
@@ -267,6 +271,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f"Rotating...")
         shutdownHook()
+        disable_adjust_publisher(Int8(cls.disable_adjust_sec_time))
         rospy.sleep(cls.pause_before_turn)
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
