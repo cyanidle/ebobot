@@ -22,6 +22,16 @@
   <material name="red">
     <color rgba="0.9 0.0 0.0 1.0"/>
   </material>
+ <material name="yellow">
+   <color rgba="0.0 1.0 1.0 .3"/>
+ </material>
+
+
+ <joint name="baza_joint" type="fixed">
+   <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+   <parent link="base_footprint"/>
+   <child link="baza"/>
+ </joint>
 
 
   <joint name="base_joint" type="fixed">
@@ -151,5 +161,16 @@
     </visual>
   </link>
 
+  <link name="baza">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder radius="0.16" length="0.01"/>
+      </geometry>
+      <material name="yellow">
+        
+      </material>
+    </visual>
+  </link>
 
 </robot>
