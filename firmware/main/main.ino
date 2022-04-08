@@ -12,7 +12,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1524> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
@@ -311,7 +311,7 @@ void loop()
     if (not servos_debugged){
       nh.logwarn(servos_debug); 
       }
-      debugServo(0);
+      //debugServo(0);
     servos_debugged = true;
   }
   if (start_loop.tick()){
