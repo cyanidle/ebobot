@@ -173,7 +173,7 @@ class Laser:
     @classmethod
     def find(cls): 
         _new_list = cls.list
-        _new_list.append(_new_list[:Objects.min_dots])
+        [_new_list.append(_scan) for _scan in _new_list[:Objects.min_dots]]
         curr_obst = []
         if not cls._updated:
             return
