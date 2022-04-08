@@ -666,14 +666,14 @@ class Manager:
     if debug:
         rospy.logerr(f"Manager uses debug!")
     #
-    file1 = rospy.get_param("~file1", "config/routes/test_route.yaml")
-    file2 = rospy.get_param("~file2", "config/routes/test_route.yaml")
-    test_file1 = rospy.get_param("~test_file1", "config/routes/test_route.yaml")
-    test_file2 = rospy.get_param("~test_file2", "config/routes/test_route.yaml")
+    file1 = rospy.get_param("~file1", "config/routes/test_route1.yaml")
+    file2 = rospy.get_param("~file2", "config/routes/test_route2.yaml")
+    test_file1 = rospy.get_param("~test_file1", "config/routes/test_route1.yaml")
+    test_file2 = rospy.get_param("~test_file2", "config/routes/test_route2.yaml")
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
     #
-    curr_file = test_file1
+    curr_file = test_file2
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     route = {}
     rate = rospy.Rate(Status.update_rate)
