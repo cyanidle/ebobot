@@ -92,7 +92,7 @@ def startCallback(start):
             Flags._test_routes = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
-    amplify_rate_for_move = rospy.get_param("~/status/amplify_rate_for_move", 1)
+    reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
     #
     list = []
     deps_dict = {}
@@ -279,7 +279,7 @@ class Move(Template):
                self.status.set(_stat)
                if _stat == "fail":
                    self.parent._fail_flag = 1
-            await asyncio.sleep((1/Status.update_rate) / Status.amplify_rate_for_move)
+            await asyncio.sleep((1/Status.update_rate) * Status.reduce_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     

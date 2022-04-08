@@ -8,4 +8,4 @@ new_task_manager:
   start_service: /ebobot/begin
   status:
     update_rate: 10
-    amplify_update_rate_for_move: 1 #how much faster move updates than statuses
+    reduce_update_rate_for_move: 4 #how much slower move updates than statuses
