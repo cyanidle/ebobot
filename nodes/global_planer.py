@@ -359,8 +359,8 @@ class Global(): ##Полная жопа
                 cls.goal_reached = 1
             else:
                 cls.goal_reached = 1
-            cls.list = [(cls.robot_pos,0)]
-            cls.publish()
+            cls.list = []
+            cls.publish(empty = True)
             move_server.done(0)
             cls._fail_count = 0
             cls.error = 1
@@ -417,7 +417,7 @@ class Global(): ##Полная жопа
             "rviz_path"
             )
     @staticmethod
-    def publish():
+    def publish(*,empty = False):
         ##
         rviz = Path()
         rviz.header.frame_id = "/costmap"
@@ -474,7 +474,10 @@ class Global(): ##Полная жопа
             if Global.debug:
                 rospy.loginfo(f"Last point {target}") 
             msg.poses.append(target_pos)
-            Global.path_publisher.publish(msg)    
+            if empty:
+                Global.path_publisher.publish(Path())
+            else:
+                Global.path_publisher.publish(msg)    
             rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
 

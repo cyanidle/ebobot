@@ -56,6 +56,9 @@ def pathCallback(path):################Доделать
         Local.new_targets.append(target)
     Local.last_target = target
     Local.parseTargets()
+    if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
+        rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
+        shutdownHook()
     rospy.loginfo(f'Goal Set!')
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution

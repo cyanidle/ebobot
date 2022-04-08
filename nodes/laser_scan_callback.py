@@ -172,17 +172,19 @@ class Laser:
         cls._updated = True
     @classmethod
     def find(cls): 
+        _new_list = cls.list
+        _new_list.append(_new_list[:Objects.min_dots])
         curr_obst = []
         if not cls._updated:
             return
         cls._updated = False
-        if len(cls.list) < 2:
+        if len(_new_list) < 2:
             return 
         Beacons.clearRelative()
         Objects.clear()
         #curr_obst.append(cls.list[0][0])
-        pubMarker(cls.list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.08,g=1,r=1,b=1,debug=Laser.debug,add=1)
-        for scan, last_scan in zip(cls.list[1:],cls.list[:-1]):
+        pubMarker(_new_list[0][0],0,1/Laser.update_rate,frame_name="first_scan",type="cube",size=0.08,g=1,r=1,b=1,debug=Laser.debug,add=1)
+        for scan, last_scan in zip(_new_list[1:],_new_list[:-1]):
             pose, intencity = scan
             last_pose, last_intencity = last_scan
             dist = np.linalg.norm((pose[0] - last_pose[0] ,  pose[1] - last_pose[1]))
