@@ -13,6 +13,7 @@ from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
 from std_msgs.msg import String, Int8
+from std_srvs.srv import SetBool, SetBoolRequest
 ######
 from dorlib import turnVect, dCoordsOnCircle
 import markers
@@ -131,7 +132,9 @@ class Local():
     cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
     disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
-    ###
+    adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
+     ###
+    _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)
     if rotate_at_end:
         disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8, queue_size = 4)
     ######
