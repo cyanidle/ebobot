@@ -12,7 +12,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1224> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1524> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
@@ -221,9 +221,9 @@ void debugServo(int num){
      Servo_mot* servo = ptr_list[num];
      char buffer[60];
      int target;
-     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d,bytes%d",
-     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
-     nh.loginfo(buffer);
+     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d,free%d",
+     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,freeRam());
+     nh.logwarn(buffer);
 }
 //////////////////////////////////////////////////////////////
 
@@ -309,8 +309,9 @@ void loop()
   if (servo_loop.tick()){
     servosUpdate();
     if (not servos_debugged){
-      nh.logwarn(servos_debug);}
-    //  //debugServo(0);
+      nh.logwarn(servos_debug); 
+      }
+      debugServo(0);
     servos_debugged = true;
   }
   if (start_loop.tick()){

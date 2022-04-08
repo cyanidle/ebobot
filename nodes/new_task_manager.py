@@ -24,7 +24,7 @@ rospy.sleep(1)
 def startCallback(start):
     rospy.logwarn(f"Got new start command {start.data}")
     Flags._execute = 0
-    Manager.reset() 
+     
     if Manager.debug:
         rospy.logwarn(Manager.route)
     if Flags._test_routes:
@@ -708,6 +708,7 @@ class Manager:
                     await showPrediction(1000 + Flags._current_route_num)
                     startCallback(Int8(9))
             await asyncio.sleep(0.1)
+        Manager.reset()
         Manager.current_task = 0
         Flags._execute = 0
         #Manager.rate.sleep()
