@@ -752,7 +752,7 @@ class Flags:
     _current_route_num = 1
     _goto = False
 def parse(route = 11):
-    Manager.reset()
+    #Manager.reset() pls fix
     if route == 11:
         Manager.curr_file = Manager.test_file1
     elif route == 12:
