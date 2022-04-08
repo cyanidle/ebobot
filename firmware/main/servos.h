@@ -60,8 +60,8 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->curr_val = curr_val;
     ptr->target_state = min_val;
     servos_shield.set_channel_value(ptr->channel,ptr->curr_val);
-    sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,free%d",
-         ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,freeRam());
+    sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,bytes%d",
+         ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
     servos_debugged = false;
     //Servo_mot new_servo{num,channel,speed,min_val,max_val,curr_val,false,false};
     if (num > max_num) max_num = num;
@@ -120,7 +120,7 @@ void servosUpdate(){
         Servo_mot *servo = ptr_list[num];
         if (servo->target_state > servo->curr_val) servoUp(servo); 
         else if (servo->target_state < servo->curr_val) servoDown(servo);
-        //servos_shield.set_channel_value(servo->channel,servo->curr_val);   
+        servos_shield.set_channel_value(servo->channel,servo->curr_val);   
         }  
          
     }
