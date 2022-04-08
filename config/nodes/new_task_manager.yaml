@@ -1,6 +1,6 @@
 new_task_manager:
   calls_debug: 0
-  start_service: /ebobot/begin
+  start_topic: /ebobot/begin
   status:
     update_rate: 10
     reduce_update_rate_for_move: 4 #how much slower move updates than statuses
@@ -8,5 +8,5 @@ new_task_manager:
     - parse
     - exec_route
     - countdown
-  scripts: # parse/name (should be present in config/routes) ### countdown/seconds (will get rounded) ### exec_route should be last!
-    - parse/test_route/countdown/3/exec_route  
+  scripts: # parse/name (should be present in config/routes) ### countdown/seconds (will get rounded) ### exec_route should be last! 
+    - parse/test_route/countdown/3/exec_route   #corresponds to start_topic data 0

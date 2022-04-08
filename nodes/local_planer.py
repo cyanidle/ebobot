@@ -282,7 +282,10 @@ class Local():
         if cls.use_timed_adj_disable:
             cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         else:
-            _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+            try:
+                _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+            except:
+                rospy.logerr_once("Toggle service unavailable")
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if diff >= 3.1415:
@@ -298,7 +301,10 @@ class Local():
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
         if _toggle_resp.message == "was 1":
-            cls._toggle_proxy(SetBoolRequest(data = True))
+            try:
+                cls._toggle_proxy(SetBoolRequest(data = True))
+            except:
+                rospy.logerr_once("Toggle service unavailable, ну камон, я же сказал йопта")
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 

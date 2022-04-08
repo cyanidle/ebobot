@@ -1,0 +1,18 @@
+tasks: #move: x/y/th
+  init:
+    - sleep: 2
+    - log: "W:Number of loops"
+    - log: "VAR:test_var"
+  top_right: 
+    - move: 1/2/3.1415 
+  top_left:
+    - move: 1/1/0
+  start:
+    - change_var: test_var/add/1
+    - goto: init
+
+variables:
+  default: 0
+  test_var: 0
+
+
