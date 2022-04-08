@@ -743,7 +743,7 @@ class Manager:
                         parse(Flags._current_route_num)
                     #startCallback(Int8(9))
             await asyncio.sleep(0.1)
-        Manager.reset()
+        #Manager.reset()
         Manager.current_task = 0
         Flags._execute = 0
         #Manager.rate.sleep()
