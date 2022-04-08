@@ -45,8 +45,9 @@ class StartHandler:
         self.actions = []
         self.args = []
         self.obj_dict = {}
-        self.raw_route = "test_route0"
+        self.raw_route = "test_route"
         raw_commands = raw.split("/")
+        self.parse_flag = 0
         for num, command in enumerate(raw_commands):
             if not num % 2:
                 continue
@@ -56,7 +57,9 @@ class StartHandler:
                 continue
             #####
             if command == "parse":
-                self.parse(raw_commands[num+1])
+                self.parse_flag = 1
+                self.raw_route = raw_commands[num+1]
+                self.parse()
                 continue
             #####
             try:
@@ -84,11 +87,11 @@ class StartHandler:
         for action, args in zip(self.actions, self.args):
             action(args)
     ######
-    def parse(self, route_name:str):
+    def parse_route(self):
         if not StartHandler.route_suffix is None:
-            self.raw_route = f"{Manager.routes_dir}/{route_name}{StartHandler.route_suffix}"
+            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}{StartHandler.route_suffix}"
         else:
-            self.raw_route = f"{Manager.routes_dir}/{route_name}"
+            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}"
         self.route = Manager.read(self.raw_route)
         Manager.parse(self)
     ###### SCRIPT EXECUTABLES
@@ -106,6 +109,9 @@ class StartHandler:
             StartHandler.route_suffix = None
         else:
             StartHandler.route_suffix = suff
+        for script in StartHandler.scripts:
+            if script.parse_flag:
+                script.parse_route()
 ################################################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
