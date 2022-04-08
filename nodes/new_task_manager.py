@@ -29,14 +29,20 @@ def startCallback(start):
         rospy.logwarn(Manager.route)
     if Flags._test_routes:
         if start.data == 1:
-            asyncio.run(showPrediction(7771))
+            try:
+                asyncio.run(showPrediction(7771))
+            except:
+                rospy.logwarn("No lcd found!")
             if Manager.debug:
                 rospy.logwarn(f"Parsing test_route1!")
             Flags._current_route_num = 1
             rospy.sleep(0.5)  
             parse(11)
         elif start.data == 2:
-            asyncio.run(showPrediction(7772))
+            try:
+                asyncio.run(showPrediction(7772))
+            except:
+                rospy.logwarn("No lcd found!")
             if Manager.debug:
                 rospy.logwarn(f"Parsing test_route2!")
             Flags._current_route_num = 2
@@ -45,7 +51,10 @@ def startCallback(start):
         elif start.data == 0:
             rospy.sleep(1)
             for n in range(3,-1,-1):
-                asyncio.run(showPrediction(n))
+                try:
+                    asyncio.run(showPrediction(n))
+                except:
+                    rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
             Flags._test_routes = 0
             Flags._execute = 1
@@ -57,7 +66,10 @@ def startCallback(start):
             Flags._test_routes = 0
             parse(Flags._current_route_num)
             for n in range(3,-1,-1):
-                asyncio.run(showPrediction(n))
+                try:
+                    asyncio.run(showPrediction(n))
+                except:
+                    rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
             startCallback(Int8(3))
     else:
@@ -67,21 +79,30 @@ def startCallback(start):
             rospy.sleep(0.5)
             parse(Flags._current_route_num)
         elif start.data == 1:
-            asyncio.run(showPrediction(1001))
+            try:
+                asyncio.run(showPrediction(1001))
+            except:
+                rospy.logwarn("No lcd found!")
             if Manager.debug:
                 rospy.logwarn(f"Parsing route1!")
             Flags._current_route_num = 1
             rospy.sleep(0.5)
             parse(1)
         elif start.data == 2:
-            asyncio.run(showPrediction(1002))
+            try:
+                asyncio.run(showPrediction(1002))
+            except:
+                rospy.logwarn("No lcd found!")
             if Manager.debug:
                 rospy.logwarn(f"Parsing route2!")
             Flags._current_route_num = 2
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
-            asyncio.run(showPrediction(0))
+            try:
+                asyncio.run(showPrediction(0))
+            except:
+                rospy.logwarn("No lcd found!")
             Flags._test_routes = 1
             Flags._execute = 1
             if Manager.debug:
@@ -89,7 +110,10 @@ def startCallback(start):
         else:
             if Manager.debug:
                 rospy.logerr("Incorrect start sequence!")
-            asyncio.run(showPrediction(9999))
+            try:
+                asyncio.run(showPrediction(9999))
+            except:
+                rospy.logwarn("No lcd found!")
             Flags._test_routes = 1
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -281,6 +305,7 @@ class Move(Template):
                 rospy.loginfo(f"Move server feedback {_stat}")
             if _stat == "executing":
                 if await Task.checkForInterrupt():
+                    type(self).client.cancel_goal()
                     await asyncio.sleep(0.1)
                     type(self).client.setTarget(self.pos,self.th)
             else:
