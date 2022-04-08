@@ -34,6 +34,7 @@ class StartHandler:
     #
     raw_scripts = rospy.get_param("~scripts")
     scripts = []
+    route_suffix = 2
     @classmethod
     def initialise(cls):
         if not len(cls.raw_scripts):
@@ -84,7 +85,10 @@ class StartHandler:
             action(args)
     ######
     def parse(self, route_name:str):
-        self.raw_route = f"{Manager.routes_dir}/{route_name}"
+        if not StartHandler.route_suffix is None:
+            self.raw_route = f"{Manager.routes_dir}/{route_name}{StartHandler.route_suffix}"
+        else:
+            self.raw_route = f"{Manager.routes_dir}/{route_name}"
         self.route = Manager.read(self.raw_route)
         Manager.parse(self)
     ###### SCRIPT EXECUTABLES
@@ -97,6 +101,11 @@ class StartHandler:
         for n in range (round(int(seconds)), -1 , -1):
             asyncio.run(showPrediction(n))
             rospy.sleep(1)
+    def set_route_suffix(self,suff:str):
+        if suff == "0":
+            StartHandler.route_suffix = None
+        else:
+            StartHandler.route_suffix = suff
 ################################################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -108,10 +117,7 @@ class Status:
     def __init__(self, parent):
         self._status = "init"
         self.parent = parent
-
     def update(self):
-        #if Manager.debug:
-        #    rospy.loginfo(f"Updating status of {self.parent}")
         self._status = self.parent.updateStatus()
     def get(self) -> str:
         return self._status
@@ -123,9 +129,6 @@ class Status:
             if "Timer" in Manager.curr_obj_dict.keys():
                 for timer in Manager.curr_obj_dict["Timer"]:
                     timer.status.update()
-            #else:
-                #if Manager.debug:
-                #    #rospy.logwarn(f"No timers found!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):
@@ -140,7 +143,6 @@ class Status:
     @staticmethod
     def getRawString(obj):
         return f"{obj.rawString()}/{obj.status.get()}"
-        #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num) + "/"+ str(obj.status.get())
     @staticmethod
     def registerDependency(obj, condition:str):
         if Manager.debug:
@@ -721,9 +723,7 @@ class Manager:
             else:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
-                if not Flags._test_routes:
-                    await showPrediction(1000 + Flags._current_route_num)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(1/Status.update_rate)
         main_timer.delete()
         Manager.current_task = 0
         Flags._execute = 0

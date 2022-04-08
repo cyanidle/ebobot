@@ -8,5 +8,9 @@ new_task_manager:
     - parse
     - exec_route
     - countdown
+    - set_route_suffix
   scripts: # parse/name (should be present in config/routes) ### countdown/seconds (will get rounded) ### exec_route should be last! 
     - parse/test_route/countdown/3/exec_route   #corresponds to start_topic data 0
+    - set_route_suffix/1
+    - set_route_suffix/2
+    - parse/new_route/exec_route   #corresponds to start_topic data 0
