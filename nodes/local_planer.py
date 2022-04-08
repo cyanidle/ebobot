@@ -276,8 +276,7 @@ class Local():
             return 6.283 + rad
     @classmethod
     def rotateAtEnd(cls):
-        if cls.debug:
-            rospy.loginfo(f"Rotating...")
+        rospy.logwarn(f"Rotating...")
         shutdownHook()
         rospy.sleep(cls.pause_before_turn)
         if cls.use_timed_adj_disable:

@@ -87,6 +87,7 @@ class Calls: #Async
                     if Execute.debug:
                         rospy.loginfo(f"Couroutine = {_corout}")
                 resps.append(await _corout)
+                await asyncio.sleep(0.08)
             if Execute.debug:
                 rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:

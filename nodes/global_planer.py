@@ -542,7 +542,7 @@ class MoveServer:
         self._success_flag = 0
         self._fail_flag = 0
     def execute(self,goal):
-        #MoveServer._preemted +=1
+        #MoveServer._preemted  = 1
         rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
         ###################
         new_target = PoseStamped()
@@ -563,9 +563,11 @@ class MoveServer:
             rate.sleep()
         if self._success_flag:
             self.server.set_succeeded(MoveResult(0))
-        else:
+        elif self._fail_flag:
             self.server.set_aborted(MoveResult(1))
-        self._fail_flag, self._success_flag = 0,0
+        #else:
+        #    self.server.set_preempted(MoveResult(4))
+        self._fail_flag, self._success_flag = 0, 0#, 0
     def update(self, fb, local=0):
         self.feedback = fb
         if local:

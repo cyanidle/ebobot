@@ -61,18 +61,18 @@ laser_scan_callback:
       - 3.045
       - 0.071
     2/beacon1:
-      - -0.065 #meters, y
+      - -0.065   #meters, y
       - 1.021    #meters, x
     2/beacon2:
       - 3.07
       - 1.935
     # yellow side
     1/beacon0:
-      - -0.09      #meters, y
-      - 0.075    #meters, x
+      - -0.041      #meters, y
+      - 0.071    #meters, x
     1/beacon1:
-      - 3.09
-      - 1
+      - 3.069
+      - 1.021
     1/beacon2:
-      - -0.09
-      - 1.925
+      - -0.03
+      - 1.935
