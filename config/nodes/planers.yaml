@@ -3,60 +3,60 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
-  update_rate: 2
-  step: 2
+  update_rate: 8
+  step: 4
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
   resend: 1
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
   #
-  recovery_cost_step: 2 #if stuck in beginnig increases allowed cost
-  twist_amplify_coeff: 0.5
+  recovery_cost_step: 3 #if stuck in beginnig increases allowed cost (DIVIDED BY UPDATE RATE)
+  #
+  twist_amplify_coeff: 0.02
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
-  update_stop_thresh: 8 # Dist from target, when stops updating route
+  
   
   step_radians_resolution: 12
-  dist_to_target_threshhold: 3 
+  
   #!!! DANGEROUS
   accelerate_coeff: 0.00015 #works only when experimental cleanup is switched off, which is not adviced
   #!!!
-  
-                                  
   ##### dir locking
-  stuck_check_jumps: 10 #checks for 'stuck' per 'n' jumps
-  stuck_dist_threshhold: 15 #dist which should be reached in (stuck_check_jumps)
+  stuck_check_jumps: 5 #checks for 'stuck' per 'n' jumps
   lock_dirs: #directions which get tried one after another if planer is stuck
     - 0 # first should be always zero
     - left
     - left
+    - right
+    - right
     - bot
-    - bot
+    - top
     - right
     - top
-    - bot
-    - right
-    - top
-    - bot
 #### Cleanup
   cleanup_power: 2        # number of cleanups, ussualy one is enough
   #################################
-  dead_end_dist_diff_threshhold: 4 #if planer backtracks this number of cells, 
-  #the last point is removed (considered a dead end)
-  cleanup_repeats_len: 5       # These two are important. Enabled by experimental cleanup.
-  cleanup_repeats_threshhold: 7   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_len: 5        # These two are important. Enabled by experimental cleanup.
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
-
+  # MULTIPLIED BY STEP: (ALL SHOULD BE LESS THAN 1)
+  cleanup_repeats_threshhold: 0.6   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  stuck_dist_threshhold: 0.4 #dist which should be reached in (stuck_check_jumps)
+  dead_end_dist_diff_threshhold: 0.7 #if planer backtracks this number of cells, the last point is removed (considered a dead end)
+  update_stop_thresh: 3 # Dist from target, when stops updating route
+  # Step is added:
+  dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
 ##################################
 local_planer:
   ##############
   #Topics:
   disable_adjust_sec_topic: /disable_adjust_sec
   ###############
+  
   skip_thresh: 5 #max points to skip if fails by cost
   threshhold: 1.5 #in cells, how close to target should robot ride
-  twist_amplify_coeff: 0.9 #depends on resolution, allows to skip points behind
-  inertia_compensation_coeff: 0.05 #allows for shrap turns (in theory)
+  twist_amplify_coeff: 0.5 #depends on resolution, allows to skip points behind
+  inertia_compensation_coeff: 0.04 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
   cost_threshhold: 10000 #100 are walls, then there is inflation
@@ -66,19 +66,20 @@ local_planer:
   get_lowest_cost: 0 #correct targets to follow lowest cost route
   #Params
   #Features
+  use_twist_before: 4 #targets
   cost_coeff_enable: 0
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.2 #seconds
-  turn_threshhold: 0.108 
+  turn_threshhold: 0.15
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
-  turn_coeff: 0.35
-  min_turn_coeff: 0.3 #final!
+  turn_coeff: 0.4
+  min_turn_coeff: 0.35 #final!
   #speed coeffs
   full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  0.9
-  min_path_coeff: 0.3 #Final!!
-  path_speed_coeff: 0.9 #В тугриках. Robot slows down at start and finish of the route
+  min_path_coeff: 0.35 #Final!!
+  path_speed_coeff: 2 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 0.0002
   
   # Circles on which planer tries to find lowest cost position

@@ -13,7 +13,7 @@ from ebobot.msg import Obstacles, Obstacle
 from std_srvs.srv import Empty, EmptyRequest, EmptyResponse, SetBool, SetBoolResponse, SetBoolRequest
 from std_msgs.msg import Int8
 ######################
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped
 from nav_msgs.msg import Odometry#, OccupancyGrid
 from sensor_msgs.msg import LaserScan
 ######################
@@ -142,7 +142,7 @@ class Laser:
     def update(cls):
         new_list = list()
         cls.updateTF()
-        rotor = getRotor(-cls.robot_pos[2] - cls.robot_twist[2]/Laser.update_rate)
+        rotor = getRotor(-cls.robot_pos[2])#- cls.robot_twist[2]/Laser.update_rate)
         if cls.enable_intensities:
             container = zip(cls.ranges, cls.intensities, cls.coeffs)
             rospy.logerr_once(f"{len(cls.ranges)}|{len(cls.intensities)}|{len(cls.coeffs)}")
@@ -472,6 +472,10 @@ class Beacons(Laser):
         new.pose.pose.orientation.w = new_quat[3]
         cls.adjust_publisher.publish(new)
 #################################################################
+def rvizPointCB(point):
+    position = point.point
+    temp = Objects((position.y,position.x),temp=True)
+    Objects.temp_time_left = Objects.point_pub_time 
 class Objects(Laser):
     #Params
     safe_footprint_radius = rospy.get_param('~obstacles/safe_footprint_radius', 0.2)
@@ -485,15 +489,24 @@ class Objects(Laser):
     maximum_y = rospy.get_param('~obstacles/maximum_y', 3)
     #/Params
     #Topics
+    point_pub_time = rospy.get_param('~obstacles/point_pub_time',10)
+    rviz_point_topic = rospy.get_param('~obstacles/rviz_point_topic','/clicked_point')
     list_topic = rospy.get_param('~obstacles/list_topic' ,'/laser/obstacles')
     #
+    rviz_point_sub = rospy.Subscriber(rviz_point_topic,PointStamped, rvizPointCB)
     list_pub = rospy.Publisher(list_topic,Obstacles,queue_size = 6)
     #/Topics
     list = []
-    def __init__(self, pose,radius = 0):
+    temp_points_list = []
+    temp_time_left = 0
+    #
+    def __init__(self, pose,radius = safe_footprint_radius,*,temp = False):
         self.radius = radius
         self.pose = pose
-        type(self).list.append(self)
+        if temp:
+            type(self).temp_points_list.append(self)
+        else:
+            type(self).list.append(self)
     @classmethod
     def send(cls):
         msg = Obstacles()
@@ -502,7 +515,18 @@ class Objects(Laser):
             #pubMarker(obst.pose,num,1/Laser.update_rate,frame_name="objects",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
-            obstacle.radius = obst.radius #PLACEHOLDER
+            obstacle.radius = obst.radius
+            msg.data.append(obstacle)
+        cls.temp_time_left -= 1/cls.update_rate
+        if cls.temp_time_left <= 0:
+            cls.temp_points_list.clear()
+            cls.temp_time_left = 0
+        for num,temp in enumerate(cls.temp_points_list):
+            obstacle = Obstacle()
+            #pubMarker(obst.pose,num,1/Laser.update_rate,frame_name="objects",type="cube",size=0.1,g=0.5,r=1,b=0.5,debug=Laser.debug,add=1)
+            obstacle.y = temp.pose[0] 
+            obstacle.x = temp.pose[1]
+            obstacle.radius = temp.radius
             msg.data.append(obstacle)
         cls.list_pub.publish(msg)
     @classmethod

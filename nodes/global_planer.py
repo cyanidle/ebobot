@@ -61,7 +61,7 @@ def targetCallback(target):
     Global.goal_reached = 0
     Global.target = np.array(goal)
     Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
-    Global.start_pos = Global.robot_pos + Global.robot_twist
+    Global.start_pos = Global.robot_pos - Global.robot_twist
     Global.consecutive_jumps = 0
     Global.target_set = 1
     if Global.rviz_enable:
@@ -89,7 +89,7 @@ def costmapUpdateCallback(update): #not used
 class Global(): ##Полная жопа
     
     #__slots__ = ()##PLS TEST IF FAILS - DELETE THIS LINE
-
+    step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     #Params
     #Features
     rviz_enable = rospy.get_param('~rviz_enable',1)
@@ -101,6 +101,7 @@ class Global(): ##Полная жопа
     #
     resend = rospy.get_param('~resend', 1)
     update_stop_thresh = rospy.get_param('~update_stop_thresh', 8) #in cells
+    update_stop_thresh *= step
     update_rate = rospy.get_param('~update_rate',1) #per second
     #
     accelerate_coeff = rospy.get_param('~accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
@@ -110,25 +111,29 @@ class Global(): ##Полная жопа
     #
     maximum_cost = rospy.get_param('~maximum_cost',40) 
     _default_max_cost = maximum_cost
-    recovery_cost_step = rospy.get_param('~recovery_cost_step',5) 
+    recovery_cost_step = rospy.get_param('~recovery_cost_step',1)
+    recovery_cost_step /= update_rate
     #
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',6) #in cells (if havent moved in the last (stuck check jumps))
+    stuck_dist_threshhold *= step
     #
-    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff',2)
+    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff',0.02)
     #
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
+    dead_end_dist_diff_threshhold *= step
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
     fail_count_threshhold = rospy.get_param('~fail_count_threshhold',5)
     num_of_tries_for_last = rospy.get_param('~num_of_tries_for_last',5)
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
-    step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
+    dist_to_target_threshhold += step
     step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
     #Cleanup params
     cleanup_repeats_len = rospy.get_param('~cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
-    cleanup_power = rospy.get_param('~cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)
+    cleanup_power = rospy.get_param('~cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)   
     cleanup_repeats_threshhold = rospy.get_param('~cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.5 ) #cells CHANGE CAREFULLY!!
+    cleanup_repeats_threshhold *= step
     #/Params
     
 
@@ -405,7 +410,7 @@ class Global(): ##Полная жопа
                 popped = Global.list.pop(num-done)
                 if Global.debug:
                     rospy.loginfo(f"Removing repeats {popped}")
-        rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
+        #rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      
@@ -482,9 +487,12 @@ class Global(): ##Полная жопа
 
 
 
+def shutdownHook():
+    Global.list = [(Global.robot_pos,0)]
+    Global.publish()
 def main():
     Global.initRotors()
-   
+    rospy.on_shutdown(shutdownHook)
     while not rospy.is_shutdown():
         ####
         if Global.resend:
@@ -499,8 +507,8 @@ def main():
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
-            if len(Global.list):
-                rospy.loginfo(f"Last point {Global.list[-1]}")
+            #if len(Global.list):
+                #rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
             
             ######
@@ -509,7 +517,7 @@ def main():
                     Global.cleanupDeadEnds()
                     if Global.experimental_cleanup_enable:
                         Global.cleanupRepeats()
-                rospy.loginfo("Dead Ends cleaned up!")
+                #rospy.loginfo("Dead Ends cleaned up!")
             #######
             if len(Global.list) and not Global.error:
                 Global.publish()
@@ -573,6 +581,7 @@ class MoveServer:
         if status:
             self._success_flag = 1
         else:
+            shutdownHook()
             self._fail_flag = 1
 if __name__=="__main__":
     move_server = MoveServer()
