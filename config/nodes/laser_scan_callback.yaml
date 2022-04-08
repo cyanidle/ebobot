@@ -10,7 +10,7 @@ laser_scan_callback:
   disable_adjust_sec_topic: /disable_adjust_sec
   side_topic: "/ebobot/begin"
   ###############
-  twist_amplify_coeff: 1
+  twist_amplify_coeff: 0.4
   #
   minimal_x: -0.3
   minimal_y: -0.3
