@@ -61,7 +61,7 @@ local_planer:
   disable_adjust_sec_time: 3
   cost_threshhold: 10000 #100 are walls, then there is inflation
   safe_footprint_radius: 0.20
-  update_rate: 20 # in Hz
+  update_rate: 15 # in Hz
   rotate_at_end: 1
   get_lowest_cost: 0 #correct targets to follow lowest cost route
   #Params

@@ -24,6 +24,7 @@ rospy.sleep(1)
 def startCallback(start):
     rospy.logwarn(f"Got new start command {start.data}")
     Flags._execute = 0
+    Manager.reset() 
     if Manager.debug:
         rospy.logwarn(Manager.route)
     if Flags._test_routes:

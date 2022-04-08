@@ -15,6 +15,11 @@ bool servosSetup(){
   }
 }
 //
+int freeRam () {
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
 struct Servo_mot{
     int num;
     int channel;
@@ -55,8 +60,8 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->curr_val = curr_val;
     ptr->target_state = min_val;
     servos_shield.set_channel_value(ptr->channel,ptr->curr_val);
-    sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,bytes%d",
-         ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,sizeof(Servo_mot)+ sizeof(Servo_mot*));
+    sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,free%d",
+         ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,freeRam()));
     servos_debugged = false;
     //Servo_mot new_servo{num,channel,speed,min_val,max_val,curr_val,false,false};
     if (num > max_num) max_num = num;

@@ -12,7 +12,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1224> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1224> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
