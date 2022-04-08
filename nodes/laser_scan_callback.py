@@ -240,8 +240,9 @@ class Laser:
 def toggleCB(req):
     rospy.logwarn(f"Adjust switched({int(req.data)})")
     Beacons.resetAdjust()
+    _was = Beacons._adjust_flag
     Beacons._adjust_flag = int(req.data)
-    return  SetBoolResponse(success = True)
+    return  SetBoolResponse(success = True,message = f"was {_was}")
 def adjCB(req):
     Beacons.resetAdjust()
     Beacons._adjust_flag = 1
