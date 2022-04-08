@@ -133,7 +133,6 @@ class Local():
     disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
     adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
-     ###
     use_timed_adj_disable = rospy.get_param('~use_timed_adj_disable', 0)
     _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)
     if rotate_at_end:

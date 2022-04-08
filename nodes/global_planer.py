@@ -12,6 +12,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from std_msgs.msg import String
+from std_srvs.srv import SetBool, SetBoolRequest
 #from visualization_msgs.msg import Marker
 ######
 #from dorlib import dCoordsOnCircle
@@ -136,6 +137,9 @@ class Global(): ##Полная жопа
     cleanup_repeats_threshhold *= step
     #/Params
     
+    adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
+    use_timed_adj_disable = rospy.get_param('~use_timed_adj_disable', 0)
+    _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)
 
     #Topics
     local_status_topic = rospy.get_param('~local_status_topic', '/planers/local/status')
@@ -504,6 +508,12 @@ def main():
             Global.consecutive_jumps = 0
         ####
         if Global.target_set:
+            ###
+            try:
+                _toggle_resp = Global._toggle_proxy(SetBoolRequest(data = False))
+            except:
+                rospy.logerr_once("Toggle service unavailable")
+            ###
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached:
                 Global.appendNextPos()
@@ -530,6 +540,11 @@ def main():
             if Global.resend:
                 if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
                     Global.target_set = 0
+                    if _toggle_resp.message == "was 1":
+                        try:
+                            Global._toggle_proxy(SetBoolRequest(data = True))
+                        except:
+                            rospy.logerr_once("Toggle service unavailable, ну камон, я же сказал йопта")
                 #Global.goal_reached = 1
 
         rate.sleep()
