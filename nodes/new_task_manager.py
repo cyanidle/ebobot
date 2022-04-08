@@ -22,99 +22,43 @@ from abc import ABC, abstractmethod
 rospy.sleep(1)
 #####################################
 def startCallback(start):
-    rospy.logwarn(f"Got new start command {start.data}")
-    Flags._execute = 0
-     
-    if Manager.debug:
-        rospy.logwarn(Manager.route)
-    if Flags._test_routes:
-        if start.data == 1:
-            try:
-                asyncio.run(showPrediction(7771))
-            except:
-                rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing test_route1!")
-            Flags._current_route_num = 1
-            rospy.sleep(0.5)  
-            parse(11)
-        elif start.data == 2:
-            try:
-                asyncio.run(showPrediction(7772))
-            except:
-                rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing test_route2!")
-            Flags._current_route_num = 2
-            rospy.sleep(0.5)
-            parse(12)
-        elif start.data == 0:
-            rospy.sleep(1)
-            for n in range(3,-1,-1):
-                try:
-                    asyncio.run(showPrediction(n))
-                except:
-                    rospy.logwarn("No lcd found!")
-                rospy.sleep(1)
-            Flags._test_routes = 0
-            Flags._execute = 1
-            if Manager.debug:
-                rospy.logwarn(f"Executing test route!")
+    StartHandler.handle(start.data)
+class StartHandler:
+
+    @staticmethod
+    def handle(data): 
+        StartHandler.scripts[data].exec()
+    def parse(self,route = 22):
+        Manager.reset() #pls fix
+        if route == 11:
+            Manager.curr_file = Manager.test_file1
+        elif route == 12:
+            Manager.curr_file = Manager.test_file2
+        elif route == 1:
+            Manager.curr_file = Manager.file1
+        elif route == 2:
+            Manager.curr_file = Manager.file2
         else:
             if Manager.debug:
-                rospy.logerr("Fast start!")
-            Flags._test_routes = 0
-            parse(Flags._current_route_num)
-            for n in range(3,-1,-1):
-                try:
-                    asyncio.run(showPrediction(n))
-                except:
-                    rospy.logwarn("No lcd found!")
-                rospy.sleep(1)
-            startCallback(Int8(3))
-    else:
-        if start.data == 9:
+                rospy.logerr("Unavailable route called")
+            
+        Manager.read()
+        if Manager.debug:
+            rospy.loginfo(f"Got dict!")
+        if not Manager.route:
             if Manager.debug:
-                rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
-            rospy.sleep(0.5)
-            parse(Flags._current_route_num)
-        elif start.data == 1:
-            try:
-                asyncio.run(showPrediction(1001))
-            except:
-                rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing route1!")
-            Flags._current_route_num = 1
-            rospy.sleep(0.5)
-            parse(1)
-        elif start.data == 2:
-            try:
-                asyncio.run(showPrediction(1002))
-            except:
-                rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing route2!")
-            Flags._current_route_num = 2
-            rospy.sleep(0.5)
-            parse(2)
-        elif start.data == 3:
-            try:
-                asyncio.run(showPrediction(0))
-            except:
-                rospy.logwarn("No lcd found!")
-            Flags._test_routes = 1
-            Flags._execute = 1
-            if Manager.debug:
-                rospy.logwarn(f"Executing chosen route!")
-        else:
-            if Manager.debug:
-                rospy.logerr("Incorrect start sequence!")
-            try:
-                asyncio.run(showPrediction(9999))
-            except:
-                rospy.logwarn("No lcd found!")
-            Flags._test_routes = 1
+                rospy.logerr(f"Route is empty or missing!")
+            return
+        start_time = rospy.Time.now()
+        if Manager.debug:
+            rospy.logwarn("Parsing route...")
+        Manager.parse()
+        if Manager.debug:
+            rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
+        if Manager.debug:
+            rospy.loginfo(f"{Manager.obj_dict}")
+        if Manager.debug:
+            rospy.loginfo("Waiting for start topic...")
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -739,9 +683,6 @@ class Manager:
                     rospy.logwarn("No tasks left!")
                 if not Flags._test_routes:
                     await showPrediction(1000 + Flags._current_route_num)
-                    if not Flags._test_routes:
-                        parse(Flags._current_route_num)
-                    #startCallback(Int8(9))
             await asyncio.sleep(0.1)
         Manager.reset()
         Manager.current_task = 0
@@ -753,48 +694,15 @@ class Flags:
     _test_routes=1
     _current_route_num = 1
     _goto = False
-def parse(route = 11):
-    Manager.reset() #pls fix
-    if route == 11:
-        Manager.curr_file = Manager.test_file1
-    elif route == 12:
-        Manager.curr_file = Manager.test_file2
-    elif route == 1:
-        Manager.curr_file = Manager.file1
-    elif route == 2:
-        Manager.curr_file = Manager.file2
-    else:
-        if Manager.debug:
-            rospy.logerr("Unavailable route called")
-    Manager.read()
-    if Manager.debug:
-        rospy.loginfo(f"Got dict!")
-    if not Manager.route:
-        if Manager.debug:
-            rospy.logerr(f"Route is empty or missing!")
-        return
-    start_time = rospy.Time.now()
-    if Manager.debug:
-        rospy.logwarn("Parsing route...")
-    Manager.parse()
-    if Manager.debug:
-        rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-    if Manager.debug:
-        rospy.loginfo(f"{Manager.obj_dict}")
-    if Manager.debug:
-        rospy.loginfo("Waiting for start topic...")
+
     
 def main():
-    parse()
-    while not rospy.is_shutdown():
-        if Flags._execute:
-            asyncio.run(executeRoute())
-        if Manager.debug:
-            rospy.loginfo("Waiting for start topic...")
-        rospy.sleep(1/Status.update_rate)
-    
-    
-        
+    StartHandler.default()
+    ################
+    if Manager.debug:
+        rospy.loginfo_once("Waiting for start topic...")
+    rospy.spin()
+
 ##################
 async def executeRoute():
     if Manager.debug:
