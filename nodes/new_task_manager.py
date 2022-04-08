@@ -210,12 +210,20 @@ class Template(ABC):
 class Skip(Template):
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        self.task_num = int(args)
+        if args == "all":
+            self.task_num = 0
+            self.all_flag = 1
+        else:
+            self.all_flag = 0
+            self.task_num = int(args)
     async def midExec(self) -> None:
-        Manager.obj_dict["Task"][self.task_num]._skip_flag = 1
-
+        if self.all_flag:
+            for task in Manager.obj_dict["Task"]:
+                task._skip_flag = 1
+        else:
+            Manager.obj_dict["Task"][self.task_num]._skip_flag = 1
 ##############################################
-class Call(Template):
+class Call(Template): 
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
         self.args = None
@@ -255,7 +263,7 @@ class Move(Template):
         return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.obj_dict['Move'])}")
+        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.obj_dict['Move'])}|POS = {args}")
         parsed = args.split("/")
         try:
             self.pos = (float(parsed[1]),float(parsed[0]))
