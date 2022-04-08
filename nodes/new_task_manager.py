@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from math import floor
+
+from click import command
 import roslib
 roslib.load_manifest('ebobot')
 import rospy
@@ -26,14 +28,33 @@ def startCallback(start):
 class StartHandler:
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
+    allowed = rospy.get_param("~allowed_script_commands", ["parse", "exec_route", "countdown"])
     #
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     #
     raw_scripts = rospy.get_param("~scripts")
     scripts = []
-    def __init__(self) -> None:
-        pass
-    def exec(self) -> None:
+    @classmethod
+    def initialise(cls):
+        if not len(cls.raw_scripts):
+            rospy.logerr("No scripts found!")
+        for script in cls.raw_scripts:
+            _init = StartHandler(script)
+    def __init__(self, raw: str) -> None:
+        raw_commands = raw.split("/") 
+        self.actions = []
+        self.args = []
+        self.obj_dict = {}
+        for num, command in enumerate(raw_commands):
+            if num % 2:
+                if command in StartHandler.allowed:
+                    try:
+                        self.actions.append(self.__dict__[command])
+                    except:
+                        rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
+                    self.args.append(raw_commands[num + 1])
+                else:
+                    rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
         pass
     @classmethod
     def default(cls):
@@ -44,30 +65,15 @@ class StartHandler:
     @staticmethod
     def handle(data): 
         StartHandler.scripts[data].exec()
+    def exec(self):
+        pass
+    ######
     def parse(self):
-        # Manager.reset() #pls fix
-        # self.route
-        # else:
-        #     if Manager.debug:
-        #         rospy.logerr("Unavailable route called")
-            
-        # Manager.read()
-        # if Manager.debug:
-        #     rospy.loginfo(f"Got dict!")
-        # if not Manager.route:
-        #     if Manager.debug:
-        #         rospy.logerr(f"Route is empty or missing!")
-        #     return
-        # start_time = rospy.Time.now()
-        # if Manager.debug:
-        #     rospy.logwarn("Parsing route...")
-        # Manager.parse()
-        # if Manager.debug:
-        #     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-        # if Manager.debug:
-        #     rospy.loginfo(f"{Manager.obj_dict}")
-        # if Manager.debug:
-        #     rospy.loginfo("Waiting for start topic...")
+        pass
+    def exec_route(self):
+        pass
+    def countdown(self):
+        pass
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -78,6 +84,7 @@ class Status:
     def __init__(self, parent):
         self._status = "init"
         self.parent = parent
+
     def update(self):
         #if Manager.debug:
         #    rospy.loginfo(f"Updating status of {self.parent}")
@@ -127,6 +134,7 @@ class Status:
 #######################################################
 class Template(ABC):
     list = []
+    current_script = None
     ############################## MUST be overridden
     @abstractmethod
     def __init__(self,parent,name,args):
@@ -141,17 +149,17 @@ class Template(ABC):
         self.name = name
         ###
         cls_name = type(self).__name__
-        if cls_name in Manager.obj_dict.keys():
-            Manager.obj_dict[cls_name].append(self)
+        if cls_name in Template.current_script.obj_dict.keys():
+            Template.current_script.obj_dict[cls_name].append(self)
         else:
-            Manager.obj_dict[cls_name] = [self]
+            Template.current_script.obj_dict[cls_name] = [self]
         ###
         if type(parent) == Task or type(parent) == Group:
             for obj in self.parent.micros_list:
                 if obj.name == self.name:
                     self.num += 1
         else:
-            self.num = len(Manager.obj_dict[type(self).__name__])-1
+            self.num = len(Template.current_script.obj_dict[type(self).__name__])-1
         ###
         self.status = Status(self)
     @abstractmethod
@@ -627,26 +635,27 @@ class Manager:
     
     route = {}
     rate = rospy.Rate(Status.update_rate)
-    @classmethod
-    def read(cls):
-        with open(cls.curr_file, "r") as stream:
+    @staticmethod
+    def read(route:str):
+        with open(route, "r") as stream:
             try:
-                cls.route = (yaml.safe_load(stream))
+                return (yaml.safe_load(stream))
             except yaml.YAMLError as exc:
                 if Manager.debug:
                     rospy.logerr(f"Loading failed ({exc})")
-    @classmethod
-    def parse(cls):
-        if "interrupts" in cls.route.keys():
-            for interrupt_name in cls.route["interrupts"]:
-                unparsed_list = cls.route["interrupts"][interrupt_name]
+    @staticmethod
+    def parse(parent, raw_route):
+        Template.current_script = parent
+        if "interrupts" in raw_route.keys():
+            for interrupt_name in raw_route["interrupts"]:
+                unparsed_list = raw_route["interrupts"][interrupt_name]
                 new_inter = Interrupt(interrupt_name,unparsed_list)
         else:
             if Manager.debug:
                 rospy.logwarn("No interrupts found in route file!")
-        if "tasks" in cls.route.keys():
-            for task_name in cls.route["tasks"]:
-                unparsed_list = cls.route["tasks"][task_name]
+        if "tasks" in raw_route.keys():
+            for task_name in raw_route["tasks"]:
+                unparsed_list = raw_route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
             ###
             _color_step = 1/len(Manager.obj_dict["Move"])
@@ -658,10 +667,10 @@ class Manager:
         else:
             if Manager.debug:
                 rospy.logerr("NO TASKS IN ROUTE FILE!")
-        if "variables" in cls.route.keys():
-            for var_name in cls.route["variables"]:
+        if "variables" in raw_route.keys():
+            for var_name in raw_route["variables"]:
                 print (f"variable {var_name}")
-                var_val = cls.route["variables"][var_name]
+                var_val = raw_route["variables"][var_name]
                 new_var = Variable(Variable, var_name, var_val)
         else:
             if Manager.debug:
