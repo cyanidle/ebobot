@@ -24,41 +24,50 @@ rospy.sleep(1)
 def startCallback(start):
     StartHandler.handle(start.data)
 class StartHandler:
-
+    #
+    start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
+    #
+    start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
+    #
+    raw_scripts = rospy.get_param("~scripts")
+    scripts = []
+    def __init__(self) -> None:
+        pass
+    def exec(self) -> None:
+        pass
+    @classmethod
+    def default(cls):
+        if len(cls.scripts):
+            cls.scripts[0].exec()
+        else:
+            rospy.logerr("Start scripts not initialised!")
     @staticmethod
     def handle(data): 
         StartHandler.scripts[data].exec()
-    def parse(self,route = 22):
-        Manager.reset() #pls fix
-        if route == 11:
-            Manager.curr_file = Manager.test_file1
-        elif route == 12:
-            Manager.curr_file = Manager.test_file2
-        elif route == 1:
-            Manager.curr_file = Manager.file1
-        elif route == 2:
-            Manager.curr_file = Manager.file2
-        else:
-            if Manager.debug:
-                rospy.logerr("Unavailable route called")
+    def parse(self):
+        # Manager.reset() #pls fix
+        # self.route
+        # else:
+        #     if Manager.debug:
+        #         rospy.logerr("Unavailable route called")
             
-        Manager.read()
-        if Manager.debug:
-            rospy.loginfo(f"Got dict!")
-        if not Manager.route:
-            if Manager.debug:
-                rospy.logerr(f"Route is empty or missing!")
-            return
-        start_time = rospy.Time.now()
-        if Manager.debug:
-            rospy.logwarn("Parsing route...")
-        Manager.parse()
-        if Manager.debug:
-            rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-        if Manager.debug:
-            rospy.loginfo(f"{Manager.obj_dict}")
-        if Manager.debug:
-            rospy.loginfo("Waiting for start topic...")
+        # Manager.read()
+        # if Manager.debug:
+        #     rospy.loginfo(f"Got dict!")
+        # if not Manager.route:
+        #     if Manager.debug:
+        #         rospy.logerr(f"Route is empty or missing!")
+        #     return
+        # start_time = rospy.Time.now()
+        # if Manager.debug:
+        #     rospy.logwarn("Parsing route...")
+        # Manager.parse()
+        # if Manager.debug:
+        #     rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
+        # if Manager.debug:
+        #     rospy.loginfo(f"{Manager.obj_dict}")
+        # if Manager.debug:
+        #     rospy.loginfo("Waiting for start topic...")
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -615,10 +624,7 @@ class Manager:
     test_file1 = rospy.get_param("~test_file1", "config/routes/test_route1.yaml")
     test_file2 = rospy.get_param("~test_file2", "config/routes/test_route2.yaml")
     #
-    start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
-    #
-    curr_file = test_file2
-    start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
+    
     route = {}
     rate = rospy.Rate(Status.update_rate)
     @classmethod

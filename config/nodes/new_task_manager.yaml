@@ -4,3 +4,5 @@ new_task_manager:
   status:
     update_rate: 10
     reduce_update_rate_for_move: 4 #how much slower move updates than statuses
+  scripts:
+    - parse/0/countdown/3/exec
