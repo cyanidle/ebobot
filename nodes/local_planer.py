@@ -106,7 +106,7 @@ class Local():
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
     
-    skip_thresh=rospy.get_param('~skip_thresh', 4)
+    skip_thresh=rospy.get_param('~skip_thresh', 4) #max skipped targets (from cost) before fail
     
     
     num_of_circles = rospy.get_param('~num_of_circles', 2)
@@ -118,7 +118,7 @@ class Local():
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
 
-    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 20)
+    twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 1)
     inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params
 
@@ -134,6 +134,7 @@ class Local():
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
     adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
      ###
+    use_timed_adj_disable = rospy.get_param('~use_timed_adj_disable', 0)
     _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)
     if rotate_at_end:
         disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8, queue_size = 4)
@@ -279,7 +280,10 @@ class Local():
             rospy.loginfo(f"Rotating...")
         shutdownHook()
         rospy.sleep(cls.pause_before_turn)
-        cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time)) 
+        if cls.use_timed_adj_disable:
+            cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
+        else:
+            _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if diff >= 3.1415:
@@ -294,6 +298,8 @@ class Local():
             turn = diff/abs(diff) *  coeff      
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
+        if _toggle_resp.message == "was 1":
+            cls._toggle_proxy(SetBoolRequest(data = True))
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 

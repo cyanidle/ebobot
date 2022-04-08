@@ -40,7 +40,7 @@ laser_scan_callback:
   ################
   beacons:
     ## Features
-    max_th_for_linear_adj: 0.05
+    max_th_for_linear_adj: 0.008
     #
     max_th_adj: 0.2 #radians
     max_pos_adj: 0.3 #meters
