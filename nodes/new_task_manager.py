@@ -739,7 +739,9 @@ class Manager:
                     rospy.logwarn("No tasks left!")
                 if not Flags._test_routes:
                     await showPrediction(1000 + Flags._current_route_num)
-                    startCallback(Int8(9))
+                    if not Flags._test_routes:
+                        parse(Flags._current_route_num)
+                    #startCallback(Int8(9))
             await asyncio.sleep(0.1)
         Manager.reset()
         Manager.current_task = 0
@@ -752,7 +754,7 @@ class Flags:
     _current_route_num = 1
     _goto = False
 def parse(route = 11):
-    Manager.reset()
+    Manager.reset() #pls fix
     if route == 11:
         Manager.curr_file = Manager.test_file1
     elif route == 12:

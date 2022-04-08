@@ -16,15 +16,15 @@ tasks: #move: x/y/th
     - call: ArmDown
     - sleep: 0.5
   top_right: 
-    - move: 1.02/0.44/0 
+    - move: 1.02/2.6/3.1415 
     - call: PumpOff
     - sleep: 0.5
     - call: ValveOff
     - sleep: 0.5
   top_left:
-    - move: 1.62/0.44/0
+    - move: 1.62/2.6/3.1415 
   start:
-    - move: 1.4/0.25/1.57
+    - move: 1.4/2.79/-1.57
     - score: 1000
 variables:
   default: 0
