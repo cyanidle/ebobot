@@ -49,10 +49,14 @@ class StartHandler:
             if num % 2:
                 if command in StartHandler.allowed:
                     try:
+                        
                         self.actions.append(self.__dict__[command])
                     except:
                         rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
-                    self.args.append(raw_commands[num + 1])
+                    if not command == "exec_route":
+                        self.args.append(raw_commands[num + 1])
+                    else:
+                        self.args.append(None)
                 else:
                     rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
         pass
@@ -66,14 +70,19 @@ class StartHandler:
     def handle(data): 
         StartHandler.scripts[data].exec()
     def exec(self):
-        pass
+        for action, args in zip(self.actions, self.args):
+            action(args)
     ######
-    def parse(self):
-        pass
-    def exec_route(self):
-        pass
-    def countdown(self):
-        pass
+    def parse(self, route_name:str):
+        Manager.parse(self , route_name)
+    def exec_route(self, _placeholder):
+        Manager.curr_obj_dict = self.obj_dict
+    def countdown(self, seconds:str):
+        if int(seconds) < 0:
+            rospy.logerr("Countdown seconds less than 1!")
+        for n in range (round(int(seconds)), -1 , -1):
+            asyncio.run(showPrediction(n))
+            rospy.sleep(1)
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -96,8 +105,8 @@ class Status:
     @staticmethod
     def updateCycle():
         while not rospy.is_shutdown():
-            if "Timer" in Manager.obj_dict.keys():
-                for timer in Manager.obj_dict["Timer"]:
+            if "Timer" in Manager.curr_obj_dict.keys():
+                for timer in Manager.curr_obj_dict["Timer"]:
                     timer.status.update()
             #else:
                 #if Manager.debug:
@@ -203,10 +212,10 @@ class Skip(Template):
             self.task_num = int(args)
     async def midExec(self) -> None:
         if self.all_flag:
-            for task in Manager.obj_dict["Task"]:
+            for task in Manager.curr_obj_dict["Task"]:
                 task._skip_flag = 1
         else:
-            Manager.obj_dict["Task"][self.task_num]._skip_flag = 1
+            Manager.curr_obj_dict["Task"][self.task_num]._skip_flag = 1
 ##############################################
 class Call(Template): 
     def __init__(self, parent, name, args):
@@ -248,7 +257,7 @@ class Move(Template):
         return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.obj_dict['Move'])}|POS = {args}")
+        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.curr_obj_dict['Move'])}|POS = {args}")
         parsed = args.split("/")
         try:
             self.pos = (float(parsed[1]),float(parsed[0]))
@@ -455,7 +464,7 @@ class Interrupt(Template):
     @staticmethod
     def forceCall(parent, name, args):
         try:
-            for inter in Manager.obj_dict["Interrupt"]:
+            for inter in Manager.curr_obj_dict["Interrupt"]:
                 if inter.name == args:
                     return inter
             if Manager.debug:
@@ -480,8 +489,8 @@ class Variable(Template):
         Status.checkDeps(self)
     @staticmethod
     def find(str):
-        if "Variable" in Manager.obj_dict.keys():
-            for var in Manager.obj_dict["Variable"]:
+        if "Variable" in Manager.curr_obj_dict.keys():
+            for var in Manager.curr_obj_dict["Variable"]:
                 if var.name == str:
                     return var
             rospy.logerr("Find var called with zero init variables!")
@@ -514,7 +523,7 @@ class ChangeVar(Template):
                 rospy.logerr(f"Value change ({self._action}) not implemented!")
     async def midExec(self) -> None:
         #try:
-        for var in Manager.obj_dict["Variable"]:
+        for var in Manager.curr_obj_dict["Variable"]:
             if var.name == self._var:
                 var.set(self.apply(var.value))
                 self.status.set("done")
@@ -565,16 +574,16 @@ class Goto(Template):
             Manager.current_task = self._task_name
             Flags._goto = True
             return
-        if not "Task" in Manager.obj_dict.keys():
+        if not "Task" in Manager.curr_obj_dict.keys():
             return
-        for task in Manager.obj_dict["Task"]:
+        for task in Manager.curr_obj_dict["Task"]:
             if task.name == self._task_name:
                 Manager.current_task = self.num
                 Flags._goto = True
                 return
-        if not "Variable" in Manager.obj_dict.keys():
+        if not "Variable" in Manager.curr_obj_dict.keys():
             return
-        for var in Manager.obj_dict["Variable"]:
+        for var in Manager.curr_obj_dict["Variable"]:
             if var.name == self._task_name:
                 Manager.current_task = int(var.value)
                 Flags._goto = True
@@ -586,10 +595,10 @@ class Schedule(Template):
         super().__init__(parent, name, args)
         self._task_name = args
     async def midExec(self) -> None:
-        if not "Task" in Manager.obj_dict.keys():
+        if not "Task" in Manager.curr_obj_dict.keys():
             self.status.set("fail")
             return
-        for task in Manager.obj_dict["Task"]:
+        for task in Manager.curr_obj_dict["Task"]:
             if task.name == self._task_name:
                 await task.exec()
                 self.status.set(task.status.get())
@@ -620,7 +629,7 @@ constructors_dict = {  #syntax for route.yaml
 ##############
 class Manager:
     current_task = 0
-    obj_dict = {}
+    curr_obj_dict = {}
     name = "Tasks"
     #Params
     debug = rospy.get_param("~debug", 1)
@@ -658,9 +667,9 @@ class Manager:
                 unparsed_list = raw_route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
             ###
-            _color_step = 1/len(Manager.obj_dict["Move"])
+            _color_step = 1/len(Template.current_script.obj_dict["Move"])
             pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
-            for num, _mv in enumerate(Manager.obj_dict["Move"]):
+            for num, _mv in enumerate(Template.current_script.obj_dict["Move"]):
                pubMarker(_mv.pos,num,300,frame_name="task_moves",
                type="cube",size=0.05,g=1-((num) * _color_step),r=1,b=1-((num) * _color_step),debug=1,add=1)
             ###
@@ -678,15 +687,15 @@ class Manager:
     @staticmethod
     def reset():
         Manager.route = {}
-        Manager.obj_dict = {}
+        Manager.curr_obj_dict = {}
         Prediction.score = 0
     @staticmethod
     async def exec():
         await asyncio.sleep(0.2)
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
-            if Manager.current_task<len(Manager.obj_dict["Task"]):
-                task = Manager.obj_dict["Task"][Manager.current_task]
+            if Manager.current_task<len(Manager.curr_obj_dict["Task"]):
+                task = Manager.curr_obj_dict["Task"][Manager.current_task]
                 proc = asyncio.create_task(task.exec())
                 await proc
                 if Flags._goto:

@@ -8,5 +8,5 @@ new_task_manager:
     - parse
     - exec_route
     - countdown
-  scripts:
-    - parse/0/countdown/3/exec_route
+  scripts: # parse/name (should be present in config/routes) ### countdown/seconds (will get rounded) ### exec_route should be last!
+    - parse/test_route/countdown/3/exec_route  
