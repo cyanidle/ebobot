@@ -173,13 +173,14 @@ class Laser:
     @classmethod
     def find(cls): 
         _new_list = cls.list
-        [_new_list.append(_scan) for _scan in _new_list[:Objects.min_dots+5]]
+        
         curr_obst = []
         if not cls._updated:
             return
         cls._updated = False
         if len(_new_list) < 2:
             return 
+        [_new_list.append(_scan) for _scan in _new_list[:Objects.min_dots+5]]
         Beacons.clearRelative()
         Objects.clear()
         #curr_obst.append(cls.list[0][0])
