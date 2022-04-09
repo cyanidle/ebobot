@@ -174,13 +174,12 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
 }
 ///////////////////////////////////
 void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
-  Omnimotor curr_mot{
+  Omnimotor::__motors[req.motor] = new Omnimotor curr_mot{ 
     
   };
-  Omnimotor::__motors[req.motor] = &curr_mot;
+  resp.resp = 0
 }
 
 
 ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &motorsSettingsCallback);
-ros::Subscriber<std_msgs::Float32> set_pid("set_pid", &setPidCallback);
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
