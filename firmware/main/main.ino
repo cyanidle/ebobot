@@ -46,6 +46,7 @@ void setup()
   nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
+  Omnimotor::init(loop_delay)
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
@@ -60,8 +61,7 @@ void setup()
 void loop()
 {
   if (main_loop.tick()){
-    for (int mot = 0; mot < num_motors; mot++)
-      update_mot(mot);
+    Omnimotors::updateMotors();
   }
 
   if (servo_loop.tick()){

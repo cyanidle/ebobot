@@ -18,7 +18,7 @@ struct pin_layout
 // Global
 
 ebobot::MotorsInfo motors_msg;
-ros::Publisher motors_info("motors_info", &motors_msg);
+ros::Publisher motors_info("/motors_info", &motors_msg);
 //
 class Omnimotor{
   ////////
@@ -33,8 +33,8 @@ class Omnimotor{
   float diff_coeff;
   float rad; // m
   float ticks_per_rotation;
-  float mots_x_coeff;
-  float mots_y_coeff;
+  float x_coeff;
+  float y_coeff;
   float inter_term;
   float last_error;
   pin_layout layout;
@@ -58,13 +58,13 @@ class Omnimotor{
   float _toRadians(float angle){
     return (angle * 6.283 / 360.0);
   }
-  void termsReset(){
+  void termsReset(Omnimotor* motor){
   last_error = 0;
   inter_term = 0;
   }
-  void PID(){
-    float error = targ_spd - curr_spd;
-    inter_term += dtime * error;
+  void PID(Omnimotor* motor){
+    float error = motortarg_spd - curr_spd;
+    inter_term += Omnimotor::dtime * error;
     pwm = error * prop_coeff + inter_term * inter_coeff -
               (error - last_error) / dtime * diff_coeff;
     inter_term = constrain(inter_term, -30000, 30000);
@@ -72,41 +72,22 @@ class Omnimotor{
     pwm = constrain(pwm, -255, 255);
   }
   ////////////////////////////////
- 
-  //////////////////////////////
-  public:
-    
-    Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
-      float _i, float _d, float _rad, float _ticks_per_rotation,
-      float _turn_max_speed, float _max_speed){
-      turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
-      layout = mot_pin_layout;
-      prop_coeff = _p; inter_coeff = _i; diff_coeff= _d; rad = _rad; ticks_per_rotation = _ticks_per_rotation;
-      mots_x_coeff = cos(_toRadians(angle)); mots_y_coeff = sin(_toRadians(angle)); 
-      attachInterrupt(digitalPinToInterrupt(mot_pin_layout.encoder_pin_a), encoder_trigger, RISING);
-      pinMode(mot_pin_layout.encoder_pin_b, INPUT);
-      pinMode(mot_pin_layout.pwm_pin, OUTPUT);
-      pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
-      pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
-      num = Omnimotors::__num_motors;
-      Omnimotors::__num_motors ++;
-    };
-    void _updateMot(){
-      dX = X - lastX;
+  void _updateMot(){
+      dX = X - lastX; 
       ddist = dX * (rad / ticks_per_rotation) * coeff;
       lastX = X;
-      dist = dist + ddist;
+      dist += ddist;
       curr_spd = ddist * 1000.0 / Omnimotor::__motors_loop_delay;
       if (stop_mot)
       {
-        termsReset();
+        termsReset(motor);
         digitalWrite(layout.pwm_pin, HIGH);
         digitalWrite(layout.fwd_dir_pin, HIGH);
         digitalWrite(layout.bck_dir_pin, HIGH);
       }
       else
       {
-        PID();
+        PID(motor);
         if (pwm / abs(pwm) > 0)
         {
           analogWrite(layout.pwm_pin, abs(pwm));
@@ -121,15 +102,38 @@ class Omnimotor{
         }
 
       }
-        motors_msg.num = mot;
+        motors_msg.num = num;
         motors_msg.target_speed = targ_spd;
         motors_msg.current_speed = curr_spd;
         motors_msg.ddist = ddist;
         motors_info.publish(&motors_msg);
     }
-    void init(float _loop_delay){
-      Omnimotor::__motors_loop_delay = _loop_delay
+    void init(float loop_delay){
+      Omnimotor::__motors_loop_delay = loop_delay
     }      
+  //////////////////////////////
+  public:
+    
+    Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
+      float _i, float _d, float _rad, float _ticks_per_rotation,
+      float _turn_max_speed, float _max_speed){
+      turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
+      layout = mot_pin_layout;
+      prop_coeff = _p; inter_coeff = _i; diff_coeff= _d; rad = _rad; ticks_per_rotation = _ticks_per_rotation;
+      x_coeff = cos(_toRadians(angle)); y_coeff = sin(_toRadians(angle)); 
+      attachInterrupt(digitalPinToInterrupt(mot_pin_layout.encoder_pin_a), encoder_trigger, RISING);
+      pinMode(mot_pin_layout.encoder_pin_b, INPUT);
+      pinMode(mot_pin_layout.pwm_pin, OUTPUT);
+      pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
+      pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
+      num = Omnimotors::__num_motors;
+      Omnimotors::__num_motors ++;
+    };
+    void updateMotors(){
+      for (int _mot = 0; _mot < num_motors; _mot++){
+        _updateMot(Omnimotor::__motors[_mot]);
+      }
+    }
 }
 
 ////////
@@ -142,33 +146,34 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   x = constrain(x, -1, 1);
   y = constrain(y, -1, 1);
   for (int _mot = 0; _mot < num_motors; _mot++){
-
+    mot = Omnimotor::__motors[_mot];
     if (x == 0 and y == 0 and turn == 0)
     {
-      stop_mot = true;
+      mot->stop_mot = true;
     }
-    float spd = mots_x_coeff * x * absolute_max_speed + mots_y_coeff * y * absolute_max_speed;
-    spd += turn * turn_max_speed;
+    float spd = mot->x_coeff * x * mot->absolute_max_speed + mot->y_coeff * y * mot->absolute_max_speed;
+    spd += turn * mot->turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds) > (absolute_max_speed / 2.0))
+    if (abs(spd - mot->last_spds) > (mot->absolute_max_speed / 2.0))
     {
       for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
-      termsReset(sub_mot);
+        sub = Omnimotor::__motors[sub_mot];
+        sub->termsReset();
       }
     }
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
     if (spd < 0.01 and spd > -0.01)
     {
-      termsReset(mot.num);
-      targ_spd = 0;
+      mot->termsReset();
+      mot->targ_spd = 0;
     }
     else
     {
-      spd = constrain(spd, -absolute_max_speed, absolute_max_speed);
-      stop_mot = false;
-      targ_spd = spd;
-      last_spds = spd;
+      spd = constrain(spd, -mot->absolute_max_speed, mot->absolute_max_speed);
+      mot->stop_mot = false;
+      mot->targ_spd = spd;
+      mot->last_spds = spd;
     }
   }
 }
