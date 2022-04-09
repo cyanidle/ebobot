@@ -1,11 +1,14 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/MotorsInfo.h>
+#include <ebobot/MotorPinLayout.h>
 #include <ebobot/NewMotor.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
 #define MAX_MOTORS 6
+bool motors_debugged = false;
+char motors_debug_msg[40];
 //////////////////////////
 struct pin_layout
 {
@@ -14,18 +17,20 @@ struct pin_layout
   unit8_t pwm_pin;
   unit8_t fwd_dir_pin;
   unit8_t back_dir_pin;
+  public:
+    pin_layout(MotorPinLayout layout){
+      encoder_pin_a = layout.encoder_a;
+      encoder_pin_b = layout.encoder_b;
+      pwm_pin = layout.pwm;
+      fwd_dir_pin = layout.fwd_dir;
+      back_dir_pin = layout.back_dir;
+    }
 };
 // Global
-
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("/motors_info", &motors_msg);
 //
 class Omnimotor{
-  ////////
-  Omnimotor* __motors[MAX_MOTORS];
-  /////////////////////////////
-  float __motors_loop_delay;
-  int __num_motors = 0;
   ////////////////////////////
   uint8_t num;
   float prop_coeff;
@@ -58,11 +63,11 @@ class Omnimotor{
   float _toRadians(float angle){
     return (angle * 6.283 / 360.0);
   }
-  void termsReset(Omnimotor* motor){
+  void termsReset(){
   last_error = 0;
   inter_term = 0;
   }
-  void PID(Omnimotor* motor){
+  void PID(){
     float error = motortarg_spd - curr_spd;
     inter_term += Omnimotor::dtime * error;
     pwm = error * prop_coeff + inter_term * inter_coeff -
@@ -72,7 +77,7 @@ class Omnimotor{
     pwm = constrain(pwm, -255, 255);
   }
   ////////////////////////////////
-  void _updateMot(){
+  void _update(){
       dX = X - lastX; 
       ddist = dX * (rad / ticks_per_rotation) * coeff;
       lastX = X;
@@ -109,12 +114,38 @@ class Omnimotor{
         motors_info.publish(&motors_msg);
     }
     void init(float loop_delay){
-      Omnimotor::__motors_loop_delay = loop_delay
+      Omnimotor::__motors_loop_delay = loop_delay;
     }      
   //////////////////////////////
   public:
-    
+    //////// Attributes
+    Omnimotor* __motors[MAX_MOTORS];
+    float __motors_loop_delay;
+    int __num_motors = 0;
+    ////////
     Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
+      float _i, float _d, float _rad, float _ticks_per_rotation,
+      float _turn_max_speed, float _max_speed){
+      turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
+      layout = mot_pin_layout;
+      prop_coeff = _p; inter_coeff = _i; diff_coeff= _d;
+       rad = _rad; ticks_per_rotation = _ticks_per_rotation;
+      x_coeff = cos(_toRadians(angle)); y_coeff = sin(_toRadians(angle)); 
+      attachInterrupt(digitalPinToInterrupt(mot_pin_layout.encoder_pin_a), encoder_trigger, RISING);
+      pinMode(mot_pin_layout.encoder_pin_b, INPUT);
+      pinMode(mot_pin_layout.pwm_pin, OUTPUT);
+      pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
+      pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
+      num = Omnimotors::__num_motors;
+      Omnimotors::__num_motors ++;
+    }
+    void updateMotors(){
+      for (int _mot = 0; _mot < Omnimotor::num_motors; _mot++){
+        curr_mot = Omnimotor::__motors[_mot];
+        curr_mot._update();
+      }
+    }
+    void change(float angle, pin_layout mot_pin_layout, float _p,
       float _i, float _d, float _rad, float _ticks_per_rotation,
       float _turn_max_speed, float _max_speed){
       turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
@@ -126,14 +157,7 @@ class Omnimotor{
       pinMode(mot_pin_layout.pwm_pin, OUTPUT);
       pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
       pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
-      num = Omnimotors::__num_motors;
-      Omnimotors::__num_motors ++;
-    };
-    void updateMotors(){
-      for (int _mot = 0; _mot < num_motors; _mot++){
-        _updateMot(Omnimotor::__motors[_mot]);
       }
-    }
 }
 
 ////////
@@ -179,10 +203,30 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
 }
 ///////////////////////////////////
 void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
+  if (num > Omnimotor::__num_motors){
   Omnimotor::__motors[req.motor] = new Omnimotor curr_mot{ 
-    
+    req.motor, //not used in change
+    req.angle, pin_layout{req.pin_layout},
+    req.pid.p, req.pid.i, req.pid.d,
+    req.wheel_rad, req.tick_per_rotation,
+    req.turn_max_speed, req.max_speed
+    if ((num - Omnimotor::__num_motors) > 1){
+      resp.resp = 1;
+      return
+    }
   };
-  resp.resp = 0
+  resp.resp = 0;
+  }
+  else{
+    curr_motor = Omnimotor::__motors[req.motor]
+    (*curr_motor).change(
+      req.angle, pin_layout{req.pin_layout},
+      req.pid.p, req.pid.i, req.pid.d,
+      req.wheel_rad, req.tick_per_rotation,
+      req.turn_max_speed, req.max_speed
+    )
+  }
+
 }
 
 

@@ -1,6 +1,6 @@
+uint_8t motor #number
 float32 wheel_rad
 float32 ticks_per_rotation
-uint_8t motor
 float32 angle
 ebobot/PID pid
 ebobot/MotorPinLayout pin_layout
