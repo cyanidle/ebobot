@@ -138,12 +138,6 @@ class Omnimotor{
       num = Omnimotors::__num_motors;
       Omnimotors::__num_motors ++;
     }
-    void updateMotors(){
-      for (int _mot = 0; _mot < Omnimotor::num_motors; _mot++){
-        curr_mot = Omnimotor::__motors[_mot];
-        curr_mot._update();
-      }
-    }
     void change(float angle, pin_layout mot_pin_layout, float _p,
       float _i, float _d, float _rad, float _ticks_per_rotation,
       float _turn_max_speed, float _max_speed){
@@ -158,6 +152,12 @@ class Omnimotor{
       pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
       }
 }
+void Omnimotor::updateMotors(){
+      for (int _mot = 0; _mot < Omnimotor::num_motors; _mot++){
+        Omnimotor* curr_mot = Omnimotor::__motors[_mot];
+        curr_mot._update();
+      }
+    }
 ////////
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
@@ -168,7 +168,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   x = constrain(x, -1, 1);
   y = constrain(y, -1, 1);
   for (int _mot = 0; _mot < num_motors; _mot++){
-    mot = Omnimotor::__motors[_mot];
+    Omnimotor* mot = Omnimotor::__motors[_mot];
     if (x == 0 and y == 0 and turn == 0)
     {
       mot->stop_mot = true;
@@ -180,7 +180,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     if (abs(spd - mot->last_spds) > (mot->absolute_max_speed / 2.0))
     {
       for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
-        sub = Omnimotor::__motors[sub_mot];
+        Omnimotor* sub = Omnimotor::__motors[sub_mot];
         sub->termsReset();
       }
     }
