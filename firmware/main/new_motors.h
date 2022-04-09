@@ -5,6 +5,8 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
+#define MAX_MOTORS 6
+//////////////////////////
 struct pin_layout
 {
   unit8_t encoder_pin_a;
@@ -15,11 +17,13 @@ struct pin_layout
 };
 // Global
 float __motors_loop_delay;
+int __num_motors = 0;
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //
 class Omnimotor{
   /////////////////////////////
+  uint8_t num;
   float prop_coeff;
   float inter_coeff;
   float diff_coeff;
@@ -64,47 +68,12 @@ class Omnimotor{
     pwm = constrain(pwm, -255, 255);
   }
   ////////////////////////////////
-  void _updateMot(){
-    dX = X - lastX;
-    ddist = dX * (rad / ticks_per_rotation) * coeff;
-    lastX = X;
-    dist = dist + ddist;
-    curr_spd = ddist * 1000.0 / __motors_loop_delay;
-    if (stop_mot)
-    {
-      termsReset();
-      digitalWrite(layout.pwm_pin, HIGH);
-      digitalWrite(layout.fwd_dir_pin, HIGH);
-      digitalWrite(layout.bck_dir_pin, HIGH);
-    }
-    else
-    {
-      PID();
-      if (pwm / abs(pwm) > 0)
-      {
-        analogWrite(layout.pwm_pin, abs(pwm));
-        digitalWrite(layout.fwd_dir_pin, HIGH);
-        digitalWrite(layout.bck_dir_pin, LOW);
-      }
-      else
-      {
-        analogWrite(layout.pwm_pin, abs(pwm)); //////////pwm varies now from -255 to 255, so we use abs
-        digitalWrite(layout.fwd_dir_pin, LOW);
-        digitalWrite(layout.bck_dir_pin, HIGH);
-      }
-
-    }
-      motors_msg.num = mot;
-      motors_msg.target_speed = targ_spd;
-      motors_msg.current_speed = curr_spd;
-      motors_msg.ddist = ddist;
-      motors_info.publish(&motors_msg);
-  }
+ 
   //////////////////////////////
   public:
     Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
-     float _i, float _d, float _rad, float _ticks_per_rotation,
-     float _turn_max_speed, float _max_speed){
+      float _i, float _d, float _rad, float _ticks_per_rotation,
+      float _turn_max_speed, float _max_speed){
       turn_max_speed = _turn_max_speed; max_speed = _max_speed;
       layout = mot_pin_layout;
       prop_coeff = _p; inter_coeff = _i; diff_coeff= _d; rad = _rad; ticks_per_rotation = _ticks_per_rotation;
@@ -114,19 +83,52 @@ class Omnimotor{
       pinMode(mot_pin_layout.pwm_pin, OUTPUT);
       pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
       pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
+      num = __num_motors;
+      __num_motors ++;
     };
-    void updateMotors(){
+    void _updateMot(){
+      dX = X - lastX;
+      ddist = dX * (rad / ticks_per_rotation) * coeff;
+      lastX = X;
+      dist = dist + ddist;
+      curr_spd = ddist * 1000.0 / __motors_loop_delay;
+      if (stop_mot)
+      {
+        termsReset();
+        digitalWrite(layout.pwm_pin, HIGH);
+        digitalWrite(layout.fwd_dir_pin, HIGH);
+        digitalWrite(layout.bck_dir_pin, HIGH);
+      }
+      else
+      {
+        PID();
+        if (pwm / abs(pwm) > 0)
+        {
+          analogWrite(layout.pwm_pin, abs(pwm));
+          digitalWrite(layout.fwd_dir_pin, HIGH);
+          digitalWrite(layout.bck_dir_pin, LOW);
+        }
+        else
+        {
+          analogWrite(layout.pwm_pin, abs(pwm)); //////////pwm varies now from -255 to 255, so we use abs
+          digitalWrite(layout.fwd_dir_pin, LOW);
+          digitalWrite(layout.bck_dir_pin, HIGH);
+        }
 
-    };
+      }
+        motors_msg.num = mot;
+        motors_msg.target_speed = targ_spd;
+        motors_msg.current_speed = curr_spd;
+        motors_msg.ddist = ddist;
+        motors_info.publish(&motors_msg);
+    }
     void init(float _loop_delay){
       __motors_loop_delay = _loop_delay
-    }
-
-      
+    }      
 }
-
-
-////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
+////////
+Omnimotor* __motors[MAX_MOTORS];
+////////
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
   float x = cmd_vel.linear.x;
@@ -135,8 +137,8 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   turn = constrain(turn, -1, 1);
   x = constrain(x, -1, 1);
   y = constrain(y, -1, 1);
-  for (int mot = 0; mot < num_motors; mot++)
-  {
+  for (int _mot = 0; _mot < num_motors; _mot++){
+
     if (x == 0 and y == 0 and turn == 0)
     {
       stop_mot = true;
@@ -154,7 +156,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
     if (spd < 0.01 and spd > -0.01)
     {
-      termsReset(mot);
+      termsReset(mot.num);
       targ_spd = 0;
     }
     else
@@ -166,39 +168,12 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
   }
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
-const float dtime = (loop_delay / 1000.0);
-
-//////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
-void update_mot(int mot){
-  
-}
-//////////////////////////////////////////////////////
-void encoder0()
-{
-  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
-  X[0] += (temp * 1) + (!temp * -1);
-}
-void encoder1()
-{
-  bool temp = (digitalRead(ENCODER_PINB1) == HIGH);
-  X[1] += (temp * 1) + (!temp * -1);
-}
-void encoder2()
-{
-  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
-  X[2] += (temp * 1) + (!temp * -1);
-}
-
-
-void motorsSetup(){
-    
-}
+///////////////////////////////////
 void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
-
+  Omnimotor curr_mot {
+    
+  };
+  __motors[req.motor] = &curr_mot;
 }
 
 
