@@ -340,7 +340,7 @@ class Beacons(Laser):
     def __sub__(self,other):
         return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
     def __truediv__(self,other):
-        return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      ) 
+        return (   self.pose[0] / other.pose[0]     ,    self.pose[1] / other.pose[1]      ) 
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):
