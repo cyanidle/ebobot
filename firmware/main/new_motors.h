@@ -3,7 +3,6 @@
 #include <ebobot/MotorsInfo.h>
 #include <ebobot/MotorPinLayout.h>
 #include <ebobot/NewMotor.h>
-#include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
 #define MAX_MOTORS 6
@@ -129,7 +128,7 @@ class Omnimotor{
       turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
       layout = mot_pin_layout;
       prop_coeff = _p; inter_coeff = _i; diff_coeff= _d;
-       rad = _rad; ticks_per_rotation = _ticks_per_rotation;
+      rad = _rad; ticks_per_rotation = _ticks_per_rotation;
       x_coeff = cos(_toRadians(angle)); y_coeff = sin(_toRadians(angle)); 
       attachInterrupt(digitalPinToInterrupt(mot_pin_layout.encoder_pin_a), encoder_trigger, RISING);
       pinMode(mot_pin_layout.encoder_pin_b, INPUT);
@@ -159,7 +158,6 @@ class Omnimotor{
       pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
       }
 }
-
 ////////
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
@@ -228,7 +226,5 @@ void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMot
   }
 
 }
-
-
 ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &motorsSettingsCallback);
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
