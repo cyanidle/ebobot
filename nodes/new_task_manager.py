@@ -691,6 +691,7 @@ class Manager:
         Prediction.score = 0
     @staticmethod
     async def exec():
+        _showed = 0
         await asyncio.sleep(0.2)
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
@@ -705,7 +706,8 @@ class Manager:
             else:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
-                if not Flags._test_routes:
+                if not Flags._test_routes and not _showed:
+                    _showed = 1
                     await showPrediction(1000 + Flags._current_route_num)
             await asyncio.sleep(0.1)
         Manager.reset()
