@@ -57,10 +57,6 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
 }
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
 {
-    
-    
-
-    
     if (req.num > MAX_SERVOS) resp.resp = 1;
     else if (req.num > max_num){
         if ((req.num - max_num) > 1){

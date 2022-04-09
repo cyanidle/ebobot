@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/MotorsInfo.h>
+#include <ebobot/NewMotor.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
@@ -12,111 +13,119 @@ struct pin_layout
   unit8_t fwd_dir_pin;
   unit8_t back_dir_pin;
 };
-
-class MotTemplate{
-    public:
-      virtual void createMotor(uint_8t num, float angle, pin_layout mot_pin_layout,float[3] pid);
-      virtual void updateMotors();
-    private:
-      virtual void _updateMot(MotTemplate motor)
-      virtual float _toRadians(float angle);
-}
-class MotTemplate: public Omnimotor{
-
-  public:
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////
-#define ENCODER_PINA0 18
-#define ENCODER_PINB0 31
-#define EN0 12
-#define FWD0 34
-#define BCK0 35
-
-#define ENCODER_PINA1 19
-#define ENCODER_PINB1 38
-#define EN1 8
-#define FWD1 37
-#define BCK1 36
-
-#define ENCODER_PINA2 3
-#define ENCODER_PINB2 49
-#define EN2 9
-#define FWD2 43
-#define BCK2 42
-/////////////////////////
-//######################
+// Global
+float __motors_loop_delay;
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
-///////////////////////// ENCODER
+//
+class Omnimotor{
+  /////////////////////////////
+  float prop_coeff;
+  float inter_coeff;
+  float diff_coeff;
+  float rad; // m
+  float ticks_per_rotation;
+  float mots_x_coeff;
+  float mots_y_coeff;
+  float inter_term;
+  float last_error;
+  pin_layout layout;
+  float turn_max_speed;  /////////MUST GIVE ABSOLUTE MAX SPEED IN SUM
+  float max_speed;       /////////////With headroom (<~80)
+  bool stop_mot;
+  float dist;
+  float absolute_max_speed;
+  float ddist;
+  float targ_spd;
+  float curr_spd;
+  float last_spds;
+  float pwm;
+  volatile long X;
+  long lastX;
+  float dtime = __motors_loop_delay/1000.0;
+  void encoder_trigger(){
+    bool temp = (digitalRead(layout.encoder_pin_b) == HIGH);
+    X += (temp * 1) + (!temp * -1);
+  }
+  float _toRadians(float angle){
+    return (angle * 6.283 / 360.0);
+  }
+  void termsReset(){
+  last_error = 0;
+  inter_term = 0;
+  }
+  void PID(){
+    float error = targ_spd - curr_spd;
+    inter_term += dtime * error;
+    pwm = error * prop_coeff + inter_term * inter_coeff -
+              (error - last_error) / dtime * diff_coeff;
+    inter_term = constrain(inter_term, -30000, 30000);
+    last_error = error;
+    pwm = constrain(pwm, -255, 255);
+  }
+  ////////////////////////////////
+  void _updateMot(){
+    dX = X - lastX;
+    ddist = dX * (rad / ticks_per_rotation) * coeff;
+    lastX = X;
+    dist = dist + ddist;
+    curr_spd = ddist * 1000.0 / __motors_loop_delay;
+    if (stop_mot)
+    {
+      termsReset();
+      digitalWrite(layout.pwm_pin, HIGH);
+      digitalWrite(layout.fwd_dir_pin, HIGH);
+      digitalWrite(layout.bck_dir_pin, HIGH);
+    }
+    else
+    {
+      PID();
+      if (pwm / abs(pwm) > 0)
+      {
+        analogWrite(layout.pwm_pin, abs(pwm));
+        digitalWrite(layout.fwd_dir_pin, HIGH);
+        digitalWrite(layout.bck_dir_pin, LOW);
+      }
+      else
+      {
+        analogWrite(layout.pwm_pin, abs(pwm)); //////////pwm varies now from -255 to 255, so we use abs
+        digitalWrite(layout.fwd_dir_pin, LOW);
+        digitalWrite(layout.bck_dir_pin, HIGH);
+      }
 
-volatile long X[3];
-const float coeff = 1;
-const float rad = 0.185; // m
-const float ticks_per_rotation = 360;
-long dX[3];
-long lastX[3];
+    }
+      motors_msg.num = mot;
+      motors_msg.target_speed = targ_spd;
+      motors_msg.current_speed = curr_spd;
+      motors_msg.ddist = ddist;
+      motors_info.publish(&motors_msg);
+  }
+  //////////////////////////////
+  public:
+    Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
+     float _i, float _d, float _rad, float _ticks_per_rotation,
+     float _turn_max_speed, float _max_speed){
+      turn_max_speed = _turn_max_speed; max_speed = _max_speed;
+      layout = mot_pin_layout;
+      prop_coeff = _p; inter_coeff = _i; diff_coeff= _d; rad = _rad; ticks_per_rotation = _ticks_per_rotation;
+      mots_x_coeff = cos(_toRadians(angle)); mots_y_coeff = sin(_toRadians(angle)); 
+      attachInterrupt(digitalPinToInterrupt(mot_pin_layout.encoder_pin_a), encoder_trigger, RISING);
+      pinMode(mot_pin_layout.encoder_pin_b, INPUT);
+      pinMode(mot_pin_layout.pwm_pin, OUTPUT);
+      pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
+      pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
+    };
+    void updateMotors(){
 
-///////////////////////// MOTORS
-const float turn_max_speed = 0.25;  /////////MUST GIVE ABSOLUTE MAX SPEED IN SUM
-const float max_speed = 0.50;       /////////////With headroom (<~80)
-bool stop_mot[3];
-float dist[3];
-float absolute_max_speed = 0.75;
-float ddist[3];
-float targ_spd[3];
-float curr_spd[3];
-float last_spds[3];
-int num_motors = 3;
-int fwd[] = {FWD0, FWD1, FWD2};
-int bck[] = {BCK0, BCK1, BCK2};
-int ena[] = {EN0, EN1, EN2};
-int pwm[3];
-////////////////////////////motors radians
-float to_radians(float ang)
-{
-  return (ang * 6.283 / 360.0);
+    };
+    void init(float _loop_delay){
+      __motors_loop_delay = _loop_delay
+    }
+
+      
 }
-////////////////////////////
-int mots_angles[] = {90, 210, 330};
-float mots_x_coeffs[] = {cos(to_radians(mots_angles[0])), cos(to_radians(mots_angles[1])), cos(to_radians(mots_angles[2]))};
-float mots_y_coeffs[] = {sin(to_radians(mots_angles[0])), sin(to_radians(mots_angles[1])), sin(to_radians(mots_angles[2]))};
-/////coefficients for pre counting cos
 
-////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD TO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 
-///////Non-Adjustable
-float inter_term[] = {0, 0, 0};
-float last_error[] = {0, 0, 0};
-//////////////////////////////////
-void termsReset(int mot)
-{
-  last_error[mot] = 0;
-  inter_term[mot] = 0;
-}
-//////////////////////////////////////
-
-////
-
-////
 ////stop_mot IS USED ONLY FOR SETTING PINS ON SHIELD INTO NECESSARY CONFIG, WHILE SPEED IS USED FOR CALCULATING THE PWM
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
@@ -130,13 +139,13 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
   {
     if (x == 0 and y == 0 and turn == 0)
     {
-      stop_mot[mot] = true;
+      stop_mot = true;
     }
-    float spd = mots_x_coeffs[mot] * x * absolute_max_speed + mots_y_coeffs[mot] * y * absolute_max_speed;
+    float spd = mots_x_coeffs * x * absolute_max_speed + mots_y_coeffs * y * absolute_max_speed;
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
-    if (abs(spd - last_spds[mot]) > (absolute_max_speed / 2.0))
+    if (abs(spd - last_spds) > (absolute_max_speed / 2.0))
     {
       for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
       termsReset(sub_mot);
@@ -146,104 +155,26 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     if (spd < 0.01 and spd > -0.01)
     {
       termsReset(mot);
-      targ_spd[mot] = 0;
+      targ_spd = 0;
     }
     else
     {
       spd = constrain(spd, -absolute_max_speed, absolute_max_speed);
-      stop_mot[mot] = false;
-      targ_spd[mot] = spd;
-      last_spds[mot] = spd;
+      stop_mot = false;
+      targ_spd = spd;
+      last_spds = spd;
     }
   }
 }
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
 
-/////////Adjustable !!!!!!!!!!
-float prop_coeff[] = {280, 280, 280};
-float inter_coeff[] = {300, 300, 300};
-float diff_coeff[] = {3, 3, 3};
 
-/////////////////////////////////////////
-void setPidCallback(const std_msgs::Float32 &set_pid)
-{
-  static int pid_count = 0;
-  int coeff = pid_count / 3;
-  int mot = pid_count % 3;
-  char buffer[35];
-  sprintf(buffer, "pid:count %d,data %d", pid_count, (int)(set_pid.data));
-  nh.loginfo(buffer);
-  switch (coeff)
-  {
-  case 0:
-    nh.loginfo("set prop");
-    prop_coeff[mot] = set_pid.data;
-    break;
-  case 1:
-    nh.loginfo("set inter");
-    inter_coeff[mot] = set_pid.data;
-    break;
-  case 2:
-    nh.loginfo("set diff");
-    diff_coeff[mot] = set_pid.data;
-    break;
-  }
-  pid_count++;
-  if (pid_count > 8)
-    pid_count = 0;
-}
-ros::Subscriber<std_msgs::Float32> set_pid("set_pid", &setPidCallback);
-//////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
 const float dtime = (loop_delay / 1000.0);
-void PID(int mot)
-{
-  float error = targ_spd[mot] - curr_spd[mot];
-  inter_term[mot] += dtime * error;
-  pwm[mot] = error * prop_coeff[mot] + inter_term[mot] * inter_coeff[mot] -
-             (error - last_error[mot]) / dtime * diff_coeff[mot];
-  inter_term[mot] = constrain(inter_term[mot], -30000, 30000);
-  last_error[mot] = error;
-  pwm[mot] = constrain(pwm[mot], -255, 255);
-}
+
 //////////////////////////////////////// Sets pins according to PID return pwm, abs(pwm) is used, the sign determines to direction
 void update_mot(int mot){
-  dX[mot] = X[mot] - lastX[mot];
-  ddist[mot] = dX[mot] * (rad / ticks_per_rotation) * coeff;
-  lastX[mot] = X[mot];
-  dist[mot] = dist[mot] + ddist[mot];
-  curr_spd[mot] = ddist[mot] * 1000.0 / loop_delay;
-  if (stop_mot[mot])
-  {
-    termsReset(mot);
-    digitalWrite(ena[mot], HIGH);
-    digitalWrite(fwd[mot], HIGH);
-    digitalWrite(bck[mot], HIGH);
-  }
-
-  else
-  {
-    PID(mot);
-    if (pwm[mot] / abs(pwm[mot]) > 0)
-    {
-      analogWrite(ena[mot], abs(pwm[mot]));
-      digitalWrite(fwd[mot], HIGH);
-      digitalWrite(bck[mot], LOW);
-    }
-    else
-    {
-      analogWrite(ena[mot], abs(pwm[mot])); //////////pwm varies now from -255 to 255, so we use abs
-      digitalWrite(fwd[mot], LOW);
-      digitalWrite(bck[mot], HIGH);
-    }
-
-  }
-    motors_msg.num = mot;
-    motors_msg.target_speed = targ_spd[mot];
-    motors_msg.current_speed = curr_spd[mot];
-    motors_msg.ddist = ddist[mot];
-    motors_info.publish(&motors_msg);
+  
 }
 //////////////////////////////////////////////////////
 void encoder0()
@@ -264,19 +195,13 @@ void encoder2()
 
 
 void motorsSetup(){
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA0), encoder0, RISING);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA1), encoder1, RISING); //Не забудь объявить (войну неграм)
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA2), encoder2, RISING);
-    pinMode(ENCODER_PINB0, INPUT);
-    pinMode(ENCODER_PINB1, INPUT);
-    pinMode(ENCODER_PINB2, INPUT);
-    pinMode(EN0, OUTPUT);
-    pinMode(FWD0, OUTPUT);
-    pinMode(BCK0, OUTPUT);
-    pinMode(EN1, OUTPUT);
-    pinMode(FWD1, OUTPUT);
-    pinMode(BCK1, OUTPUT);
-    pinMode(EN2, OUTPUT);
-    pinMode(FWD2, OUTPUT);
-    pinMode(BCK2, OUTPUT);
+    
 }
+void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
+
+}
+
+
+ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &motorsSettingsCallback);
+ros::Subscriber<std_msgs::Float32> set_pid("set_pid", &setPidCallback);
+ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);

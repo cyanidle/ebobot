@@ -23,6 +23,7 @@ catkin_python_setup()
 ################################################
 add_message_files(
    FILES
+   MotorPinLaoyut.msg
    PID.msg
    Obstacle.msg
    Obstacles.msg
@@ -36,9 +37,9 @@ add_service_files(
     FILES
     PinReader.srv
     LcdShow.srv
-    PIDSettings.srv
     Servos.srv
     ServosSettings.srv
+    NewMotor.srv
   )
 generate_messages(
   DEPENDENCIES
@@ -56,6 +57,7 @@ std_msgs message_runtime python3-pyyaml python3-asyncio
 catkin_install_python(PROGRAMS
   scripts/servos_setter.py
   scripts/pid_setter.py 
+  scripts/motors_setup.py
   nodes/motors_info_callback.py 
   nodes/costmap_server.py 
   nodes/global_planer.py 

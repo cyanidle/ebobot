@@ -3,6 +3,7 @@
 /////////////////////////
 #include "TimerMs.h"
 ///////////////////////////
+#include "new_motors.h"
 #include "servos.h"
 #include "kadyrov_lcd.h"
 #include "pin_reader.h"
@@ -39,7 +40,7 @@ void setup()
   /////////////////////////////
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
-  nh.subscribe(set_pid);
+  nh.advertiseService(motors_settings_server);
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);

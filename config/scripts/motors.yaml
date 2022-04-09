@@ -1,0 +1,44 @@
+turn_max_speed: 0.25 
+max_speed: 0.50  
+0: # num
+  angle: 90
+  #--pins
+  encoder_a: 18
+  encoder_b: 31
+  pwm: 12
+  fwd_dir: 34
+  back_dir: 35
+  #--pins
+  p: 330
+  i: 250
+  d: 3.5
+  wheel_rad: 0.185
+  ticks_per_rotation: 360
+1:
+  angle: 210
+  #--pins
+  encoder_a: 19
+  encoder_b: 38
+  pwm: 8
+  fwd_dir: 37
+  back_dir: 36
+  #--pins
+  p: 330
+  i: 250
+  d: 3.5
+  wheel_rad: 0.185
+  ticks_per_rotation: 360
+2:
+  angle: 330
+  #--pins
+  encoder_a: 3
+  encoder_b: 49
+  pwm: 9
+  fwd_dir: 43
+  back_dir: 42
+  #--pins
+  p: 330
+  i: 250
+  d: 3.5
+  wheel_rad: 0.185
+  ticks_per_rotation: 360
