@@ -16,13 +16,16 @@ struct pin_layout
   unit8_t back_dir_pin;
 };
 // Global
-float __motors_loop_delay;
-int __num_motors = 0;
+
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //
 class Omnimotor{
+ 
   /////////////////////////////
+  float __motors_loop_delay;
+  int __num_motors = 0;
+  ////////////////////////////
   uint8_t num;
   float prop_coeff;
   float inter_coeff;
@@ -46,7 +49,7 @@ class Omnimotor{
   float pwm;
   volatile long X;
   long lastX;
-  float dtime = __motors_loop_delay/1000.0;
+  float dtime = Omnimotor::__motors_loop_delay/1000.0;
   void encoder_trigger(){
     bool temp = (digitalRead(layout.encoder_pin_b) == HIGH);
     X += (temp * 1) + (!temp * -1);
@@ -71,6 +74,8 @@ class Omnimotor{
  
   //////////////////////////////
   public:
+    ////////
+    Omnimotor* __motors[MAX_MOTORS];
     Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
       float _i, float _d, float _rad, float _ticks_per_rotation,
       float _turn_max_speed, float _max_speed){
@@ -83,15 +88,15 @@ class Omnimotor{
       pinMode(mot_pin_layout.pwm_pin, OUTPUT);
       pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
       pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
-      num = __num_motors;
-      __num_motors ++;
+      num = Omnimotors::__num_motors;
+      Omnimotors::__num_motors ++;
     };
     void _updateMot(){
       dX = X - lastX;
       ddist = dX * (rad / ticks_per_rotation) * coeff;
       lastX = X;
       dist = dist + ddist;
-      curr_spd = ddist * 1000.0 / __motors_loop_delay;
+      curr_spd = ddist * 1000.0 / Omnimotor::__motors_loop_delay;
       if (stop_mot)
       {
         termsReset();
@@ -123,11 +128,10 @@ class Omnimotor{
         motors_info.publish(&motors_msg);
     }
     void init(float _loop_delay){
-      __motors_loop_delay = _loop_delay
+      Omnimotor::__motors_loop_delay = _loop_delay
     }      
 }
-////////
-Omnimotor* __motors[MAX_MOTORS];
+
 ////////
 void speedCallback(const geometry_msgs::Twist &cmd_vel)
 {
@@ -170,10 +174,10 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
 }
 ///////////////////////////////////
 void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
-  Omnimotor curr_mot {
+  Omnimotor curr_mot{
     
   };
-  __motors[req.motor] = &curr_mot;
+  Omnimotor::__motors[req.motor] = &curr_mot;
 }
 
 
