@@ -21,7 +21,8 @@ ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 //
 class Omnimotor{
- 
+  ////////
+  Omnimotor* __motors[MAX_MOTORS];
   /////////////////////////////
   float __motors_loop_delay;
   int __num_motors = 0;
@@ -74,12 +75,11 @@ class Omnimotor{
  
   //////////////////////////////
   public:
-    ////////
-    Omnimotor* __motors[MAX_MOTORS];
+    
     Omnimotor(uint_8t num, float angle, pin_layout mot_pin_layout, float _p,
       float _i, float _d, float _rad, float _ticks_per_rotation,
       float _turn_max_speed, float _max_speed){
-      turn_max_speed = _turn_max_speed; max_speed = _max_speed;
+      turn_max_speed = _turn_max_speed; max_speed = _max_speed; absolute_max_speed = _turn_max_speed + _max_speed;
       layout = mot_pin_layout;
       prop_coeff = _p; inter_coeff = _i; diff_coeff= _d; rad = _rad; ticks_per_rotation = _ticks_per_rotation;
       mots_x_coeff = cos(_toRadians(angle)); mots_y_coeff = sin(_toRadians(angle)); 
@@ -147,7 +147,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     {
       stop_mot = true;
     }
-    float spd = mots_x_coeffs * x * absolute_max_speed + mots_y_coeffs * y * absolute_max_speed;
+    float spd = mots_x_coeff * x * absolute_max_speed + mots_y_coeff * y * absolute_max_speed;
     spd += turn * turn_max_speed;
 
     // IF speed is changed radically (1/4 of max), then terms are reset
