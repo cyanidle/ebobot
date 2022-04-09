@@ -12,10 +12,7 @@
     <node pkg="ebobot" type="new_task_manager.py" name="new_task_manager" output="screen"> 
         <param name = "debug" value = "$(arg debug)"/>
         <param name = "calls_file" value = "$(arg calls_file)"/>
-        <param name = "file1" value = "$(arg file1)"/>
-        <param name = "file2" value = "$(arg file2)"/>
-        <param name = "test_file1" value = "$(arg test_file1)"/>
-        <param name = "test_file2" value = "$(arg test_file2)"/>
+        <param name = "routes_dir" value = "$(arg routes_directory)"/>
     </node>
     
 

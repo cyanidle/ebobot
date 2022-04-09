@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 rospy.sleep(1)
 #####################################
 def startCallback(start):
-    StartHandler.handle(start.data)
+    StartHandler.deprHandle(start.data)
 class StartHandler:
     #
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
@@ -34,6 +34,7 @@ class StartHandler:
     #
     raw_scripts = rospy.get_param("~scripts")
     scripts = []
+    route_suffix = 2
     @classmethod
     def initialise(cls):
         if not len(cls.raw_scripts):
@@ -41,25 +42,34 @@ class StartHandler:
         for script in cls.raw_scripts:
             _init = StartHandler(script)
     def __init__(self, raw: str) -> None:
-        raw_commands = raw.split("/") 
         self.actions = []
         self.args = []
         self.obj_dict = {}
+        self.raw_route = "test_route"
+        raw_commands = raw.split("/")
+        self.parse_flag = 0
         for num, command in enumerate(raw_commands):
-            if num % 2:
-                if command in StartHandler.allowed:
-                    try:
-                        
-                        self.actions.append(self.__dict__[command])
-                    except:
-                        rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
-                    if not command == "exec_route":
-                        self.args.append(raw_commands[num + 1])
-                    else:
-                        self.args.append(None)
-                else:
-                    rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
-        pass
+            if not num % 2:
+                continue
+            ##### only odd elements are considered commands
+            if not command in StartHandler.allowed:
+                rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
+                continue
+            #####
+            if command == "parse":
+                self.parse_flag = 1
+                self.raw_route = raw_commands[num+1]
+                self.parse()
+                continue
+            #####
+            try:
+                self.actions.append(self.__dict__[command])
+            except:
+                rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
+            if not command == "exec_route":
+                self.args.append(raw_commands[num + 1])
+            else:
+                self.args.append(None)                
     @classmethod
     def default(cls):
         if len(cls.scripts):
@@ -67,22 +77,42 @@ class StartHandler:
         else:
             rospy.logerr("Start scripts not initialised!")
     @staticmethod
-    def handle(data): 
+    def deprHandle(data): 
         StartHandler.scripts[data].exec()
+    @staticmethod
+    def handle(data):
+        raise NotImplementedError("New handle functionality not ready yet!")
+    ######
     def exec(self):
         for action, args in zip(self.actions, self.args):
             action(args)
     ######
-    def parse(self, route_name:str):
-        Manager.parse(self , route_name)
+    def parse_route(self):
+        if not StartHandler.route_suffix is None:
+            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}{StartHandler.route_suffix}"
+        else:
+            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}"
+        self.route = Manager.read(self.raw_route)
+        Manager.parse(self)
+    ###### SCRIPT EXECUTABLES
     def exec_route(self, _placeholder):
         Manager.curr_obj_dict = self.obj_dict
+        asyncio.run(Manager.exec())
     def countdown(self, seconds:str):
         if int(seconds) < 0:
             rospy.logerr("Countdown seconds less than 1!")
         for n in range (round(int(seconds)), -1 , -1):
             asyncio.run(showPrediction(n))
             rospy.sleep(1)
+    def set_route_suffix(self,suff:str):
+        if suff == "0":
+            StartHandler.route_suffix = None
+        else:
+            StartHandler.route_suffix = suff
+        for script in StartHandler.scripts:
+            if script.parse_flag:
+                script.parse_route()
+################################################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -93,10 +123,7 @@ class Status:
     def __init__(self, parent):
         self._status = "init"
         self.parent = parent
-
     def update(self):
-        #if Manager.debug:
-        #    rospy.loginfo(f"Updating status of {self.parent}")
         self._status = self.parent.updateStatus()
     def get(self) -> str:
         return self._status
@@ -108,9 +135,6 @@ class Status:
             if "Timer" in Manager.curr_obj_dict.keys():
                 for timer in Manager.curr_obj_dict["Timer"]:
                     timer.status.update()
-            #else:
-                #if Manager.debug:
-                #    #rospy.logwarn(f"No timers found!")
             Status._cycle_rate.sleep()
     @staticmethod
     def checkDeps(obj):
@@ -125,7 +149,6 @@ class Status:
     @staticmethod
     def getRawString(obj):
         return f"{obj.rawString()}/{obj.status.get()}"
-        #return str(obj.parent.name) + "/" + str(obj.name) + "/"+ str(obj.num) + "/"+ str(obj.status.get())
     @staticmethod
     def registerDependency(obj, condition:str):
         if Manager.debug:
@@ -623,15 +646,13 @@ constructors_dict = {  #syntax for route.yaml
         "timer": Timer,
         "change_var": ChangeVar
         } 
-
-
-
 ##############
 class Manager:
     current_task = 0
     curr_obj_dict = {}
     name = "Tasks"
     #Params
+    routes_dir = rospy.get_param("~routes_dir", "config/routes")
     debug = rospy.get_param("~debug", 1)
     if debug:
         rospy.logerr(f"Manager uses debug!")
@@ -653,18 +674,19 @@ class Manager:
                 if Manager.debug:
                     rospy.logerr(f"Loading failed ({exc})")
     @staticmethod
-    def parse(parent, raw_route):
+    def parse(parent):
+        route = parent.route
         Template.current_script = parent
-        if "interrupts" in raw_route.keys():
-            for interrupt_name in raw_route["interrupts"]:
-                unparsed_list = raw_route["interrupts"][interrupt_name]
+        if "interrupts" in route.keys():
+            for interrupt_name in route["interrupts"]:
+                unparsed_list = route["interrupts"][interrupt_name]
                 new_inter = Interrupt(interrupt_name,unparsed_list)
         else:
             if Manager.debug:
                 rospy.logwarn("No interrupts found in route file!")
-        if "tasks" in raw_route.keys():
-            for task_name in raw_route["tasks"]:
-                unparsed_list = raw_route["tasks"][task_name]
+        if "tasks" in route.keys():
+            for task_name in route["tasks"]:
+                unparsed_list = route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
             ###
             _color_step = 1/len(Template.current_script.obj_dict["Move"])
@@ -676,10 +698,10 @@ class Manager:
         else:
             if Manager.debug:
                 rospy.logerr("NO TASKS IN ROUTE FILE!")
-        if "variables" in raw_route.keys():
-            for var_name in raw_route["variables"]:
+        if "variables" in route.keys():
+            for var_name in route["variables"]:
                 print (f"variable {var_name}")
-                var_val = raw_route["variables"][var_name]
+                var_val = route["variables"][var_name]
                 new_var = Variable(Variable, var_name, var_val)
         else:
             if Manager.debug:
@@ -691,8 +713,9 @@ class Manager:
         Prediction.score = 0
     @staticmethod
     async def exec():
-        _showed = 0
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.1)
+        main_timer = Timer(Timer,"main","main")
+        main_timer._allow_flag = 1
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
             if Manager.current_task<len(Manager.curr_obj_dict["Task"]):
@@ -706,42 +729,35 @@ class Manager:
             else:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
-                if not Flags._test_routes and not _showed:
-                    _showed = 1
-                    await showPrediction(1000 + Flags._current_route_num)
-            await asyncio.sleep(0.1)
-        Manager.reset()
+            await asyncio.sleep(1/Status.update_rate)
+        main_timer.delete()
         Manager.current_task = 0
         Flags._execute = 0
-        #Manager.rate.sleep()
 ##############################
 class Flags:
     _execute = 0
     _test_routes=1
     _current_route_num = 1
     _goto = False
-
-    
 def main():
+    rospy.on_shutdown(shutdownHook)
+    status_task = Thread(target=Status.updateCycle)
+    status_task.start()
+    StartHandler.initialise()
     StartHandler.default()
     ################
     if Manager.debug:
         rospy.loginfo_once("Waiting for start topic...")
     rospy.spin()
-
 ##################
 async def executeRoute():
     if Manager.debug:
         rospy.logwarn(f"Starting route!")
-    main_timer = Timer(Timer,"main","main")
-    main_timer._allow_flag = 1
+    1
     await Manager.exec()
 ##################
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")
 ##################
 if __name__=="__main__":
-    status_task = Thread(target=Status.updateCycle)
-    status_task.start()
-    rospy.on_shutdown(shutdownHook)
     main()

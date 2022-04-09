@@ -15,7 +15,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   #
   twist_amplify_coeff: 0.02
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
-  
+  adjust_toggle_name: /adjust_toggle_service
   
   step_radians_resolution: 12
   

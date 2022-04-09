@@ -173,13 +173,14 @@ class Laser:
     @classmethod
     def find(cls): 
         _new_list = cls.list
-        [_new_list.append(_scan) for _scan in _new_list[:Objects.min_dots+5]]
+        
         curr_obst = []
         if not cls._updated:
             return
         cls._updated = False
         if len(_new_list) < 2:
             return 
+        [_new_list.append(_scan) for _scan in _new_list[:Objects.min_dots+5]]
         Beacons.clearRelative()
         Objects.clear()
         #curr_obst.append(cls.list[0][0])
@@ -340,7 +341,7 @@ class Beacons(Laser):
     def __sub__(self,other):
         return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      )      
     def __truediv__(self,other):
-        return (   self.pose[0] - other.pose[0]     ,    self.pose[1] - other.pose[1]      ) 
+        return (   self.pose[0] / other.pose[0]     ,    self.pose[1] / other.pose[1]      ) 
     @classmethod
     def initExpected(cls):
         for num,coord in enumerate(cls.raw_list):

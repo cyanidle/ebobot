@@ -133,7 +133,6 @@ class Local():
     disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
     adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
-     ###
     use_timed_adj_disable = rospy.get_param('~use_timed_adj_disable', 0)
     _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)
     if rotate_at_end:
@@ -282,7 +281,10 @@ class Local():
         if cls.use_timed_adj_disable:
             cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         else:
-            _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+            try:
+                _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+            except:
+                rospy.logerr_once("Toggle service unavailable")
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if diff >= 3.1415:
@@ -298,7 +300,10 @@ class Local():
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
         if _toggle_resp.message == "was 1":
-            cls._toggle_proxy(SetBoolRequest(data = True))
+            try:
+                cls._toggle_proxy(SetBoolRequest(data = True))
+            except:
+                rospy.logerr_once("Toggle service unavailable, ну камон, я же сказал йопта")
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
