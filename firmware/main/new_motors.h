@@ -4,6 +4,47 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
+struct pin_layout
+{
+  unit8_t encoder_pin_a;
+  unit8_t encoder_pin_b;
+  unit8_t pwm_pin;
+  unit8_t fwd_dir_pin;
+  unit8_t back_dir_pin;
+};
+
+class MotTemplate{
+    public:
+      virtual void createMotor(uint_8t num, float angle, pin_layout mot_pin_layout,float[3] pid);
+      virtual void updateMotors();
+    private:
+      virtual void _updateMot(MotTemplate motor)
+      virtual float _toRadians(float angle);
+}
+class MotTemplate: public Omnimotor{
+
+  public:
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////
 #define ENCODER_PINA0 18
 #define ENCODER_PINB0 31
 #define EN0 12
