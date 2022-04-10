@@ -48,7 +48,7 @@ namespace Omnimotors{
     //////////////////////////////////////
     static Omnimotor* __motors[MAX_MOTORS];
     static float __motors_loop_delay = 20;
-    float dtime;
+    float dtime = __motors_loop_delay / 1000.0;
     static int num_motors = 0;
     static void isr0() __motors[0]->handler();
     static void isr1() __motors[1]->handler();
@@ -151,10 +151,11 @@ namespace Omnimotors{
         curr_mot._update();
       }
     }
-      static void begin(float loop_delay){
+      static void begin(float loop_delay){ // Must pass loop_delay
+        __motors_loop_delay = loop_delay;
         if (num_motors == 0) return;
         for (int _mot = 0; _mot < num_motors; _mot++)
-          __motors_loop_delay = loop_delay;
+          dtime = __motors_loop_delay / 1000.0;
           curr = __motors[_mot];
           switch _mot{
             case 0:
@@ -221,7 +222,13 @@ namespace Omnimotors{
           if (num > __num_motors){
           __motors[req.motor] = new Omnimotor curr_mot{ 
             req.motor, //not used in change
-            req.angle, pin_layout{req.pin_layout},
+            req.angle, pin_layout layout{
+              req.pin_layout.encoder_a,
+              req.pin_layout.encoder_b,
+              req.pin_layout.pwm,
+              req.pin_layout.fwd_dir, 
+              req.pin_layout.back_dir
+            },
             req.pid.p, req.pid.i, req.pid.d,
             req.wheel_rad, req.tick_per_rotation,
             req.turn_max_speed, req.max_speed
@@ -234,7 +241,7 @@ namespace Omnimotors{
           }
           else{
             curr_motor = __motors[req.motor]
-            (*curr_motor).change(
+              curr_motor->change(
               req.angle, pin_layout{req.pin_layout},
               req.pid.p, req.pid.i, req.pid.d,
               req.wheel_rad, req.tick_per_rotation,
