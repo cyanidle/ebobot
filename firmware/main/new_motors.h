@@ -13,6 +13,11 @@ ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("/motors_info", &motors_msg);
 //////////////////////////
 namespace Omnimotors{
+  Motors * __motors[MAX_MOTORS];
+  float coeff = 1;
+  int num_motors = 0;
+  float __motors_loop_delay = 20;
+  float dtime = __motors_loop_delay / 1000.0;
   struct pin_layout{
     uint8_t encoder_pin_a;
     uint8_t encoder_pin_b;
@@ -46,16 +51,12 @@ namespace Omnimotors{
     long lastX;
     int dX;
     //////////////////////////////////////
-    static Omnimotor* __motors[MAX_MOTORS];
-    static float __motors_loop_delay = 20;
-    float dtime = __motors_loop_delay / 1000.0;
-    static int num_motors = 0;
-    static void isr0() __motors[0]->handler();
-    static void isr1() __motors[1]->handler();
-    static void isr2() __motors[2]->handler();
-    static void isr3() __motors[3]->handler();
-    static void isr4() __motors[4]->handler();
-    static void isr5() __motors[5]->handler();
+    static void isr0(){ __motors[0]->handler();};
+    static void isr1(){ __motors[1]->handler();};
+    static void isr2(){ __motors[2]->handler();};
+    static void isr3(){ __motors[3]->handler();};
+    static void isr4(){ __motors[4]->handler();};
+    static void isr5(){ __motors[5]->handler();};
     //////////////////////////////////////  
     void handler(){
       bool temp = (digitalRead(layout.encoder_pin_b) == HIGH);
@@ -69,7 +70,7 @@ namespace Omnimotors{
     inter_term = 0;
     }
     void PID(){
-      float error = motortarg_spd - curr_spd;
+      float error = targ_spd - curr_spd;
       inter_term += dtime * error;
       pwm = error * prop_coeff + inter_term * inter_coeff -
                 (error - last_error) / dtime * diff_coeff;
@@ -127,7 +128,7 @@ namespace Omnimotors{
           x_coeff = cos(_toRadians(angle)); y_coeff = sin(_toRadians(angle)); 
           pinMode(mot_pin_layout.encoder_pin_b, INPUT);
           pinMode(mot_pin_layout.pwm_pin, OUTPUT);
-          pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
+          pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT);
           pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
           num = num_motors;
           num_motors ++;
@@ -142,22 +143,22 @@ namespace Omnimotors{
         x_coeff = cos(_toRadians(angle)); y_coeff = sin(_toRadians(angle)); 
         pinMode(mot_pin_layout.encoder_pin_b, INPUT);
         pinMode(mot_pin_layout.pwm_pin, OUTPUT);
-        pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT
+        pinMode(mot_pin_layout.fwd_dir_pin, OUTPUT);
         pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
         }
       static void updateMotors(){
       for (int _mot = 0; _mot < num_motors; _mot++){
         Motors* curr_mot = __motors[_mot];
-        curr_mot._update();
+        curr_mot->_update();
       }
     }
       static void begin(float loop_delay){ // Must pass loop_delay
         __motors_loop_delay = loop_delay;
         if (num_motors == 0) return;
-        for (int _mot = 0; _mot < num_motors; _mot++)
+        for (int _mot = 0; _mot < num_motors; _mot++){
           dtime = __motors_loop_delay / 1000.0;
-          curr = __motors[_mot];
-          switch _mot{
+          Motors * curr = __motors[_mot];
+          switch (_mot){
             case 0:
             attachInterrupt(digitalPinToInterrupt(curr->layout.encoder_pin_a),isr0, RISING);
             break;
@@ -178,8 +179,10 @@ namespace Omnimotors{
             break;
           }
       }
+      }
       static void speedCallback(const geometry_msgs::Twist &cmd_vel)
         {
+          if (num_motors == 0 ) return;
           float x = cmd_vel.linear.x;
           float y = cmd_vel.linear.y;
           float turn = cmd_vel.angular.z;
@@ -187,7 +190,7 @@ namespace Omnimotors{
           x = constrain(x, -1, 1);
           y = constrain(y, -1, 1);
           for (int _mot = 0; _mot < num_motors; _mot++){
-            Omnimotor* mot = __motors[_mot];
+            Motors* mot = __motors[_mot];
             if (x == 0 and y == 0 and turn == 0)
             {
               mot->stop_mot = true;
@@ -199,7 +202,7 @@ namespace Omnimotors{
             if (abs(spd - mot->last_spds) > (mot->absolute_max_speed / 2.0))
             {
               for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
-                Omnimotor* sub = __motors[sub_mot];
+                Motors* sub = __motors[sub_mot];
                 sub->termsReset();
               }
             }
@@ -219,38 +222,45 @@ namespace Omnimotors{
           }
         }
         static void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
-          if (num > __num_motors){
-          __motors[req.motor] = new Omnimotor curr_mot{ 
-            req.motor, //not used in change
-            req.angle, pin_layout layout{
+          if (num_motors == 0 ) return;
+          if (req.motor > num_motors){
+          __motors[req.motor] = new Motors ( 
+            req.angle, pin_layout{
               req.pin_layout.encoder_a,
               req.pin_layout.encoder_b,
               req.pin_layout.pwm,
               req.pin_layout.fwd_dir, 
               req.pin_layout.back_dir
             },
-            req.pid.p, req.pid.i, req.pid.d,
-            req.wheel_rad, req.tick_per_rotation,
-            req.turn_max_speed, req.max_speed
-            if ((num - __num_motors) > 1){
+            req.pid.P, req.pid.I, req.pid.D,
+            req.wheel_rad, req.ticks_per_rotation,
+            req.turn_max_speed, req.max_speed);
+            if ((req.motor - num_motors) > 1){
               resp.resp = 1;
-              return
             }
-          };
-          resp.resp = 0;
+            resp.resp = 0;
           }
+          
+          
           else{
-            curr_motor = __motors[req.motor]
+            Motors * curr_motor = __motors[req.motor];
               curr_motor->change(
-              req.angle, pin_layout{req.pin_layout},
-              req.pid.p, req.pid.i, req.pid.d,
-              req.wheel_rad, req.tick_per_rotation,
-              req.turn_max_speed, req.max_speed
-            )
+              req.angle, pin_layout{
+              req.pin_layout.encoder_a,
+              req.pin_layout.encoder_b,
+              req.pin_layout.pwm,
+              req.pin_layout.fwd_dir, 
+              req.pin_layout.back_dir
+            },
+              req.pid.P, req.pid.I, req.pid.D,
+              req.wheel_rad, req.ticks_per_rotation,
+              req.turn_max_speed, req.max_speed);
+            resp.resp = 0;
           }
 
         }   
   };
+  Motors * __motors[MAX_MOTORS];
 }
 ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &Omnimotors::Motors::motorsSettingsCallback);
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &Omnimotors::Motors::speedCallback);
