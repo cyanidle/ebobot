@@ -1,5 +1,5 @@
-uint_8t encoder_a
-uint_8t encoder_b
-uint_8t pwm
-uint_8t fwd_dir
-uint_8t back_dir
+int8 encoder_a
+int8 encoder_b
+int8 pwm
+int8 fwd_dir
+int8 back_dir

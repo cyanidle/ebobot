@@ -23,7 +23,7 @@ catkin_python_setup()
 ################################################
 add_message_files(
    FILES
-   MotorPinLaoyut.msg
+   MotorPinLayout.msg
    PID.msg
    Obstacle.msg
    Obstacles.msg

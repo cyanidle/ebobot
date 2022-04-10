@@ -1,10 +1,10 @@
-uint_8t motor #number
+int8 motor #number
 float32 wheel_rad
 float32 ticks_per_rotation
 float32 angle
 ebobot/PID pid
 ebobot/MotorPinLayout pin_layout
-float turn_max_speed
-float max_speed
+float32 turn_max_speed
+float32 max_speed
 ---
-int resp
+int8 resp
