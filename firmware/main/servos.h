@@ -1,24 +1,13 @@
-#include <FaBoPWM_PCA9685.h>
+#include <iarduino_MultiServo.h>
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/Servos.h>
 #include <ebobot/ServosSettings.h>
-//
-//ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh;
 #define MAX_SERVOS 8
-FaBoPWM servos_shield;
+iarduino_MultiServo servos_shield;
 bool servosSetup(){
-  if (servos_shield.begin()){
-    servos_shield.init(300);
-    servos_shield.set_hz(50);
+    servos_shield.begin();
     return true;
-  }
-}
-//
-int freeRam () {
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
 struct Servo_mot{
     int num;
@@ -59,7 +48,7 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->min_val = min_val;
     ptr->curr_val = curr_val;
     ptr->target_state = min_val;
-    servos_shield.set_channel_value(ptr->channel,ptr->curr_val);
+    servos_shield.analogWrite(ptr->channel,ptr->curr_val);
     sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,bytes%d",
          ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
     servos_debugged = false;
@@ -68,10 +57,6 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
 }
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
 {
-    
-    
-
-    
     if (req.num > MAX_SERVOS) resp.resp = 1;
     else if (req.num > max_num){
         if ((req.num - max_num) > 1){
@@ -100,29 +85,21 @@ void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::S
     
 }
 void servoUp(Servo_mot *servo){
-    //int target = (int)(servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0);
     if (abs(servo->target_state - servo->curr_val) > servo->speed) servo->curr_val += servo->speed;
-    else {
-        servo->curr_val = servo->target_state;
-    }
-    //servos_shield.set_channel_value(servo->channel,servo->curr_val);
+    else servo->curr_val = servo->target_state;
 }
 void servoDown(Servo_mot *servo){
-    //int target = (int)(servo->min_val + (servo->max_val - servo->min_val) * servo->target_state / 100.0);
     if (abs(servo->target_state - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
-    else {
-        servo->curr_val = servo->target_state;
-    }
-    
+    else servo->curr_val = servo->target_state;   
 }
 void servosUpdate(){
     for (int num=0;num<max_num;num++){
         Servo_mot *servo = ptr_list[num];
         if (servo->target_state > servo->curr_val) servoUp(servo); 
         else if (servo->target_state < servo->curr_val) servoDown(servo);
-        servos_shield.set_channel_value(servo->channel,servo->curr_val);   
-        }  
-         
+        else continue;
+        servos_shield.analogWrite(servo->channel,servo->curr_val);   
+        } 
     }
 
 //
