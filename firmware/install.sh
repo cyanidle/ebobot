@@ -4,7 +4,7 @@ echo "Found firmware directory - $firmware_dir"
 arduino_dir=$(find ~/ -type d | grep /Arduino/libraries | head -n 1 | xargs dirname)
 if [ -d $arduino_dir ];then
 echo "Found Arduino directory - $arduino_dir"
-cp -rf "$firmware_dir/FaBo_PWM_PCA9685" "$arduino_dir/libraries"
+cp -rf "$firmware_dir/iarduino_MultiServo-1.1.3" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/LiquidCrystal_I2C_V112" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/TimerMs" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/main" "$arduino_dir/"
