@@ -7,23 +7,25 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/NewMotor.h>
+#include <ebobot/MotorPinLayout.h>
 #include <geometry_msgs/Twist.h>
 //#include <Vector.h>
 ///
 struct pin_layout
 {
-  unit8_t encoder_pin_a;
-  unit8_t encoder_pin_b;
-  unit8_t pwm_pin;
-  unit8_t fwd_dir_pin;
-  unit8_t back_dir_pin;
-  pin_layout(ebobot::NewMotor::pin_layout);
+  uint8_t encoder_pin_a;
+  uint8_t encoder_pin_b;
+  uint8_t pwm_pin;
+  uint8_t fwd_dir_pin;
+  uint8_t back_dir_pin;
+  pin_layout(ebobot::MotorPinLayout);
 };
 class Motors{
     public:
     static int num_motors = -1;
     Motors * motors[MAX_MOTORS]; 
-    Motors(int, pin_layout, float, float, float, float, float, float, float, float, bool);
+    Motors(int, pin_layout, float, float, float, float, float, float, float, float);
+    static void begin(float);
     static void update_all();
     static void speedCallback(const geometry_msgs::Twist&);
     static void motorsSettingsCallback(const ebobot::NewMotor::Request&, ebobot::NewMotor::Response&);
@@ -40,22 +42,22 @@ class Motors{
       switch (num)
       {
         case 0:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr0);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr0, RISING);
         break;
         case 1:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr1);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr1, RISING);
         break;
         case 2:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr2);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr2, RISING);
         break;
         case 3:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr3);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr3, RISING);
         break;
         case 4:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr4);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr4, RISING);
         break;
         case 5:
-        attachInterrupt(digitalPinToInterrupt(_pin),isr5);
+        attachInterrupt(digitalPinToInterrupt(_pin),isr5, RISING);
         break;
       
       default:
@@ -70,6 +72,8 @@ class Motors{
     static void isr5(){motors_list[5]->handle()};
     ///
     ///
+    static float loop_delay = 50;
+    static float dtime = loop_delay / 1000.0;
     float prop_coeff = 300; 
     float inter_coeff = 350; 
     float diff_coeff = 3;
@@ -105,18 +109,18 @@ class Motors{
       pwm = constrain(pwm, -255, 255);
     };
     void update(){
-          dX = X - lastX;
-      ddist = dX * (rad / ticks_per_rotation);
-      lastX = X;
-      dist = dist + ddist;
-      curr_spd = ddist * 1000.0 / loop_delay;
-      if (stop_mot)
-      {
-        termsReset();
-        digitalWrite(layout.pwm, HIGH);
-        digitalWrite(layout.fwd_dir_pin, HIGH);
-        digitalWrite(layout.back_dir_pin, HIGH);
-      }
+        dX = X;
+        ddist = dX * (rad / ticks_per_rotation);
+        X = 0;
+        dist = dist + ddist;
+        curr_spd = ddist * 1000.0 / loop_delay;
+        if (stop_mot)
+        {
+          termsReset();
+          digitalWrite(layout.pwm, HIGH);
+          digitalWrite(layout.fwd_dir_pin, HIGH);
+          digitalWrite(layout.back_dir_pin, HIGH);
+        }
 
       else
       {
