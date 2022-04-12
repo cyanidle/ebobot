@@ -5,7 +5,9 @@
 #include <geometry_msgs/Twist.h>
 /////////////////////////
 #include "TimerMs.h"
-
+////
+#include "pin_reader.h"
+#include "start_trigger.h"
 ////////////////////////////ROS init
 ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
 
@@ -231,6 +233,11 @@ void setup()
 {
   nh.getHardware()->setBaud(BAUD_RATE);
   nh.initNode();
+  nh.advertiseService(pin_reader_server);
+  // Инициализация наших хедеров
+  nh.advertise(start_trigger);
+  pinMode(_start_pin, INPUT_PULLUP);
+  pinMode(_switch_pin, INPUT_PULLUP);
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
