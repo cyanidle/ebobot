@@ -1,4 +1,7 @@
 <launch>
+
+
+    
     <arg name="rviz" default="false"/>
     <arg name="debug" default="false"/>
     <arg name="file1" default="$(find ebobot)/config/routes/new_route1.yaml"/>
