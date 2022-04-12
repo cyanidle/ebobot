@@ -8,7 +8,7 @@
 #include <ros.h>
 #include <ebobot/NewMotor.h>
 #include <geometry_msgs/Twist.h>
-#include <Vector.h>
+//#include <Vector.h>
 ///
 struct pin_layout
 {
@@ -21,13 +21,12 @@ struct pin_layout
 };
 class Motors{
     public:
-    static int num_motors = 0;
+    static int num_motors = -1;
     Motors * motors[MAX_MOTORS]; 
-    Motors(pin_layout, float, float, float, float);
+    Motors(int, pin_layout, float, float, float, float, float, float, float, float, bool);
     static void update_all();
     static void speedCallback(const geometry_msgs::Twist&);
     static void motorsSettingsCallback(const ebobot::NewMotor::Request&, ebobot::NewMotor::Response&);
-    
     static ros::Publisher motors_info("motors_info", &motors_msg);
     static ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response>
     motors_settings_server("motors_settings_service", &motorsSettingsCallback);
