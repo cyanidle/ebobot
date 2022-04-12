@@ -3,7 +3,8 @@
       <arg name="arduino" default="true"/>
       <arg name="rviz" default="false"/>
       <arg name="laser" default="true"/>
-      <arg name="arduino_port" default="/dev/ttyACM0"/>
+      <arg name="arduino_port0" default="/dev/ttyACM0"/>
+      <arg name="arduino_port1" default="/dev/ttyACM1"/>
       <arg name="arduino_baud" default="115200"/>
       <arg name="debug" default="0"/>
       <arg name="use_own" default="true"/>
@@ -13,7 +14,8 @@
     <include file="$(find ebobot)/launch/arduino_odom.launch">
       <arg name="arduino_baud" value="$(arg arduino_baud)"/>
       <arg name="use_own" value="$(arg use_own)"/>
-      <arg name="port" value="$(arg arduino_port)"/>
+      <arg name="port0" value="$(arg arduino_port0)"/>
+      <arg name="port1" value="$(arg arduino_port1)"/>
       <arg name="debug" value="$(arg debug)"/>
       <arg name="arduino_connected" value="$(arg arduino)"/>
     </include>
