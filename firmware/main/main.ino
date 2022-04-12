@@ -37,16 +37,14 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 const int loop_delay = 50;
 const int servo_loop_delay = 150;
 TimerMs main_loop(loop_delay, 1, 0);
-
+TimerMs start_loop(200, 1, 0);
 ///////////////////////// ENCODER
-
 volatile long X[3];
 const float coeff = 1;
 const float rad = 0.185; // m
 const float ticks_per_rotation = 360;
 long dX[3];
 long lastX[3];
-
 ///////////////////////// MOTORS
 const float turn_max_speed = 0.25;  /////////MUST GIVE ABSOLUTE MAX SPEED IN SUM
 const float max_speed = 0.50;       /////////////With headroom (<~80)
@@ -238,6 +236,7 @@ void setup()
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
+  //////////////////////////////
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
@@ -272,6 +271,9 @@ void loop()
       motors_info.publish(&motors_msg);
       nh.spinOnce();
     }
+  }
+  if (start_loop.tick()){
+    startUpdate();
   }
   nh.spinOnce();
 }
