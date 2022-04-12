@@ -1,6 +1,7 @@
 <launch>
     
-    <arg name="port" default="/dev/ttyACM0"/>
+    <arg name="port0" default="/dev/ttyACM0"/>
+    <arg name="port1" default="/dev/ttyACM1"/>
     <arg name="arduino_baud" default="115200"/>
     <arg name="debug" default="1"/>
 
@@ -13,7 +14,11 @@
     
     <group if="$(arg arduino_connected)">
         <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" output="screen">
-            <param name="port" value="$(arg port)"/>
+            <param name="port" value="$(arg port0)"/>
+            <param name="baud" value="$(arg arduino_baud)"/>
+        </node>
+        <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node_secondary" output="screen">
+            <param name="port" value="$(arg port1)"/>
             <param name="baud" value="$(arg arduino_baud)"/>
         </node>
     </group>
