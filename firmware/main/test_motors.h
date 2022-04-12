@@ -27,11 +27,9 @@ class Motors{
     static void isr3();
     static void isr4();
     static void isr5();
+    static Motors * motors_list[MAX_MOTORS];
     ///
     private:
-    bool no_motors;
-    Motors *next_motor;
-    bool is_last;
     ///
     float prop_coeff = 300; 
     float inter_coeff = 350; 
