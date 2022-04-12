@@ -213,6 +213,8 @@ class Template(ABC):
         ############### Done before ^^^
         await self.midExec()
         ############### Done after main exec
+        if Flags._update_prediction:
+            await showPrediction(Prediction.score)
         await Task.checkForInterrupt()
         self._activate_flag = False
         if Manager.debug:
@@ -345,6 +347,9 @@ class Log(Template):
             return
         self.status.set("done")
 ########################################################
+def predictionCB(num):
+    Prediction.score+=num.data
+    Flags._update_prediction = 1
 class Prediction(Template):
     score = 0
     def __init__(self, parent, name, args):
@@ -353,6 +358,8 @@ class Prediction(Template):
     async def midExec(self) -> None:
         if not self.parent._fail_flag:
             Prediction.score += self.score
+            if not Manager.prediction_master:
+                Manager.prediction_pub.publish(Int8(self.score))
         try:
             await showPrediction(Prediction.score)
         except:
@@ -671,7 +678,14 @@ class Manager:
     test_file1 = rospy.get_param("~test_file1", "config/routes/test_route1.yaml")
     test_file2 = rospy.get_param("~test_file2", "config/routes/test_route2.yaml")
     #
+    prediction_master = rospy.get_param("~prediction_master", 1)
+    prediction_topic = rospy.get_param("~prediction_topic", "/ebobot/new_prediction")
     start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
+    ########
+    if prediction_master:
+        rospy.Subscriber(prediction_topic, Int8, predictionCB)
+    else:
+        prediction_pub = rospy.Publisher(prediction_topic, Int8)
     #
     curr_file = test_file2
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
@@ -724,7 +738,7 @@ class Manager:
     @staticmethod
     async def exec():
         _done = 0
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.1)
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
             if Manager.current_task<len(Manager.obj_dict["Task"]):
@@ -743,7 +757,7 @@ class Manager:
                     _done = 1
                     if not Flags._test_routes:
                         parse(Flags._current_route_num)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
         #Manager.reset()
         Manager.current_task = 0
         Flags._execute = 0
@@ -753,6 +767,7 @@ class Flags:
     _execute = 0
     _test_routes=1
     _current_route_num = 1
+    _update_prediction = 0
     _goto = False
 def parse(route = 11):
     Manager.reset() #pls fix

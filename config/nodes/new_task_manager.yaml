@@ -1,6 +1,8 @@
 new_task_manager:
   calls_debug: 0
   start_service: /ebobot/begin
+  prediction_master: 1
+  prediction_topic: /ebobot/new_prediction
   status:
     update_rate: 10
-    reduce_update_rate_for_move: 4 #how much slower move updates than statuses
+    reduce_update_rate_for_move: 2 #how much slower move updates than statuses
