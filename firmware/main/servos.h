@@ -6,7 +6,7 @@
 #define MAX_SERVOS 8
 iarduino_MultiServo servos_shield;
 bool servosSetup(){
-    servos_shield.begin()
+    servos_shield.begin();
     return true;
 }
 struct Servo_mot{
@@ -57,10 +57,6 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
 }
 void servoSettingsCallback(const ebobot::ServosSettings::Request &req, ebobot::ServosSettings::Response &resp)
 {
-    
-    
-
-    
     if (req.num > MAX_SERVOS) resp.resp = 1;
     else if (req.num > max_num){
         if ((req.num - max_num) > 1){
@@ -94,7 +90,7 @@ void servoUp(Servo_mot *servo){
 }
 void servoDown(Servo_mot *servo){
     if (abs(servo->target_state - servo->curr_val) > servo->speed) servo->curr_val -= servo->speed;
-    else servo->curr_val = servo->target_state   
+    else servo->curr_val = servo->target_state;   
 }
 void servosUpdate(){
     for (int num=0;num<max_num;num++){

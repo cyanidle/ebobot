@@ -3,6 +3,7 @@
     <arg name="port" default="/dev/ttyACM0"/>
     <arg name="arduino_baud" default="115200"/>
     <arg name="debug" default="1"/>
+    <arg name="disable_autoinit" default="false"/>
 
     <arg name="use_own" default="true"/>
     <group if="$(arg use_own)">
@@ -20,11 +21,14 @@
 
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="screen" respawn="true" respawn_delay="10"> 
         <param name = "debug" value = "$(arg debug)"/>
-    </node>
-    <node pkg="ebobot" type="pid_setter.py" name="pid_setter">
-        <param name = "path" value = "$(find ebobot)/config/scripts/pid_settings.txt"/>
-    </node>
-    <node pkg="ebobot" type="servos_setter.py" name="servos_setter">
-        <param name = "file" value = "$(find ebobot)/config/scripts/servos.yaml"/>
-    </node>
+    </node> 
+
+    <group unless="$(arg disable_autoinit)">
+        <node pkg="ebobot" type="motors_setup.py" name="motors_setup">
+            <param name = "file" value = "$(find ebobot)/config/scripts/motors.yaml"/>
+        </node>
+        <node pkg="ebobot" type="servos_setter.py" name="servos_setter">
+            <param name = "file" value = "$(find ebobot)/config/scripts/servos.yaml"/>
+        </node>
+    </group>
 </launch>

@@ -1,8 +1,16 @@
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/MotorsInfo.h>
-#include <std_msgs/Float32.h>
+#include <ebobot/MotorPinLayout.h>
+#include <ebobot/NewMotor.h>
 #include <geometry_msgs/Twist.h>
+
+#define MAX_MOTORS 3 // up to 6
+
+//######################
+ebobot::MotorsInfo motors_msg;
+ros::Publisher motors_info("motors_info", &motors_msg);
+#define BAUD_RATE 115200
 //////////////////////////
 #define ENCODER_PINA0 18
 #define ENCODER_PINB0 31
@@ -21,34 +29,38 @@
 #define EN2 9
 #define FWD2 43
 #define BCK2 42
-/////////////////////////
-//######################
-ebobot::MotorsInfo motors_msg;
-ros::Publisher motors_info("motors_info", &motors_msg);
+namespace Motors{
+///////////////////////Loop settings
+const int loop_delay = 50;
+const int servo_loop_delay = 150;
+TimerMs main_loop(loop_delay, 1, 0);
+TimerMs servo_loop(servo_loop_delay, 1, 0);
+TimerMs start_loop(200, 1, 0);
+
 ///////////////////////// ENCODER
 
-volatile long X[3];
+volatile long X[MAX_MOTORS];
 const float coeff = 1;
 const float rad = 0.185; // m
 const float ticks_per_rotation = 360;
-long dX[3];
-long lastX[3];
+long dX[MAX_MOTORS];
+long lastX[MAX_MOTORS];
 
 ///////////////////////// MOTORS
 const float turn_max_speed = 0.25;  /////////MUST GIVE ABSOLUTE MAX SPEED IN SUM
 const float max_speed = 0.50;       /////////////With headroom (<~80)
-bool stop_mot[3];
-float dist[3];
+bool stop_mot[MAX_MOTORS];
+float dist[MAX_MOTORS];
 float absolute_max_speed = 0.75;
-float ddist[3];
-float targ_spd[3];
-float curr_spd[3];
-float last_spds[3];
-int num_motors = 3;
-int fwd[] = {FWD0, FWD1, FWD2};
-int bck[] = {BCK0, BCK1, BCK2};
-int ena[] = {EN0, EN1, EN2};
-int pwm[3];
+float ddist[MAX_MOTORS];
+float targ_spd[MAX_MOTORS];
+float curr_spd[MAX_MOTORS];
+float last_spds[MAX_MOTORS];
+int num_motors = MAX_MOTORS;
+int fwd[MAX_MOTORS] = {FWD0, FWD1, FWD2};
+int bck[MAX_MOTORS] = {BCK0, BCK1, BCK2};
+int ena[MAX_MOTORS] = {EN0, EN1, EN2};
+int pwm[MAX_MOTORS];
 ////////////////////////////motors radians
 float to_radians(float ang)
 {
@@ -116,7 +128,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel)
     }
   }
 }
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
+
 
 /////////Adjustable !!!!!!!!!!
 float prop_coeff[] = {280, 280, 280};
@@ -151,9 +163,6 @@ void setPidCallback(const std_msgs::Float32 &set_pid)
   if (pid_count > 8)
     pid_count = 0;
 }
-ros::Subscriber<std_msgs::Float32> set_pid("set_pid", &setPidCallback);
-//////////////////////////////////////// Updates ALL (global num_motors) motors dists and current speeds + feedback PWM adjustments
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// PID
 const float dtime = (loop_delay / 1000.0);
 void PID(int mot)
@@ -196,15 +205,9 @@ void update_mot(int mot){
       digitalWrite(fwd[mot], LOW);
       digitalWrite(bck[mot], HIGH);
     }
-
   }
-    motors_msg.num = mot;
-    motors_msg.target_speed = targ_spd[mot];
-    motors_msg.current_speed = curr_spd[mot];
-    motors_msg.ddist = ddist[mot];
-    motors_info.publish(&motors_msg);
 }
-//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 void encoder0()
 {
   bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
@@ -220,22 +223,59 @@ void encoder2()
   bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
   X[2] += (temp * 1) + (!temp * -1);
 }
-
-
-void motorsSetup(){
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA0), encoder0, RISING);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA1), encoder1, RISING); //Не забудь объявить (войну неграм)
-    attachInterrupt(digitalPinToInterrupt(ENCODER_PINA2), encoder2, RISING);
-    pinMode(ENCODER_PINB0, INPUT);
-    pinMode(ENCODER_PINB1, INPUT);
-    pinMode(ENCODER_PINB2, INPUT);
-    pinMode(EN0, OUTPUT);
-    pinMode(FWD0, OUTPUT);
-    pinMode(BCK0, OUTPUT);
-    pinMode(EN1, OUTPUT);
-    pinMode(FWD1, OUTPUT);
-    pinMode(BCK1, OUTPUT);
-    pinMode(EN2, OUTPUT);
-    pinMode(FWD2, OUTPUT);
-    pinMode(BCK2, OUTPUT);
+void encoder3()
+{
+  bool temp = (digitalRead(ENCODER_PINB2) == HIGH);
+  X[3] += (temp * 1) + (!temp * -1);
 }
+///////////////////////////////////////////////////
+void begin(){
+    
+}
+
+
+///////////////////////////////////////////////////
+void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
+    if (num_motors == 0 ) return;
+    if (req.motor > num_motors){
+    __motors[req.motor] = new Motors( 
+    req.angle, pin_layout{
+        req.pin_layout.encoder_a,
+        req.pin_layout.encoder_b,
+        req.pin_layout.pwm,
+        req.pin_layout.fwd_dir, 
+        req.pin_layout.back_dir
+    },
+    req.pid.P, req.pid.I, req.pid.D,
+    req.wheel_rad, req.ticks_per_rotation,
+    req.turn_max_speed, req.max_speed);
+    if ((req.motor - num_motors) > 1){
+        resp.resp = 1;
+    }
+    resp.resp = 0;
+    }
+    
+    
+    else{
+    Motors * curr_motor = __motors[req.motor];
+        curr_motor->change(
+        req.angle, pin_layout{
+        req.pin_layout.encoder_a,
+        req.pin_layout.encoder_b,
+        req.pin_layout.pwm,
+        req.pin_layout.fwd_dir, 
+        req.pin_layout.back_dir
+    },
+        req.pid.P, req.pid.I, req.pid.D,
+        req.wheel_rad, req.ticks_per_rotation,
+        req.turn_max_speed, req.max_speed);
+    resp.resp = 0;
+    }
+
+} 
+
+///////////////////////////////////////////////////
+ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response>
+motors_settings_server("motors_settings_service", &Omnimotors::Motors::motorsSettingsCallback);
+ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
+} // ns Motors

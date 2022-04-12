@@ -3,13 +3,14 @@
 /////////////////////////
 #include "TimerMs.h"
 ///////////////////////////
+#include "motors.h"
 #include "servos.h"
 #include "kadyrov_lcd.h"
 #include "pin_reader.h"
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1324, 1324> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 7, 10, 1124, 1124> nh; // recieve/publish
 #define BAUD_RATE 115200
 ///////////////////////Loop settings
 const int loop_delay = 50;
@@ -39,12 +40,13 @@ void setup()
   /////////////////////////////
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
-  nh.subscribe(set_pid);
+  nh.advertiseService(motors_settings_server);
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
+  Omnimotors::Motors::begin(loop_delay);
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
@@ -59,8 +61,7 @@ void setup()
 void loop()
 {
   if (main_loop.tick()){
-    for (int mot = 0; mot < num_motors; mot++)
-      update_mot(mot);
+    Omnimotors::Motors::updateMotors();
   }
 
   if (servo_loop.tick()){

@@ -1,3 +1,3 @@
-int16 P
-int16 I
-int16 D
+float32 P
+float32 I
+float32 D
