@@ -2,13 +2,47 @@
 #include <ebobot/NewMotor.h>
 #include <geometry_msgs/Twist.h>
 #include <ebobot/MotorPinLayout.h>
-pin_layout::pin_layout(ebobot::MotorPinLayout _lay){
-    encoder_pin_a = _lay.encoder_a;
-    encoder_pin_b = _lay.encoder_b;
-    pwm_pin = _lay.pwm;
-    fwd_dir_pin = _lay.fwd_dir;
-    back_dir_pin = _lay.back_dir;
-}
+//////////////////////////////////////////////////////
+
+
+
+
+//////////////////////////////////////////////////////
+int num_motors = -1;
+Motors *motors[MAX_MOTORS]; 
+
+void Motors::isr0(){motors[0]->handle();}
+void Motors::isr1(){motors[1]->handle();}
+void Motors::isr2(){motors[2]->handle();}
+void Motors::isr3(){motors[3]->handle();}
+void Motors::isr4(){motors[4]->handle();}
+void Motors::isr5(){motors[5]->handle();}
+void Motors::attachIsr(int num){
+      uint8_t _pin = motors[num]->layout.encoder_pin_a;
+      switch (num)
+      {
+        case 0:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr0, RISING);
+        break;
+        case 1:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr1, RISING);
+        break;
+        case 2:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr2, RISING);
+        break;
+        case 3:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr3, RISING);
+        break;
+        case 4:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr4, RISING);
+        break;
+        case 5:
+        attachInterrupt(digitalPinToInterrupt(_pin),isr5, RISING);
+        break;    
+      default:
+        break;
+      }
+    }
 Motors::Motors(int num, pin_layout _pin_layout, float _rad, float _ticks_per_rotation,
  float _p, float _i, float _d,
  float _turn_max_speed, float _max_speed, float _angle){
@@ -35,17 +69,25 @@ void Motors::update_all(){
     }
 }
 void Motors::begin(float _loop_delay){
-    loop_delay = _loop_delay;
-    dtime = loop_delay / 1000.0;
+    delay(500);
+    //loop_delay = _loop_delay;
+    //dtime = loop_delay / 1000.0;
 }
 void Motors::motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
     if (req.motor - num_motors > 1) resp.resp = 1;
     else{   
-        pin_layout layout;
+        pin_layout layout{
+          req.pin_layout.encoder_a,
+          req.pin_layout.encoder_b,
+          req.pin_layout.pwm,
+          req.pin_layout.fwd_dir,
+          req.pin_layout.back_dir,
+        };
         Motors new_motor{req.motor,layout,req.wheel_rad,req.ticks_per_rotation,
         req.pid.P,req.pid.I,req.pid.D,req.turn_max_speed,req.max_speed,
         req.angle};}
 }
+
 void Motors::speedCallback(const geometry_msgs::Twist &cmd_vel){
     float x = cmd_vel.linear.x;
     float y = cmd_vel.linear.y;
@@ -60,11 +102,11 @@ void Motors::speedCallback(const geometry_msgs::Twist &cmd_vel){
         {
         motor->stop_mot = true;
         }
-        float spd = motor->mots_x_coeffs * x * motor->max_speed + motor->mots_y_coeffs * y * motor->max_speed;
+        float spd = motor->x_coeff * x * motor->max_speed + motor->y_coeff * y * motor->max_speed;
         spd += turn * motor->turn_max_speed;
 
         // IF speed is changed radically (1/4 of max), then terms are reset
-        if (abs(spd - motor->last_spds) > (motor->absolute_max_speed / 2.0))
+        if (abs(spd - motor->last_spd) > (motor->absolute_max_speed / 2.0))
         {
         for (int sub_mot = 0; sub_mot < num_motors; sub_mot++){
             motors[sub_mot]->termsReset();
@@ -73,7 +115,7 @@ void Motors::speedCallback(const geometry_msgs::Twist &cmd_vel){
         //////IF speed is less than 1 cm/second then its not considered and PID terms are reset
         if (spd < 0.01 and spd > -0.01)
         {
-            motor->termsReset(mot);
+            motor->termsReset();
             motor->targ_spd = 0;
         }
         else
@@ -81,7 +123,7 @@ void Motors::speedCallback(const geometry_msgs::Twist &cmd_vel){
             spd = constrain(spd, -motor->absolute_max_speed, motor->absolute_max_speed);
             motor->stop_mot = false;
             motor->targ_spd = spd;
-            motor->last_spds = spd;
+            motor->last_spd = spd;
         }
     }
 }

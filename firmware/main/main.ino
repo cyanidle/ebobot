@@ -38,9 +38,10 @@ void setup()
   nh.getHardware()-> setBaud(BAUD_RATE);
   nh.initNode();
   /////////////////////////////
-  nh.advertise(Motors::motors_info);
-  nh.subscribe(Motors::speed_sub);
-  nh.advertiseService(Motors::motors_settings_server);
+  nh.advertise(motors_info);
+  nh.subscribe(speed_sub);
+  nh.advertiseService(motors_settings_server);
+  ////////////////////////////////
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
   nh.advertiseService(lcd_server);

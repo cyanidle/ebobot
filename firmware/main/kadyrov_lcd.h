@@ -30,7 +30,7 @@ void lcdSetup(){
   lcd.createChar(7,block);
 }
 ///////////йобанная магия с StackOverflow
-void reverseArray(uint16_t a[], uint8_t n)
+void reverseArray(uint8_t a[], uint8_t n)
 {
     int temp;
     for (int i = 0; i < n / 2; i++)
@@ -184,6 +184,8 @@ void printDigits(int digits, int x){
   case 9:
     custom9(x);
     break;
+  default:
+    break;
   }
 }
 void lcdCallback(const ebobot::LcdShow::Request &req, ebobot::LcdShow::Response &resp){
@@ -191,23 +193,17 @@ void lcdCallback(const ebobot::LcdShow::Request &req, ebobot::LcdShow::Response 
     uint16_t numb = req.num; /////входное число
     uint16_t numba = numb; //распускается на цифры в ходе подсчета
     uint8_t count = 0; //количество цифр
-    uint8_t score[n];
+    uint8_t score[4];
+    //////////////подсчет цифр в числе
     while(numba){
-    numba/=10;
-    
+    numb/=10;
+    score[count] = numba - numb*10;
+    numba = numb;
     count++;
     }
-    ///////////////
-    uint8_t n = count;
-    
-    ///////////перевод числа в масив цифр
-    for(uint8_t i = 0; i<n; i++){
-    score[i] = numb%10;
-    numb = numb/10; 
-    }
-    reverseArray(score, n);
-    for(uint8_t i; i<n; i++){
-        printDigits(score[i],i*4);}
+    reverseArray(score, count);
+    for(uint8_t i; i<count; i++){
+      printDigits(score[i],i*4);}
     resp.resp = 0;
 }
 ros::ServiceServer<ebobot::LcdShow::Request, ebobot::LcdShow::Response> lcd_server("lcd_service", &lcdCallback);
