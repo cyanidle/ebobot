@@ -6,7 +6,8 @@
 
 
 
-
+//char motors_debug[50];
+//bool motors_debugged = true;
 //////////////////////////////////////////////////////
 int num_motors = -1;
 Motors *motors[MAX_MOTORS]; 
@@ -19,6 +20,8 @@ void Motors::isr4(){motors[4]->handle();}
 void Motors::isr5(){motors[5]->handle();}
 void Motors::attachIsr(int num){
       uint8_t _pin = motors[num]->layout.encoder_pin_a;
+      //sprintf(motors_debug, "Attaching isr to pin %d", _pin);
+      //motors_debugged = false;
       switch (num)
       {
         case 0:
@@ -76,13 +79,14 @@ void Motors::begin(float _loop_delay){
 void Motors::motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
     if (req.motor - num_motors > 1) resp.resp = 1;
     else{   
-        pin_layout layout{
-          req.pin_layout.encoder_a,
-          req.pin_layout.encoder_b,
-          req.pin_layout.pwm,
-          req.pin_layout.fwd_dir,
-          req.pin_layout.back_dir,
-        };
+        pin_layout layout;
+        layout.encoder_pin_a = req.pin_layout.encoder_a;
+        layout.encoder_pin_b = req.pin_layout.encoder_b;
+        layout.pwm_pin = req.pin_layout.pwm;
+        layout.fwd_dir_pin = req.pin_layout.fwd_dir;
+        layout.back_dir_pin = req.pin_layout.back_dir;
+       
+        
         Motors new_motor{req.motor,layout,req.wheel_rad,req.ticks_per_rotation,
         req.pid.P,req.pid.I,req.pid.D,req.turn_max_speed,req.max_speed,
         req.angle};}

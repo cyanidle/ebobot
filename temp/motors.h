@@ -210,7 +210,7 @@ void update_mot(int mot){
 //////////////////////////////////////////////////////////////
 void encoder0()
 {
-  bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
+  (digitalRead(ENCODER_PINB0) == HIGH);
   X[0] += (temp * 1) + (!temp * -1);
 }
 void encoder1()

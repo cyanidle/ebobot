@@ -68,6 +68,11 @@ void loop()
 {
   if (main_loop.tick()){
     Motors::update_all();
+    //if (not motors_debugged){
+    //  nh.loginfo(motors_debug);
+    //  motors_debugged = true;
+    //}
+    nh.spinOnce();
   }
 
   if (servo_loop.tick()){
