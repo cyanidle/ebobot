@@ -3,14 +3,14 @@
 /////////////////////////
 #include "TimerMs.h"
 ///////////////////////////
-#include "new_motors.h"
+#include "motors.h"
 #include "servos.h"
 #include "kadyrov_lcd.h"
 #include "pin_reader.h"
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1324, 1324> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 7, 10, 1124, 1124> nh; // recieve/publish
 #define BAUD_RATE 115200
 ///////////////////////Loop settings
 const int loop_delay = 50;

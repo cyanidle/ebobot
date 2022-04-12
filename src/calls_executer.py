@@ -87,7 +87,7 @@ class Calls: #Async
                     if Execute.debug:
                         rospy.loginfo(f"Couroutine = {_corout}")
                 resps.append(await _corout)
-                await asyncio.sleep(0.08)
+                await asyncio.sleep(0.05)
             if Execute.debug:
                 rospy.loginfo(f"Executed static {self.name}, responces = {resps}")
             if 1 in resps:
@@ -156,6 +156,7 @@ class Calls: #Async
     async def ServoExec(args):
         rospy.sleep(0.2)
         proxy = rospy.ServiceProxy("servos_service", Servos)
+        rospy.wait_for_service("servos_service")
         if Execute.debug:
             rospy.logwarn(f"Calling servos_service with args:{args}")
         return proxy(args).resp
@@ -165,10 +166,12 @@ class Calls: #Async
     @staticmethod
     async def LcdExec(args):
         proxy = rospy.ServiceProxy("lcd_service", LcdShow)
+        rospy.wait_for_service("lcd_service")
         return proxy(args).resp
     @staticmethod
     async def ohmsExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
+        rospy.wait_for_service("pin_reader_service")
         resp = round(float(1023*50_000*(1023 - proxy(args).resp))/1000,2)
         if abs(resp-1) < 0.2:
             return "low"
@@ -186,6 +189,7 @@ class Calls: #Async
     @staticmethod
     async def adjExec(args):
         proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
+        rospy.wait_for_service("adjust_pos_service")
         proxy(args)
         return "done"
     @staticmethod
@@ -198,6 +202,7 @@ class Calls: #Async
     @staticmethod
     async def adjToggleExec(args):
         proxy = rospy.ServiceProxy("adjust_toggle_service", SetBool)
+        rospy.wait_for_service("adjust_toggle_service")
         resp = proxy(args)
         if resp.success == True:
             return "done"
@@ -214,6 +219,7 @@ class Calls: #Async
     @staticmethod
     async def pinExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
+        rospy.wait_for_service("pin_reader_service")
         proxy(args)
         return "done"
     @staticmethod

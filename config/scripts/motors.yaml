@@ -1,5 +1,3 @@
-turn_max_speed: 0.25 
-max_speed: 0.50  
 0: # num
   angle: 90
   #--pins
@@ -14,6 +12,8 @@ max_speed: 0.50
   d: 3.5
   wheel_rad: 0.185
   ticks_per_rotation: 360
+  turn_max_speed: 0.25 
+  max_speed: 0.50  
 1:
   angle: 210
   #--pins
@@ -28,6 +28,8 @@ max_speed: 0.50
   d: 3.5
   wheel_rad: 0.185
   ticks_per_rotation: 360
+  turn_max_speed: 0.25 
+  max_speed: 0.50
 2:
   angle: 330
   #--pins
@@ -42,3 +44,5 @@ max_speed: 0.50
   d: 3.5
   wheel_rad: 0.185
   ticks_per_rotation: 360
+  turn_max_speed: 0.25 
+  max_speed: 0.50

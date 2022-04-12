@@ -1,6 +1,11 @@
 #include "new_motors.h"
 
+
+//////////////////////////
+////////
 using namespace Omnimotors;
+
+
 void Motors::speedCallback(const geometry_msgs::Twist &cmd_vel){
     if (num_motors == 0 ) return;
     float x = cmd_vel.linear.x;
@@ -114,9 +119,11 @@ void Motors::updateMotors(){
       }
     } 
 //////////////////////////////////////
-    static void Motors::isr0(){ __motors[0]->handler();};
-    static void Motors::isr1(){ __motors[1]->handler();};
-    static void Motors::isr2(){ __motors[2]->handler();};
-    static void Motors::isr3(){ __motors[3]->handler();};
-    static void Motors::isr4(){ __motors[4]->handler();};
-    static void Motors::isr5(){ __motors[5]->handler();};
+    void Motors::isr0(){ __motors[0]->handler();};
+    void Motors::isr1(){ __motors[1]->handler();};
+    void Motors::isr2(){ __motors[2]->handler();};
+    void Motors::isr3(){ __motors[3]->handler();};
+    void Motors::isr4(){ __motors[4]->handler();};
+    void Motors::isr5(){ __motors[5]->handler();};
+//////////////////////////////////////
+

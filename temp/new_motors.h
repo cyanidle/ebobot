@@ -5,18 +5,15 @@
 #include <ebobot/NewMotor.h>
 #include <geometry_msgs/Twist.h>
 //////////////////////////
+inline ebobot::MotorsInfo motors_msg;
+inline ros::Publisher motors_info("/motors_info", &motors_msg);
+//////////////////////////
 #define MAX_MOTORS 6 // 6 is absolute maximum
-bool motors_debugged = false;
-char motors_debug_msg[40];
-//////////////////////////
-ebobot::MotorsInfo motors_msg;
-ros::Publisher motors_info("/motors_info", &motors_msg);
-//////////////////////////
 namespace Omnimotors{
-  float coeff = 1;
-  int num_motors = 0;
-  float __motors_loop_delay = 20;
-  float dtime = __motors_loop_delay / 1000.0;
+  inline float coeff = 1;
+  inline int num_motors = 0;
+  inline float __motors_loop_delay = 20;
+  inline float dtime = __motors_loop_delay / 1000.0;
   struct pin_layout{
     uint8_t encoder_pin_a;
     uint8_t encoder_pin_b;
@@ -107,18 +104,18 @@ namespace Omnimotors{
           motors_msg.ddist = ddist;
           motors_info.publish(&motors_msg);
       }
-    inline static void isr0();
-    inline static void isr1();
-    inline static void isr2();
-    inline static void isr3();
-    inline static void isr4();
-    inline static void isr5();
+    static void isr0();
+    static void isr1();
+    static void isr2();
+    static void isr3();
+    static void isr4();
+    static void isr5();
     //////////////////////////////////////
     public:
-      inline static void updateMotors();
-      inline static void begin(float loop_delay);
-      inline static void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp);
-      inline static void speedCallback(const geometry_msgs::Twist &cmd_vel);
+      static void updateMotors();
+      static void begin(float);
+      static void motorsSettingsCallback(const ebobot::NewMotor::Request &, ebobot::NewMotor::Response &);
+      static void speedCallback(const geometry_msgs::Twist &);
       /////////////////////
       Motors(float angle, pin_layout mot_pin_layout,
         float _p, float _i, float _d,
@@ -150,8 +147,9 @@ namespace Omnimotors{
         pinMode(mot_pin_layout.back_dir_pin, OUTPUT);
         }
   };
-  Motors * __motors[MAX_MOTORS];
+  inline Motors * __motors[MAX_MOTORS];
+  /////////////////////////////////////
+  
 }
-/////////////////////////////////////
-ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &Omnimotors::Motors::motorsSettingsCallback);
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &Omnimotors::Motors::speedCallback);
+  inline ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &Omnimotors::Motors::motorsSettingsCallback);
+  inline ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &Omnimotors::Motors::speedCallback);
