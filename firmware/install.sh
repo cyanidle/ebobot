@@ -6,6 +6,7 @@ if [ -d $arduino_dir ];then
 echo "Found Arduino directory - $arduino_dir"
 cp -rf "$firmware_dir/iarduino_MultiServo-1.1.3" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/LiquidCrystal_I2C_V112" "$arduino_dir/libraries"
+cp -rf "$firmware_dir/Vector" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/TimerMs" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/main" "$arduino_dir/"
 echo "Libraries copied successfully"

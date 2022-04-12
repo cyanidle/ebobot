@@ -8,6 +8,7 @@
 #include <ros.h>
 #include <ebobot/NewMotor.h>
 #include <geometry_msgs/Twist.h>
+#include <Vector.h>
 ///
 struct pin_layout
 {
@@ -21,13 +22,14 @@ struct pin_layout
 class Motors{
     public:
     Motors(pin_layout);
-    static void isr0();
-    static void isr1();
-    static void isr2();
-    static void isr3();
-    static void isr4();
-    static void isr5();
-    static Motors * motors_list[MAX_MOTORS];
+    static void update_all();
+    ///////////////////////
+    static void isr0(){motors_list[0]->update()};
+    static void isr1(){motors_list[1]->update()};
+    static void isr2(){motors_list[2]->update()};
+    static void isr3(){motors_list[3]->update()};
+    static void isr4(){motors_list[4]->update()};
+    static void isr5(){motors_list[5]->update()};
     ///
     private:
     ///
@@ -52,9 +54,9 @@ class Motors{
     void PID();
     void update();
     void termsReset();
+    static void speedCallback(const geometry_msgs::Twist&);
+    static void motorsSettingsCallback(const ebobot::NewMotor::Request&, ebobot::NewMotor::Response&);
 };
 
-#define MOTORS motors_ptr  
-
-
+//#define MOTORS motors_list  
 #endif
