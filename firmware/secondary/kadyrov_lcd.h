@@ -192,7 +192,7 @@ void lcdCallback(const ebobot::LcdShow::Request &req, ebobot::LcdShow::Response 
     uint16_t numba = numb; //распускается на цифры в ходе подсчета
     uint8_t count = 0; //количество цифр
     //////////////подсчет цифр в числе
-    scanf("%d",&numba);
+    //scanf("%d",&numba);
     while(numba){
     numba/=10;
     count++;
