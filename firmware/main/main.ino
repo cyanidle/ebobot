@@ -35,8 +35,6 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 const int loop_delay = 50;
 const int servo_loop_delay = 150;
 TimerMs main_loop(loop_delay, 1, 0);
-TimerMs servo_loop(servo_loop_delay, 1, 0);
-TimerMs start_loop(200, 1, 0);
 
 ///////////////////////// ENCODER
 
@@ -211,17 +209,7 @@ void update_mot(int mot){
     }
   }
 }
-//////////////////////////////////////////////////////
-void debugServo(int num){
-     Servo_mot* servo = ptr_list[num];
-     char buffer[60];
-     int target;
-     sprintf(buffer, "Servo%d ch%d,min%d,max%d,spd%d,targ%d,curr%d,free%d",
-     num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,freeRam());
-     nh.logwarn(buffer);
-}
-//////////////////////////////////////////////////////////////
-
+///////////
 void encoder0()
 {
   bool temp = (digitalRead(ENCODER_PINB0) == HIGH);
@@ -241,32 +229,11 @@ void encoder2()
 /////////////////////////////////////////////////
 void setup()
 {
-  nh.getHardware()-> setBaud(BAUD_RATE);
+  nh.getHardware()->setBaud(BAUD_RATE);
   nh.initNode();
   nh.advertise(motors_info);
   nh.subscribe(speed_sub);
   nh.subscribe(set_pid);
-  
-  //
-  nh.advertiseService(servos_server);
-  nh.advertiseService(servos_settings_server);
-  nh.advertiseService(lcd_server);
-  nh.advertiseService(pin_reader_server);
-  // Инициализация наших хедеров
-  nh.advertise(start_trigger);
-  pinMode(_start_pin, INPUT_PULLUP);
-  pinMode(_switch_pin, INPUT_PULLUP);
-  ///////////////////////////////
-  lcdSetup();
-  if (servosSetup())
-    nh.logwarn("Servos shield found");
-  else
-    nh.logerror("Servos shield not found!");
-  ////////////////////////////////
-  // motors_msg.layout.data_offset = 0;
-  // motors_msg.data_length = 12;
-  // motors_msg.data = (float *)malloc(sizeof(float) * 12);
-  ///////////////////////////////
   attachInterrupt(digitalPinToInterrupt(ENCODER_PINA0), encoder0, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PINA1), encoder1, RISING); //Не забудь объявить (войну неграм)
   attachInterrupt(digitalPinToInterrupt(ENCODER_PINA2), encoder2, RISING);
@@ -282,8 +249,6 @@ void setup()
   pinMode(EN2, OUTPUT);
   pinMode(FWD2, OUTPUT);
   pinMode(BCK2, OUTPUT);
-  ////////
-  //_allow_publish = true;
 }
 ////////////////////////////////
 void loop()
@@ -298,19 +263,8 @@ void loop()
       motors_msg.current_speed = curr_spd[mot];
       motors_msg.ddist = ddist[mot];
       motors_info.publish(&motors_msg);
+      nh.spinOnce();
     }
-  }
-
-  if (servo_loop.tick()){
-    servosUpdate();
-    if (not servos_debugged){
-      nh.logwarn(servos_debug); 
-      }
-      //debugServo(0);
-    servos_debugged = true;
-  }
-  if (start_loop.tick()){
-    startUpdate();
   }
   nh.spinOnce();
 }

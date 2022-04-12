@@ -250,14 +250,11 @@ void setup()
   //
   nh.advertiseService(servos_server);
   nh.advertiseService(servos_settings_server);
-  nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
-  ///////////////////////////////
-  lcdSetup();
   if (servosSetup())
     nh.logwarn("Servos shield found");
   else
