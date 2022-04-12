@@ -307,7 +307,7 @@ class Beacons(Laser):
     #/Beacon params
     #Globals
     deltas = []
-    cycle = 0
+    cycle = 1
     delta_th = 0
     delta_pos = (0,0)
     pose = (0,0)
