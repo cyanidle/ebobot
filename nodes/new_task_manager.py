@@ -33,66 +33,79 @@ class StartHandler:
     start_subscriber = rospy.Subscriber(start_topic, Int8, startCallback)
     #
     raw_scripts = rospy.get_param("~scripts")
+    rospy.logwarn(f"Got scripts {raw_scripts}")
     scripts = []
     route_suffix = 2
+    def __repr__(self) -> str:
+        return f"<Script| Commands:{self.raw_commands}>"
+    def __str__(self) -> str:
+        return f"<Script| Commands:{self.raw_commands}>"
     @classmethod
     def initialise(cls):
+        #cls.raw_scripts = Manager.read(cls.raw_scripts_file)
         if not len(cls.raw_scripts):
             rospy.logerr("No scripts found!")
         for script in cls.raw_scripts:
             _init = StartHandler(script)
+            #if _init.parse_flag:
+            #    _init.parse_route()
     def __init__(self, raw: str) -> None:
         self.actions = []
         self.args = []
         self.obj_dict = {}
         self.raw_route = "test_route"
         raw_commands = raw.split("/")
+        self.raw_commands = raw_commands
+        rospy.logwarn(f"Initting script with commands {raw_commands}")
         self.parse_flag = 0
         for num, command in enumerate(raw_commands):
-            if not num % 2:
+            if num % 2:
                 continue
             ##### only odd elements are considered commands
+            #print(f"{command}|{StartHandler.allowed}|{command in StartHandler.allowed}")
             if not command in StartHandler.allowed:
                 rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
                 continue
             #####
-            if command == "parse":
+            if command == "parse_route":
                 self.parse_flag = 1
                 self.raw_route = raw_commands[num+1]
-                self.parse()
+                self.parse_route()
                 continue
             #####
             try:
-                self.actions.append(self.__dict__[command])
+                self.actions.append(getattr(self, command))
             except:
-                rospy.logerr("Incorrect syntax for start script (action/arg/action/arg)")
+                rospy.logerr("Incorrect syntax for start script (should be: action/arg/action/arg)")
             if not command == "exec_route":
                 self.args.append(raw_commands[num + 1])
             else:
-                self.args.append(None)                
+                self.args.append(None)  
+            StartHandler.scripts.append(self)              
     @classmethod
     def default(cls):
         if len(cls.scripts):
-            cls.scripts[0].exec()
+            rospy.logwarn(f"Scripts ready!\nScripts:{cls.scripts}")
         else:
             rospy.logerr("Start scripts not initialised!")
     @staticmethod
-    def deprHandle(data): 
+    def deprHandle(data: int): 
         StartHandler.scripts[data].exec()
     @staticmethod
     def handle(data):
         raise NotImplementedError("New handle functionality not ready yet!")
     ######
     def exec(self):
+        rospy.logwarn(f'Executing script {self}')
         for action, args in zip(self.actions, self.args):
             action(args)
     ######
     def parse_route(self):
         if not StartHandler.route_suffix is None:
-            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}{StartHandler.route_suffix}"
+            _route = f"{Manager.routes_dir}/{self.raw_route}{StartHandler.route_suffix}.yaml"
         else:
-            self.raw_route = f"{Manager.routes_dir}/{self.raw_route}"
-        self.route = Manager.read(self.raw_route)
+            _route = f"{Manager.routes_dir}/{self.raw_route}.yaml"
+        self.route = Manager.read(_route)
         Manager.parse(self)
     ###### SCRIPT EXECUTABLES
     def exec_route(self, _placeholder):
@@ -280,7 +293,7 @@ class Move(Template):
         return f"<{type(self).__name__} {self.num}|pos:{self.pos}|status:{self.status.get()}>"
     def __init__(self, parent, name, args):
         super().__init__(parent, name, args)
-        rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.curr_obj_dict['Move'])}|POS = {args}")
+        #rospy.logerr(f"INITTING MOVE! NUMBER OF MOVES = {len(Manager.curr_obj_dict['Move'])}|POS = {args}")
         parsed = args.split("/")
         try:
             self.pos = (float(parsed[1]),float(parsed[0]))
@@ -292,7 +305,7 @@ class Move(Template):
         type(self).client.setTarget(self.pos,self.th)
         _stat = self.status.get()
         _ended = 0
-        while not _ended and not rospy.is_shutdown() and Flags._execute:
+        while not _ended and not rospy.is_shutdown():
             _stat = type(self).client.checkResult()
             if Manager.debug:
                 rospy.loginfo(f"Move server feedback {_stat}")
@@ -567,7 +580,10 @@ class Timer(Template):
     async def midExec(self) -> None:
         self._allow_flag = True
     def delete(self):
-        Timer.list.remove(self)
+        try:
+            Manager.curr_obj_dict["Timer"].remove(self)
+        except:
+            rospy.logerr("Delete Timer called when objects dictionary is empty")    
     def updateStatus(self):
         if self._allow_flag:
             #print (f"{self.time = }")
@@ -716,7 +732,7 @@ class Manager:
         await asyncio.sleep(0.1)
         main_timer = Timer(Timer,"main","main")
         main_timer._allow_flag = 1
-        while not rospy.is_shutdown() and Flags._execute:
+        while not rospy.is_shutdown():
             await Task.checkForInterrupt()
             if Manager.current_task<len(Manager.curr_obj_dict["Task"]):
                 task = Manager.curr_obj_dict["Task"][Manager.current_task]

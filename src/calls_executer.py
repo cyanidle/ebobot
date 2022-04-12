@@ -156,7 +156,7 @@ class Calls: #Async
     async def ServoExec(args):
         rospy.sleep(0.2)
         proxy = rospy.ServiceProxy("servos_service", Servos)
-        rospy.wait_for_service("servos_service")
+        rospy.wait_for_service("servos_service",0.2)
         if Execute.debug:
             rospy.logwarn(f"Calling servos_service with args:{args}")
         return proxy(args).resp
@@ -166,12 +166,12 @@ class Calls: #Async
     @staticmethod
     async def LcdExec(args):
         proxy = rospy.ServiceProxy("lcd_service", LcdShow)
-        rospy.wait_for_service("lcd_service")
+        rospy.wait_for_service("lcd_service",0.2)
         return proxy(args).resp
     @staticmethod
     async def ohmsExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
-        rospy.wait_for_service("pin_reader_service")
+        rospy.wait_for_service("pin_reader_service",0.2)
         resp = round(float(1023*50_000*(1023 - proxy(args).resp))/1000,2)
         if abs(resp-1) < 0.2:
             return "low"
@@ -189,7 +189,7 @@ class Calls: #Async
     @staticmethod
     async def adjExec(args):
         proxy = rospy.ServiceProxy("adjust_pos_service", Empty)
-        rospy.wait_for_service("adjust_pos_service")
+        rospy.wait_for_service("adjust_pos_service",0.2)
         proxy(args)
         return "done"
     @staticmethod
@@ -202,7 +202,7 @@ class Calls: #Async
     @staticmethod
     async def adjToggleExec(args):
         proxy = rospy.ServiceProxy("adjust_toggle_service", SetBool)
-        rospy.wait_for_service("adjust_toggle_service")
+        rospy.wait_for_service("adjust_toggle_service",0.2)
         resp = proxy(args)
         if resp.success == True:
             return "done"
@@ -219,7 +219,7 @@ class Calls: #Async
     @staticmethod
     async def pinExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
-        rospy.wait_for_service("pin_reader_service")
+        rospy.wait_for_service("pin_reader_service",0.2)
         proxy(args)
         return "done"
     @staticmethod
@@ -236,7 +236,11 @@ async def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
     parsed.num = num
-    return await Calls.LcdExec(parsed)
+    try:
+        return await Calls.LcdExec(parsed)
+    except:
+        rospy.logerr("Lcd unavailable!")
+        return "fail"
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")
