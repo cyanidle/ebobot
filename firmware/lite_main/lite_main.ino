@@ -5,7 +5,9 @@
 #include <geometry_msgs/Twist.h>
 /////////////////////////
 #include "TimerMs.h"
-
+#include "pin_reader.h"
+#include "servos.h"
+#include "start_trigger.h"
 ////////////////////////////ROS init
 ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
 

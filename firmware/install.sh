@@ -8,6 +8,8 @@ cp -rf "$firmware_dir/iarduino_MultiServo-1.1.3" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/LiquidCrystal_I2C_V112" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/TimerMs" "$arduino_dir/libraries"
 cp -rf "$firmware_dir/main" "$arduino_dir/"
+cp -rf "$firmware_dir/secondary" "$arduino_dir/"
+cp -rf "$firmware_dir/lite_main" "$arduino_dir/"
 echo "Libraries copied successfully"
 
 cd "$arduino_dir/libraries"
