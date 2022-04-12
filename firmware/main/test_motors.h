@@ -120,8 +120,5 @@ class Motors{
     };
     
 };
-ebobot::MotorsInfo motors_msg;
-ros::Publisher motors_info("motors_info", &motors_msg);
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &Motors::speedCallback);
-ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &Motors::motorsSettingsCallback);
+
 #endif
