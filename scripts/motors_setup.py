@@ -9,6 +9,7 @@ rospy.init_node('motors_setup')
 from ebobot.srv import NewMotor, NewMotorRequest
 from ebobot.msg import NewMotorPlain
 #
+msg_pub = rospy.Publisher("/motors_settings", NewMotorPlain, queue_size=3)
 def read(file):
         with open(file, "r") as stream:
             try:
@@ -19,7 +20,6 @@ def read(file):
 def main():
     rospy.logwarn(f"Setting values for motors...")
     file = rospy.get_param("~file", "config/motors.yaml")
-    msg_pub = rospy.Publisher("/motors_settings", NewMotorPlain, queue_size=3)
     req = NewMotorRequest()
     req1 = NewMotorPlain()
     dict = read(file)

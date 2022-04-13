@@ -83,7 +83,7 @@ class Motors():
         self.angle = angle
         self.radians = math.radians(angle)
         Motors.list.append(self)
-        rospy.loginfo(f"Motor {num} initialised with angle - {angle}, radians - {self.radians}")
+        rospy.logwarn(f"Motor {num} initialised with angle - {angle}, radians - {self.radians}")
     def updateOdom():              
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
@@ -99,12 +99,13 @@ class Motors():
         Motors.theta = Motors.theta % (2 * math.pi)
 #######################################################      
 def callback(info):
-    Motors.list[info.num].curr = info.current_speed
-    Motors.list[info.num].targ = info.target_speed
-    Motors.list[info.num].ddist = info.ddist
-    if info.num == len(Motors.list)-1:
-        Motors.updateOdom()
-        Motors.last_time = rospy.Time.now()
+    if info.num <= len(Motors.list)-1:
+        Motors.list[info.num].curr = info.current_speed
+        Motors.list[info.num].targ = info.target_speed
+        Motors.list[info.num].ddist = info.ddist
+        if info.num == len(Motors.list)-1:
+            Motors.updateOdom()
+            Motors.last_time = rospy.Time.now()
 #######################################################
 report_each = rospy.get_param('~report_each', 10)
 def main():
@@ -137,11 +138,12 @@ def main():
         last_time = current_time   
         rate.sleep()
 def motorCB(motor):
-    num = motor.motors
-    if num > len(Motors.list):
-        new_mot = Motors(0,motor.angle)
+    num = motor.motor
+    rospy.loginfo(f"Got new motor {num}")
+    if num > len(Motors.list)-1:
+        new_mot = Motors(num,motor.angle)
     else:
-        Motors.list[num] = Motors(0,motor.angle)
+        Motors.list[num] = Motors(num,motor.angle)
 if __name__=="__main__":
     new_mot_sub = rospy.Subscriber("/motors_settings", NewMotorPlain, motorCB)
     motors_info_subscriber = rospy.Subscriber("motors_info", MotorsInfo, callback)

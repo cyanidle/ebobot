@@ -10,7 +10,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 7, 10, 1124, 1124> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 8, 10, 1524, 1524> nh; // recieve/publish
 #define BAUD_RATE 115200
 ///////////////////////Loop settings
 const int loop_delay = 50;
