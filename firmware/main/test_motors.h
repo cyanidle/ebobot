@@ -13,6 +13,7 @@
 #include <ebobot/MotorPinLayout.h>
 #include <geometry_msgs/Twist.h>
 ///
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1224, 1224>* sub_nh;
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 struct pin_layout
@@ -25,6 +26,7 @@ struct pin_layout
   
 };
 char motors_debug[60];
+//char motors_second_debug[60];
 bool motors_debugged = true;
 class Motors{
     public:
@@ -45,8 +47,9 @@ class Motors{
     Motors(pin_layout _pin_layout, float _rad, float _ticks_per_rotation,
      float _p, float _i, float _d,
      float _turn_max_speed, float _max_speed, float _angle){
-    sprintf(motors_debug, "NewMot,pin_a:%d,pin_b:%d,rad%d,prop%d", _pin_layout.encoder_pin_a, _pin_layout.encoder_pin_b,_rad,_p);
-        motors_debugged = false;
+    sprintf(motors_debug, "NewMot,pin_a:%d,pin_b:%d,rad%d,prop%d,max_spd%d,bytes%d",
+    _pin_layout.encoder_pin_a, _pin_layout.encoder_pin_b,(int)(_rad*1000.0),(int)_p,(int)(_max_speed*1000),sizeof(Motors));
+     sub_nh->logwarn(motors_debug);
     layout = _pin_layout;
     rad = _rad; ticks_per_rotation = _ticks_per_rotation;
     prop_coeff = _p; inter_coeff = _i; diff_coeff = _d;
@@ -116,9 +119,10 @@ class Motors{
 };
 
 //////////////////////////////////////////////////////
-int num_motors = -1;
+int num_motors = 0;
 Motors *motors[MAX_MOTORS]; 
 
+///
 void isr0(){motors[0]->handle();}
 void isr1(){motors[1]->handle();}
 void isr2(){motors[2]->handle();}
@@ -165,12 +169,16 @@ void update_all_motors(){
         motors_msg.current_speed = motors[i]->curr_spd;
         motors_msg.ddist = motors[i]->ddist;
         motors_info.publish(&motors_msg);
+        
     }
-    
-    //sprintf(motors_debug, "Motor1:curr:%d,targ:%d",(int)motors[0]->curr_spd, (int)motors[0]->targ_spd);
-    //    motors_debugged = false;
+    sprintf(motors_debug, "Motor0:curr:%d,targ:%d##Motor1:curr:%d,targ:%d",
+    (int)(motors[0]->curr_spd*1000), (int)(motors[0]->targ_spd*1000),(int)(motors[1]->curr_spd*1000), (int)(motors[1]->targ_spd*1000));
+    sub_nh->loginfo(motors_debug);
+    sprintf(motors_debug, "Motor2:curr:%d,targ:%d",(int)(motors[2]->curr_spd*1000), (int)(motors[2]->targ_spd*1000));
+    sub_nh->loginfo(motors_debug);
 }
-void motors_begin(float _loop_delay){
+void motors_begin(float _loop_delay, ros::NodeHandle_<ArduinoHardware, 10, 10, 1224, 1224>* _nh){
+      sub_nh = _nh;
      for (int mot = 0; mot < num_motors; mot++){
       motors[mot]->loop_delay = _loop_delay;
       motors[mot]->dtime = _loop_delay/1000.0; 
@@ -185,18 +193,26 @@ void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMot
         layout.pwm_pin = req.pin_layout.pwm;
         layout.fwd_dir_pin = req.pin_layout.fwd_dir;
         layout.back_dir_pin = req.pin_layout.back_dir;
-        motors[req.motor] = (Motors *) new Motors(layout,req.wheel_rad,req.ticks_per_rotation,
-        req.pid.P,req.pid.I,req.pid.D,req.turn_max_speed,req.max_speed,
-        req.angle);}
+        //
+
         
         if (req.motor > num_motors){
-        num_motors++;
-        motors[num_motors] = motors[req.motor];
+        motors[num_motors] = (Motors *) new Motors(layout,req.wheel_rad,req.ticks_per_rotation,
+        req.pid.P,req.pid.I,req.pid.D,req.turn_max_speed,req.max_speed,
+        req.angle);        
         attachIsr(num_motors);
+        num_motors++;
         } 
         else{
-            motors[req.motor] = motors[req.motor];
+            delete motors[req.motor];
+            motors[req.motor] = (Motors *) new Motors(layout,req.wheel_rad,req.ticks_per_rotation,
+        req.pid.P,req.pid.I,req.pid.D,req.turn_max_speed,req.max_speed,
+        req.angle);
             attachIsr(req.motor);
+        }
+        sprintf(motors_debug, "num_motors%d,req.motor%d",
+        num_motors,req.motor);
+        sub_nh->logwarn(motors_debug);
     }
 }
 
@@ -209,7 +225,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel){
     y = constrain(y, -1, 1);
     for (int mot = 0; mot < num_motors; mot++)
     {
-        Motors * motor = motors[mot];
+        Motors  *motor = motors[mot];
         if (x == 0 and y == 0 and turn == 0)
         {
         motor->stop_mot = true;

@@ -118,7 +118,7 @@ def main():
                 rospy.loginfo("__________________")
                 rospy.loginfo(f"x = {Motors.x},y = {Motors.y},th = {Motors.theta}")
                 for mot in Motors.list:    
-                    rospy.loginfo(f"motor {mot.num}: {mot.curr}, {mot.targ},{mot.dist},{mot.ddist}")
+                    rospy.loginfo(f"motor {mot.num}: {mot.curr},{mot.dist},{mot.ddist}")
         current_time = rospy.Time.now()
         odom_quat = tf.transformations.quaternion_from_euler(0, 0, Motors.theta)
         odom_broadcaster.sendTransform(

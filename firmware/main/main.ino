@@ -10,7 +10,7 @@
 #include "start_trigger.h"
 ////////////////////////////Все скорости в м/с
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 8, 10, 1524, 1524> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1224, 1224> nh; // recieve/publish
 #define BAUD_RATE 115200
 ///////////////////////Loop settings
 const int loop_delay = 50;
@@ -48,7 +48,7 @@ void setup()
   nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
-  motors_begin(loop_delay);
+  motors_begin(loop_delay, &nh);
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
@@ -64,12 +64,14 @@ void loop()
 {
   if (main_loop.tick()){
     update_all_motors();
-    if (not motors_debugged){
-      nh.logwarn(motors_debug);
-      motors_debugged = true;
-    }
     nh.spinOnce();
-  }
+    //if (not motors_debugged){
+    //  nh.logwarn(motors_debug);
+    //  nh.logwarn(motors_second_debug);
+    //  motors_debugged = true;
+    }
+    
+  
 
   if (servo_loop.tick()){
     servosUpdate();
