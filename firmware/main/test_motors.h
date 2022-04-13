@@ -14,6 +14,7 @@
 #include <geometry_msgs/Twist.h>
 ///
 ebobot::MotorsInfo motors_msg;
+ros::Publisher motors_info("motors_info", &motors_msg);
 struct pin_layout
 {
   uint8_t encoder_pin_a;
@@ -27,6 +28,7 @@ char motors_debug[60];
 bool motors_debugged = true;
 class Motors{
     public:
+    float ddist = 0; 
     float targ_spd = 0; 
     float curr_spd = 0; 
     float last_spd = 0;
@@ -58,8 +60,7 @@ class Motors{
       X += digitalRead(layout.encoder_pin_b)?1:-1;
     }
     void update(){
-        dX = X;
-        ddist = dX * (rad / ticks_per_rotation);
+        ddist = X * (rad / ticks_per_rotation);
         X = 0;
         dist = dist + ddist;
         curr_spd = ddist * 1000.0 / loop_delay;
@@ -94,10 +95,8 @@ class Motors{
     float prop_coeff = 300; 
     float inter_coeff = 350; 
     float diff_coeff = 3;
-    int dX;
     volatile int X = 0; 
     float dist = 0;
-    float ddist = 0; 
     float ticks_per_rotation;
     float rad;
     float inter_term = 0;
@@ -161,7 +160,13 @@ void attachIsr(int num){
 void update_all_motors(){
     for(int i = 0; i < num_motors; i++){
         motors[i]->update();
+        motors_msg.num = i;
+        motors_msg.target_speed = motors[i]->targ_spd;
+        motors_msg.current_speed = motors[i]->curr_spd;
+        motors_msg.ddist = motors[i]->ddist;
+        motors_info.publish(&motors_msg);
     }
+    
     //sprintf(motors_debug, "Motor1:curr:%d,targ:%d",(int)motors[0]->curr_spd, (int)motors[0]->targ_spd);
     //    motors_debugged = false;
 }
@@ -235,7 +240,7 @@ void speedCallback(const geometry_msgs::Twist &cmd_vel){
     }
 }
 /////////////////////////////////////////////////
-ros::Publisher motors_info("motors_info", &motors_msg);
+
 ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &speedCallback);
 ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &motorsSettingsCallback);
 

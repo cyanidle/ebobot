@@ -7,6 +7,7 @@ roslib.load_manifest('ebobot')
 rospy.init_node('motors_setup')
 #
 from ebobot.srv import NewMotor, NewMotorRequest
+from ebobot.msg import NewMotor as NewMotorMsg
 #
 def read(file):
         with open(file, "r") as stream:
@@ -18,7 +19,9 @@ def read(file):
 def main():
     rospy.logwarn(f"Setting values for motors...")
     file = rospy.get_param("~file", "config/motors.yaml")
+    msg_pub = rospy.Publisher("/motors_settings", NewMotorMsg, queue_size=3)
     req = NewMotorRequest()
+    req1 = NewMotorMsg()
     dict = read(file)
     for num in dict:
         rospy.logwarn(f"Initialising motor {num}")
@@ -37,10 +40,26 @@ def main():
             req.wheel_rad = vals["wheel_rad"]
             req.ticks_per_rotation = vals["ticks_per_rotation"]  
             ################# Global
-            req.turn_max_speed = vals["turn_max_speed"]
-            req.max_speed = vals["max_speed"]
+            req1.turn_max_speed = vals["turn_max_speed"]
+            req1.max_speed = vals["max_speed"]
+            req1.motor = int(num)
+            req1.angle = vals["angle"]
+            req1.pid.P = vals["p"]
+            req1.pid.I = vals["i"]
+            req1.pid.D = vals["d"]
+            req1.pin_layout.encoder_a = vals["encoder_a"]
+            req1.pin_layout.encoder_b = vals["encoder_b"]
+            req1.pin_layout.pwm = vals["pwm"]
+            req1.pin_layout.fwd_dir = vals["fwd_dir"]
+            req1.pin_layout.back_dir = vals["back_dir"]
+            req1.wheel_rad = vals["wheel_rad"]
+            req1.ticks_per_rotation = vals["ticks_per_rotation"]  
+            ###1############## Global
+            req1.turn_max_speed = vals["turn_max_speed"]
+            req1.max_speed = vals["max_speed"]
         except:
             rospy.logerr(f"Incorrect syntax for motor {num}!")
+        msg_pub(req1)
         client(req)
         rospy.sleep(0.5)
 def client(req):

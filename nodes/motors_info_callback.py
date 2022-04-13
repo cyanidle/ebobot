@@ -12,7 +12,7 @@ import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-
+from ebobot.msg import NewMotor
 
 rospy.init_node('motors_info_callback')
 
@@ -83,6 +83,7 @@ class Motors():
         self.angle = angle
         self.radians = math.radians(angle)
         Motors.list.append(self)
+        rospy.loginfo(f"Motor {num} initialised with angle - {angle}, radians - {self.radians}")
     def updateOdom():              
         duration = rospy.Time.now() - Motors.last_time
         delta_secs = duration.to_sec()
@@ -135,7 +136,14 @@ def main():
         odom_pub.publish(odom)
         last_time = current_time   
         rate.sleep()
+def motorCB(motor):
+    num = motor.motors
+    if num > len(Motors.list):
+        new_mot = Motors(0,motor.angle)
+    else:
+        Motors.list[num] = Motors(0,motor.angle)
 if __name__=="__main__":
+    new_mot_sub = rospy.Subscriber("/motors_info", NewMotor, motorCB)
     motors_info_subscriber = rospy.Subscriber("motors_info", MotorsInfo, callback)
     odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
     estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
@@ -143,11 +151,11 @@ if __name__=="__main__":
     odom_broadcaster = tf.TransformBroadcaster()
     rate = rospy.Rate(Motors.Hz)
     #init motors with their angles
-    motor0 = Motors(0,90) 
-    motor1 = Motors(1,210)
-    motor2 = Motors(2,330)
-    for mot in Motors.list:
-        rospy.loginfo(f"Motor {mot.num} initialised with angle - {mot.angle}, radians - {mot.radians}")
+    #motor0 = Motors(0,90) 
+    #motor1 = Motors(1,210)
+    #motor2 = Motors(2,330)
+    
+        
     #rospy.loginfo(f"Motors list {[mot.num for mot in Motors.list]}")
     ###################
     rospy.sleep(1)
