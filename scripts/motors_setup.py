@@ -7,7 +7,7 @@ roslib.load_manifest('ebobot')
 rospy.init_node('motors_setup')
 #
 from ebobot.srv import NewMotor, NewMotorRequest
-from ebobot.msg import NewMotor as NewMotorMsg
+from ebobot.msg import NewMotorPlain
 #
 def read(file):
         with open(file, "r") as stream:
@@ -19,9 +19,9 @@ def read(file):
 def main():
     rospy.logwarn(f"Setting values for motors...")
     file = rospy.get_param("~file", "config/motors.yaml")
-    msg_pub = rospy.Publisher("/motors_settings", NewMotorMsg, queue_size=3)
+    msg_pub = rospy.Publisher("/motors_settings", NewMotorPlain, queue_size=3)
     req = NewMotorRequest()
-    req1 = NewMotorMsg()
+    req1 = NewMotorPlain()
     dict = read(file)
     for num in dict:
         rospy.logwarn(f"Initialising motor {num}")
@@ -59,7 +59,7 @@ def main():
             req1.max_speed = vals["max_speed"]
         except:
             rospy.logerr(f"Incorrect syntax for motor {num}!")
-        msg_pub(req1)
+        msg_pub.publish(req1)
         client(req)
         rospy.sleep(0.5)
 def client(req):

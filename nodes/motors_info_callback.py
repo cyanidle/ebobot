@@ -12,7 +12,7 @@ import math
 import tf
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
 from nav_msgs.msg import Odometry
-from ebobot.msg import NewMotor
+from ebobot.msg import NewMotorPlain
 
 rospy.init_node('motors_info_callback')
 
@@ -143,7 +143,7 @@ def motorCB(motor):
     else:
         Motors.list[num] = Motors(0,motor.angle)
 if __name__=="__main__":
-    new_mot_sub = rospy.Subscriber("/motors_info", NewMotor, motorCB)
+    new_mot_sub = rospy.Subscriber("/motors_settings", NewMotorPlain, motorCB)
     motors_info_subscriber = rospy.Subscriber("motors_info", MotorsInfo, callback)
     odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
     estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
