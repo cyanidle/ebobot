@@ -102,6 +102,7 @@ class Local():
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
     #planer
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
+    
     update_rate = rospy.get_param('~update_rate', 20) # in Hz
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
@@ -112,6 +113,7 @@ class Local():
     num_of_circles = rospy.get_param('~num_of_circles', 2)
     circles_dist = rospy.get_param('~circles_dist', 1) #in cells
     circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
+    cost_threshhold *= circles_step_radians_resolution
     #### Params for footprint cost calc
     base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
