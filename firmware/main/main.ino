@@ -32,11 +32,7 @@ void debugServo(int num){
      num, servo->channel, servo->min_val ,servo->max_val, servo->speed, servo->target_state, servo->curr_val,freeRam());
      nh.logwarn(buffer);
 }
-/////////////////////////////////////////////////
-ebobot::MotorsInfo motors_msg;
-ros::Publisher motors_info("motors_info", &motors_msg);
-ros::Subscriber<geometry_msgs::Twist> speed_sub("cmd_vel", &Motors::speedCallback);
-ros::ServiceServer<ebobot::NewMotor::Request, ebobot::NewMotor::Response> motors_settings_server("motors_settings_service", &Motors::motorsSettingsCallback);
+
 //////////////////////////////////////////////
 void setup()
 {
@@ -52,7 +48,7 @@ void setup()
   nh.advertiseService(lcd_server);
   nh.advertiseService(pin_reader_server);
   // Инициализация наших хедеров
-  Motors::begin(loop_delay);
+  motors_begin(loop_delay);
   nh.advertise(start_trigger);
   pinMode(_start_pin, INPUT_PULLUP);
   pinMode(_switch_pin, INPUT_PULLUP);
@@ -67,11 +63,11 @@ void setup()
 void loop()
 {
   if (main_loop.tick()){
-    Motors::update_all();
-    //if (not motors_debugged){
-    //  nh.loginfo(motors_debug);
-    //  motors_debugged = true;
-    //}
+    update_all_motors();
+    if (not motors_debugged){
+      nh.logwarn(motors_debug);
+      motors_debugged = true;
+    }
     nh.spinOnce();
   }
 

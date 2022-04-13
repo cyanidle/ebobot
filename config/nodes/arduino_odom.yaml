@@ -1,5 +1,6 @@
 #rosserial_arduino: #pkg
 motors_info_callback:
+  report_each: 20
   default_side: 2 #purple - default
   side_topic: /ebobot/begin
   #

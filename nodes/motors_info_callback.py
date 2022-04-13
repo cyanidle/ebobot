@@ -105,6 +105,7 @@ def callback(info):
         Motors.updateOdom()
         Motors.last_time = rospy.Time.now()
 #######################################################
+report_each = rospy.get_param('~report_each', 10)
 def main():
     report_count = 0
     while not rospy.is_shutdown():
