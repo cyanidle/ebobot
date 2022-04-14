@@ -59,7 +59,7 @@ local_planer:
   inertia_compensation_coeff: 0.04 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
-  cost_threshhold: 10000 #100 are walls, then there is inflation
+  cost_threshhold: 50 #100 are walls, then there is inflation
   safe_footprint_radius: 0.20
   update_rate: 12 # in Hz
   rotate_at_end: 1
