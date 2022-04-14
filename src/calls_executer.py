@@ -8,6 +8,7 @@ import asyncio
 from functools import partial
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback, MoveGoal
+from ebobot.srv import ChangeCost, ChangeCostRequest
 from ebobot.srv import (Servos, ServosRequest, ServosResponse, LcdShow,
  LcdShowRequest, LcdShowResponse, PinReaderRequest, PinReader)
 from actionlib_msgs.msg import GoalStatus
@@ -169,13 +170,13 @@ class Calls: #Async
     @staticmethod
     async def ohmsExec(args):
         proxy = rospy.ServiceProxy("pin_reader_service", PinReader)
-        resp = round(float(1023*50_000*(1023 - proxy(args).resp))/1000,2)
-        if abs(resp-1) < 0.2:
-            return "low"
-        elif resp < 1:
-            return "mid"
+        resp = proxy(args).resp
+        if resp < 30:
+            return "yellow"
+        elif resp < 50:
+            return "purple"
         else:
-            return "high"
+            return "red"
     @staticmethod
     def getOhmExec():
         return Calls.ohmsExec
@@ -191,6 +192,18 @@ class Calls: #Async
     @staticmethod
     def parseAdj(_placeholder):
         return EmptyRequest()
+    ################################
+    @staticmethod
+    def getChangeCostExec():
+        return Calls.changeCostExec
+    @staticmethod
+    async def changeCostExec(args):
+        proxy = rospy.ServiceProxy("change_cost_service", ChangeCost)
+        proxy(args)
+        return "done"
+    @staticmethod
+    def parseChangeCost(cost):
+        return ChangeCostRequest(cost)
     ################################
     @staticmethod
     def getAdjToggleExec():
@@ -247,7 +260,8 @@ class Execute:
         "ohm_reader_service": Calls.getOhmExec,
         "adjust_pos_service": Calls.getAdjExec,
         "pin_service": Calls.getPinExec,
-        "adjust_toggle_service": Calls.getAdjToggleExec
+        "adjust_toggle_service": Calls.getAdjToggleExec,
+        "change_cost_service": Calls.getChangeCostExec
     }
     parsers_dict = {
         "servos_service": Calls.parseServos,
@@ -255,7 +269,8 @@ class Execute:
         "ohm_reader_service": Calls.parseOhm,
         "adjust_pos_service": Calls.parseAdj,
         "pin_service": Calls.parsePin,
-        "adjust_toggle_service": Calls.parseAdjToggle
+        "adjust_toggle_service": Calls.parseAdjToggle,
+        "change_cost_service":Calls.parseChangeCost
     }
     @classmethod
     def read(cls):

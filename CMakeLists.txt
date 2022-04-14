@@ -34,6 +34,7 @@ add_action_files(
   )
 add_service_files(
     FILES
+    ChangeCost.srv
     PinReader.srv
     LcdShow.srv
     PIDSettings.srv

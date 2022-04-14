@@ -16,6 +16,7 @@ from calls_executer import executer_dict, showPrediction
 from calls_executer import Move as move_client_constructor
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
+from ebobot.srv import ChangeCost, ChangeCostRequest
 #
 from abc import ABC, abstractmethod
 ##
@@ -252,6 +253,17 @@ class Skip(Template):
                 task._skip_flag = 1
         else:
             Manager.obj_dict["Task"][self.task_num]._skip_flag = 1
+########################################################
+class ChangeCostClass(Template):
+    proxy = rospy.ServiceProxy("change_cost_service", ChangeCost)
+    def __init__(self, parent, name, args):
+        super().__init__(parent, name, args)
+        self.cost = args
+    async def midExec(self) -> None:
+        try:
+            ChangeCostClass.proxy(ChangeCostRequest(self.cost))
+        except:
+            rospy.logerr("Change cost unavailable!")
 ##############################################
 class Call(Template): 
     def __init__(self, parent, name, args):
@@ -662,7 +674,8 @@ constructors_dict = {  #syntax for route.yaml
         "goto": Goto,
         "schedule_task": Schedule,
         "timer": Timer,
-        "change_var": ChangeVar
+        "change_var": ChangeVar,
+        "change_cost": ChangeCostClass
         } 
 
 

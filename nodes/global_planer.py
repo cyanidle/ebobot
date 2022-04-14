@@ -12,6 +12,7 @@ from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from std_msgs.msg import String
+from ebobot.srv import ChangeCost, ChangeCostResponse
 #from visualization_msgs.msg import Marker
 ######
 #from dorlib import dCoordsOnCircle
@@ -85,7 +86,12 @@ def costmapUpdateCallback(update): #not used
             Global.costmap[origin_y + y][origin_x + y] = update.data[x+y]
 
     
-
+def changeCostCB(req):
+    _was=Global._default_max_cost
+    Global.maximum_cost = req.cost
+    Global._default_max_cost = req.cost
+    rospy.logwarn(f"GLOBAL PLANER: Cost changed to {req.cost}")
+    return ChangeCostResponse(_was)
 class Global(): ##Полная жопа
     
     #__slots__ = ()##PLS TEST IF FAILS - DELETE THIS LINE
