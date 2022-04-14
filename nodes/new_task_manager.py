@@ -311,7 +311,7 @@ class Move(Template):
             self.pos = (float(parsed[1]),float(parsed[0]))
             self.th = float(parsed[2])
         except:
-            raise SyntaxError(f"Incorrect move syntax({args})! Use (x/y/th), th in radians")
+            raise SyntaxError(f"Incorrect move syntax({args})! Use (x/y/th), th (rotation) in radians")
     async def midExec(self) -> None:
         Move.curr_obj = self
         type(self).client.setTarget(self.pos,self.th)
@@ -466,9 +466,8 @@ class Task(Template):
         if Manager.debug:
             rospy.loginfo(f"Checking for interrupts")
         _return = 0
-        if Interrupt.queue:
+        while len(Interrupt.queue):
             _return = 1
-        while Interrupt.queue:
             inter = Interrupt.queue.pop()
             await inter.exec()
         return _return
