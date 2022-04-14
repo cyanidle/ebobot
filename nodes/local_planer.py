@@ -98,7 +98,7 @@ class Local():
     #speed coeffs
     full_path_coeff_dist = rospy.get_param('~full_path_coeff_dist', 60) #dist from target in cells at which robot goes full spd
     static_coeff = rospy.get_param('~static_coeff', 0.4)
-    min_path_coeff = rospy.get_param('~min_path_coeff', 0.2) #Final!!
+    min_coeff = rospy.get_param('~min_coeff', 0.2) #Final!!
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
     #planer
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
@@ -260,8 +260,8 @@ class Local():
         else:
             final_coeff = 0
         #rospy.loginfo(f"{final_coeff = }, {cls.full_path_coeff_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
-        if final_coeff < cls.min_path_coeff:
-            final_coeff = cls.min_path_coeff
+        if final_coeff < cls.min_coeff:
+            final_coeff = cls.min_coeff
         if final_coeff > 1:
             final_coeff = 1
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
@@ -374,9 +374,16 @@ class Local():
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:
-                speed_coeff = speed_coeff * (cls.getCost(cls.actual_target)/cls.cost_speed_coeff)
+                _cost_coeff = cls.getCost(cls.actual_target)/cls.cost_threshhold
+                if _cost_coeff> 1:
+                    _cost_coeff = 1
+                elif _cost_coeff < 0:
+                    _cost_coeff = 0
+                speed_coeff = speed_coeff / _cost_coeff * cls.cost_speed_coeff
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
+            if speed_coeff < cls.min_coeff:
+                speed_coeff = cls.min_coeff
             cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos-(cls.robot_twist*cls.inertia_compensation_coeff)) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
             rospy.sleep(1/cls.update_rate)
