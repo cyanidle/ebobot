@@ -13,7 +13,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   #
   recovery_cost_step: 3 #if stuck in beginnig increases allowed cost (DIVIDED BY UPDATE RATE)
   #
-  twist_amplify_coeff: -0.05
+  twist_amplify_coeff: -0.2
   consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
   
   
@@ -30,10 +30,11 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
     - left
     - right
     - right
-    - bot
     - top
     - right
     - top
+    - bot
+    
 #### Cleanup
   cleanup_power: 2        # number of cleanups, ussualy one is enough
   #################################
@@ -43,7 +44,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_threshhold: 0.6   # If planer hasnt moved in (cl_repeats_len) jumps from each
   stuck_dist_threshhold: 0.4 #dist which should be reached in (stuck_check_jumps)
   dead_end_dist_diff_threshhold: 0.7 #if planer backtracks this number of cells, the last point is removed (considered a dead end)
-  update_stop_thresh: 3 # Dist from target, when stops updating route
+  update_stop_thresh: 10 # Dist from target, when stops updating route
   # Step is added:
   dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
 ##################################
@@ -55,15 +56,15 @@ local_planer:
   
   skip_thresh: 5 #max points to skip if fails by cost
   threshhold: 1.5 #in cells, how close to target should robot ride
-  twist_amplify_coeff: 0.5 #depends on resolution, allows to skip points behind
-  inertia_compensation_coeff: 0.04 #allows for shrap turns (in theory)
+  twist_amplify_coeff: 0.7 #depends on resolution, allows to skip points behind
+  inertia_compensation_coeff: 0.01 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
-  cost_threshhold: 10 #100 are walls, then there is inflation
+  cost_threshhold: 20 #100 are walls, then there is inflation
   safe_footprint_radius: 0.20
   update_rate: 12 # in Hz
   rotate_at_end: 1
-  get_lowest_cost: 0 #correct targets to follow lowest cost route
+  get_lowest_cost: 0 #correct targets to follow lowest cost route NOT TESTED
   #Params
   #Features
   use_timed_adj_disable: 0
