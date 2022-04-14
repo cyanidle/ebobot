@@ -374,7 +374,7 @@ class Local():
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:
-                speed_coeff = speed_coeff * cls.cost_speed_coeff* cls.getCost(cls.actual_target)
+                speed_coeff = speed_coeff * (cls.getCost(cls.actual_target)/cls.cost_speed_coeff)
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
             cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos-(cls.robot_twist*cls.inertia_compensation_coeff)) ###ADJUSTS GLOBAL COMAND TO LOCAL
