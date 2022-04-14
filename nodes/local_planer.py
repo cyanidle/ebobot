@@ -377,7 +377,7 @@ class Local():
                     _cost_coeff = 1
                 elif _cost_coeff < cls.min_coeff:
                     _cost_coeff = cls.min_coeff
-                speed_coeff = speed_coeff /(_cost_coeff * cls.cost_speed_coeff)
+                speed_coeff = speed_coeff /_cost_coeff * cls.cost_speed_coeff
                 rospy.logerr_once(f"Cost = {_cost_coeff}")
                 if speed_coeff > 1:
                     speed_coeff = 1
