@@ -7,8 +7,8 @@ laser_scan_callback:
   beacons/enable_adjust_toggle: 1
   default_side: 2 #purple - default
   ############### TOPICS
-  disable_adjust_sec_topic: /disable_adjust_sec
-  side_topic: "/ebobot/begin"
+  disable_adjust_sec_topic: disable_adjust_sec
+  side_topic: ebobot/begin
   ###############
   twist_amplify_coeff: 0.3
   #

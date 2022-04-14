@@ -144,14 +144,14 @@ class Global(): ##Полная жопа
     
 
     #Topics
-    local_status_topic = rospy.get_param('~local_status_topic', '/planers/local/status')
-    rviz_point_topic = rospy.get_param('~rviz_point_topic', '/global_points')
-    rviz_topic = rospy.get_param('costmap_server/rviz_topic','/rviz_path')
-    costmap_topic = rospy.get_param('~costmap_topic','/costmap_server/costmap')
-    costmap_update_topic = rospy.get_param('~costmap_update_topic','/costmap_server/updates')
-    path_publish_topic =  rospy.get_param('~path_publish_topic', '/planers/global/path')
+    local_status_topic = rospy.get_param('~local_status_topic', 'planers/local/status')
+    rviz_point_topic = rospy.get_param('~rviz_point_topic', 'global_points')
+    rviz_topic = rospy.get_param('costmap_server/rviz_topic','rviz_path')
+    costmap_topic = rospy.get_param('~costmap_topic','costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('~costmap_update_topic','costmap_server/updates')
+    path_publish_topic =  rospy.get_param('~path_publish_topic', 'planers/global/path')
     pose_subscribe_topic =  rospy.get_param('~pose_subscribe_topic', 'move_base_simple/goal')
-    robot_pos_topic =  rospy.get_param('~robot_pos_topic',"/odom")
+    robot_pos_topic =  rospy.get_param('~robot_pos_topic',"odom")
     ####
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()

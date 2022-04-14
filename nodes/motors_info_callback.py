@@ -136,7 +136,7 @@ def main():
         rate.sleep()
 if __name__=="__main__":
     motors_info_subscriber = rospy.Subscriber("motors_info", MotorsInfo, callback)
-    odom_pub = rospy.Publisher("/odom", Odometry, queue_size=10)
+    odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
     estimate_subscriber = rospy.Subscriber(Motors.estimate_pos, PoseWithCovarianceStamped, estimateCallback)
     #
     odom_broadcaster = tf.TransformBroadcaster()

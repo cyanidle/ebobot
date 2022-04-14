@@ -1,6 +1,6 @@
 new_task_manager:
   calls_debug: 0
-  start_service: /ebobot/begin
+  start_service: ebobot/begin
   prediction_master: 1
   prediction_topic: /ebobot/new_prediction
   status:

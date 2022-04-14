@@ -50,7 +50,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
 local_planer:
   ##############
   #Topics:
-  disable_adjust_sec_topic: /disable_adjust_sec
+  disable_adjust_sec_topic: disable_adjust_sec
   ###############
   
   skip_thresh: 5 #max points to skip if fails by cost

@@ -126,15 +126,15 @@ class Local():
 
     #Topics
     #rviz_point_topic = rospy.get_param('~rviz_topic', 'local_points')
-    status_publish_topic = rospy.get_param('~status_publish_topic', '/planers/local/status')
-    path_subscribe_topic =  rospy.get_param('~path_subscribe_topic', '/planers/global/path')
-    costmap_topic = rospy.get_param('~costmap_topic', '/costmap_server/costmap')
-    costmap_update_topic = rospy.get_param('~costmap_update_topic', '/costmap_server/updates')
-    robot_pos_topic = rospy.get_param('~robot_pos_topic', '/odom')
-    cmd_vel_topic = rospy.get_param('~cmd_vel_topic', '/cmd_vel')
-    disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', '/disable_adjust_sec')
+    status_publish_topic = rospy.get_param('~status_publish_topic', 'planers/local/status')
+    path_subscribe_topic =  rospy.get_param('~path_subscribe_topic', 'planers/global/path')
+    costmap_topic = rospy.get_param('~costmap_topic', 'costmap_server/costmap')
+    costmap_update_topic = rospy.get_param('~costmap_update_topic', 'costmap_server/updates')
+    robot_pos_topic = rospy.get_param('~robot_pos_topic', 'odom')
+    cmd_vel_topic = rospy.get_param('~cmd_vel_topic', 'cmd_vel')
+    disable_adjust_sec_topic = rospy.get_param('~disable_adjust_sec_topic', 'disable_adjust_sec')
     disable_adjust_sec_time = rospy.get_param('~disable_adjust_sec_time', 4)
-    adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "/adjust_toggle_service")
+    adjust_toggle_name  = rospy.get_param('~adjust_toggle_name', "adjust_toggle_service")
      ###
     use_timed_adj_disable = rospy.get_param('~use_timed_adj_disable', 0)
     _toggle_proxy = rospy.ServiceProxy(adjust_toggle_name, SetBool)

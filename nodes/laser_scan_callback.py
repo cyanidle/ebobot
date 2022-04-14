@@ -84,10 +84,10 @@ class Laser:
     rads_offset = rospy.get_param("~rads_offset",0) #in radians diff from lidar`s 0 rads and costmap`s in default position(radians counterclockwise)
     #/Params
     #Topics
-    laser_scan_topic = rospy.get_param("~laser_scan_topic", "/scan")
-    robot_pos_topic = rospy.get_param("~robot_pos_topic", "/odom")
-    robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "/initialpose")
-    side_topic = rospy.get_param("~side_topic", "/ebobot/begin")
+    laser_scan_topic = rospy.get_param("~laser_scan_topic", "scan")
+    robot_pos_topic = rospy.get_param("~robot_pos_topic", "odom")
+    robot_pos_adj_topic = rospy.get_param("~robot_pos_adj_topic", "initialpose")
+    side_topic = rospy.get_param("~side_topic", "ebobot/begin")
     #
     broadcaster = tf.TransformBroadcaster()
     side_subscriber = rospy.Subscriber(side_topic,Int8,startCallback)

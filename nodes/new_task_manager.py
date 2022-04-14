@@ -697,7 +697,7 @@ class Manager:
     #
     prediction_master = rospy.get_param("~prediction_master", 1)
     prediction_topic = rospy.get_param("~prediction_topic", "/ebobot/new_prediction")
-    start_topic = rospy.get_param("~start_topic", "/ebobot/begin")
+    start_topic = rospy.get_param("~start_topic", "ebobot/begin")
     ########
     if prediction_master:
         rospy.Subscriber(prediction_topic, Int8, predictionCB)
