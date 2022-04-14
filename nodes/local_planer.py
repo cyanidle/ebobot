@@ -348,7 +348,14 @@ class Local():
     @classmethod
     def checkPos(cls):
         return np.linalg.norm(cls.robot_pos[:2]-cls.actual_target[:2]) > cls.threshhold
-    
+    @classmethod
+    def getCostCoeff(cls, cost: float):
+        _cost_coeff = cls.cost_threshhold/cost * cls.cost_speed_coeff
+        if _cost_coeff > cls.cost_speed_coeff:
+            _cost_coeff = 1
+        elif _cost_coeff < cls.min_coeff:
+            _cost_coeff = cls.min_coeff
+        return _cost_coeff
     @classmethod
     def updateTarget(cls):
         #rospy.logwarn(f"{cls.current_target =  }|{cls.robot_twist = }")
@@ -372,12 +379,8 @@ class Local():
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:
-                _cost_coeff = cls.getCost(cls.actual_target)* cls.cost_speed_coeff/cls.cost_threshhold
-                if _cost_coeff> 1:
-                    _cost_coeff = 1
-                elif _cost_coeff < cls.min_coeff:
-                    _cost_coeff = cls.min_coeff
-                speed_coeff = speed_coeff /_cost_coeff 
+                _cost_coeff = cls.getCostCoeff(cls.getCost(cls.actual_target))
+                speed_coeff = speed_coeff * _cost_coeff
                 rospy.logerr_once(f"Cost = {_cost_coeff}")
                 if speed_coeff > 1:
                     speed_coeff = 1
