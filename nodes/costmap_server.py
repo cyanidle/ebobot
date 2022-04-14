@@ -65,8 +65,8 @@ class Costmap():
     costmap_publish_topic = rospy.get_param('~costmap_publish_topic','/costmap_server/costmap')
     costmap_update_publish_topic = rospy.get_param('~costmap_update_publish_topic','/costmap_server/updates')
     ######################################
-    grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=5)
-    grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=5)
+    grid_publisher = rospy.Publisher(costmap_publish_topic, OccupancyGrid, queue_size=2)
+    grid_update_publisher = rospy.Publisher(costmap_update_publish_topic, OccupancyGridUpdate, queue_size=2)
     #/Topics
     #/Params
     os.chdir(f"{file_dir}")

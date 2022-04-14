@@ -9,7 +9,7 @@ tasks:
     #- score: 12
     - move: 0.35/2.14/2.07
     - call: ArmDown
-    - score: 10 #One flipped right
+    - score: 2 #One flipped right
   get_flipped: 
     - move: 1.68/1.65/-1.047
     - call: ArmHalfDown

@@ -4,5 +4,5 @@ new_task_manager:
   prediction_master: 1
   prediction_topic: /ebobot/new_prediction
   status:
-    update_rate: 10
+    update_rate: 15
     reduce_update_rate_for_move: 2 #how much slower move updates than statuses
