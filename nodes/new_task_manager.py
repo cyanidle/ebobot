@@ -54,12 +54,15 @@ def startCallback(start):
             for n in range(3,-1,-1):
                 try:
                     asyncio.run(showPrediction(n))
+                    if Flags._test_routes:
+                        break
                 except:
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
-            Flags._execute = 1
-            if Manager.debug:
-                rospy.logwarn(f"Executing test route!")
+            if not Flags._test_routes:
+                Flags._execute = 1
+                if Manager.debug:
+                    rospy.logwarn(f"Executing test route!")
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")
@@ -99,12 +102,12 @@ def startCallback(start):
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
+            Flags._test_routes = 1
             parse(Flags._current_route_num)
             try:
                 asyncio.run(showPrediction(0))
             except:
                 rospy.logwarn("No lcd found!")
-            Flags._test_routes = 1
             Flags._execute = 1
             if Manager.debug:
                 rospy.logwarn(f"Executing chosen route!")
