@@ -372,12 +372,12 @@ class Local():
             #Local.updatePos()
             speed_coeff = 1
             if cls.cost_coeff_enable:
-                _cost_coeff = cls.getCost(cls.actual_target)/cls.cost_threshhold
+                _cost_coeff = cls.getCost(cls.actual_target)* cls.cost_speed_coeff/cls.cost_threshhold
                 if _cost_coeff> 1:
                     _cost_coeff = 1
                 elif _cost_coeff < cls.min_coeff:
                     _cost_coeff = cls.min_coeff
-                speed_coeff = speed_coeff /_cost_coeff * cls.cost_speed_coeff
+                speed_coeff = speed_coeff /_cost_coeff 
                 rospy.logerr_once(f"Cost = {_cost_coeff}")
                 if speed_coeff > 1:
                     speed_coeff = 1

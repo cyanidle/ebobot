@@ -239,7 +239,8 @@ class Objects:
     resolution = rospy.get_param('~obstacles/resolution',15)
     #
     default_radius = rospy.get_param('~obstacles/default_radius',12)
-    base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',150)
+    base_inflation_coeff = rospy.get_param('~obstacles/base_inflation_coeff',30)
+    base_inflation_coeff *= default_radius
     #
     topic = rospy.get_param('laser_scan_callback/obstacles/list_topic','/laser/obstacles')
     ######################################
