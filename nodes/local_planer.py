@@ -367,8 +367,6 @@ class Local():
             shutdownHook()
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="cube",size=0.04,debug=0,duration=1,add=0)
-        #markers.pubMarker(cls.actual_target[:2],1,frame_name="local_current_target",type="arrow",size=0.1,debug=0,duration=1,add=1)
         rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
@@ -377,8 +375,8 @@ class Local():
                 _cost_coeff = cls.getCost(cls.actual_target)/cls.cost_threshhold
                 if _cost_coeff> 1:
                     _cost_coeff = 1
-                elif _cost_coeff < 0:
-                    _cost_coeff = 0
+                elif _cost_coeff < cls.min_coeff:
+                    _cost_coeff = cls.min_coeff
                 speed_coeff = speed_coeff / _cost_coeff * cls.cost_speed_coeff
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
