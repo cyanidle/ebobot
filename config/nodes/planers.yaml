@@ -55,7 +55,7 @@ local_planer:
   ###############
   
   skip_thresh: 5 #max points to skip if fails by cost
-  threshhold: 1.5 #in cells, how close to target should robot ride
+  threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.7 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.01 #allows for shrap turns (in theory)
   # Important
@@ -67,14 +67,14 @@ local_planer:
   get_lowest_cost: 0 #correct targets to follow lowest cost route NOT TESTED
   #Params
   #Features
-  use_timed_adj_disable: 0
+  use_timed_adj_disable: 0 #or block only for while turning
   use_twist_before: 4 #targets
   cost_coeff_enable: 1
   path_coeff_enable:  1
   #Turn
-  pause_before_turn: 0.2 #seconds
+  pause_before_turn: 0.1 #seconds
   turn_threshhold: 0.08
-  cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
+  cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed)
   turn_coeff: 0.75
   min_turn_coeff: 0.25 #final!
   #speed coeffs
