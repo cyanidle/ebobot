@@ -2,6 +2,7 @@
 #include <ros.h>
 /////////////////////////
 #include "TimerMs.h"
+#include "DorSettings.h"
 ///////////////////////////
 #include "test_motors.h"
 #include "servos.h"

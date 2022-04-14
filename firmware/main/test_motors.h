@@ -2,14 +2,10 @@
 #ifndef dor_motors_h
 #define dor_motors_h
 
-#define MAX_MOTORS 6
+
 #define MOTORS_LOOP_DELAY 50 // defaut value
 ///
-#define DOR_MAX_SUB 10
-#define DOR_MAX_PUB 10
-#define DOR_INPUT_BUFF 1200
-#define DOR_OUTPUT_BUFF 1200
-///
+#include "DorSettings.h"
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/MotorsInfo.h>
@@ -29,7 +25,7 @@ struct pin_layout
   uint8_t back_dir_pin;
   
 };
-char motors_debug[80];
+char motors_debug[DOR_DEBUG_BUFFER_SIZE];
 //char motors_second_debug[60];
 bool motors_debugged = true;
 class Motors{
@@ -51,7 +47,7 @@ class Motors{
     Motors(pin_layout * _pin_layout, float _rad, float _ticks_per_rotation,
      float _p, float _i, float _d,
      float _turn_max_speed, float _max_speed, float _angle){
-    sprintf(motors_debug, "NewMot,pin_a:%d,pin_b:%d,pwm%d,rad%d,prop%d,max_spd%d,bytes%d",
+    sprintf(motors_debug, (const char*)F("NewMot,pin_a:%d,pin_b:%d,pwm%d,rad%d,prop%d,max_spd%d,bytes%d"),
     _pin_layout->encoder_pin_a, _pin_layout->encoder_pin_b,_pin_layout->pwm_pin,(int)(_rad*1000.0),(int)_p,(int)(_max_speed*1000),sizeof(Motors));
      sub_nh->logwarn(motors_debug);
     layout = *_pin_layout;
@@ -140,7 +136,7 @@ void attachIsr(int num){
       pinMode(motors[num]->layout.pwm_pin, OUTPUT);
       pinMode(motors[num]->layout.fwd_dir_pin, OUTPUT);
       pinMode(motors[num]->layout.back_dir_pin, OUTPUT);
-      sprintf(motors_debug, "Isr_Mot%d-Layout:a %d, b %d, pwm %d, fwd %d, bck %d",
+      sprintf(motors_debug, (const char*)F("Isr_Mot%d-Layout:a %d, b %d, pwm %d, fwd %d, bck %d"),
       num,motors[num]->layout.encoder_pin_a,
       motors[num]->layout.encoder_pin_a,
       motors[num]->layout.pwm_pin,
@@ -151,30 +147,30 @@ void attachIsr(int num){
       {
         case 0:
         attachInterrupt(digitalPinToInterrupt(_pin),isr0, RISING);
-        sub_nh->loginfo("Attached ISR0");
+        sub_nh->loginfo((const char*)F("Attached ISR0"));
         break;
         case 1:
         attachInterrupt(digitalPinToInterrupt(_pin),isr1, RISING);
-        sub_nh->loginfo("Attached ISR1");
+        sub_nh->loginfo((const char*)F("Attached ISR1"));
         break;
         case 2:
         attachInterrupt(digitalPinToInterrupt(_pin),isr2, RISING);
-        sub_nh->loginfo("Attached ISR2");
+        sub_nh->loginfo((const char*)F("Attached ISR2"));
         break;
         case 3:
         attachInterrupt(digitalPinToInterrupt(_pin),isr3, RISING);
-        sub_nh->loginfo("Attached ISR3");
+        sub_nh->loginfo((const char*)F("Attached ISR3"));
         break;
         case 4:
         attachInterrupt(digitalPinToInterrupt(_pin),isr4, RISING);
-        sub_nh->loginfo("Attached ISR4");
+        sub_nh->loginfo((const char*)F("Attached ISR4"));
         break;
         case 5:
         attachInterrupt(digitalPinToInterrupt(_pin),isr5, RISING);
-        sub_nh->loginfo("Attached ISR5");
+        sub_nh->loginfo((const char*)F("Attached ISR5"));
         break;    
       default:
-        sub_nh->logerror("ISR ATTACH FAIL!");
+        sub_nh->logerror((const char*)F("ISR ATTACH FAIL!"));
         break;
       }
 }
@@ -187,7 +183,7 @@ void update_all_motors(){
         motors_msg.current_speed = motors[i]->curr_spd;
         motors_msg.ddist = motors[i]->ddist;
         motors_info.publish(&motors_msg);
-        sprintf(motors_debug, "Motor%d:curr:%d,targ:%d",i,(int)(motors[i]->curr_spd*1000), (int)(motors[i]->targ_spd*1000));
+        sprintf(motors_debug, (const char*)F("Motor%d:curr:%d,targ:%d"),i,(int)(motors[i]->curr_spd*1000), (int)(motors[i]->targ_spd*1000));
         sub_nh->loginfo(motors_debug);
         
     }
@@ -198,7 +194,9 @@ void motors_begin(float _loop_delay, ros::NodeHandle_<ArduinoHardware, DOR_MAX_S
       sub_nh = _nh;
      for (int mot = 0; mot < num_motors; mot++){
       motors[mot]->loop_delay = _loop_delay;
-      motors[mot]->dtime = _loop_delay/1000.0; 
+      motors[mot]->dtime = _loop_delay/1000.0;
+      sprintf(motors_debug, (const char*)F("Set motor%d: loop_delay:%d,dtime:%d"),mot,motors[mot]->loop_delay, (int)(motors[mot]->dtime));
+        sub_nh->loginfo(motors_debug); 
     }
 }
 void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMotor::Response &resp){
@@ -227,7 +225,7 @@ void motorsSettingsCallback(const ebobot::NewMotor::Request &req, ebobot::NewMot
         req.angle);
             attachIsr(req.motor);
         }
-        sprintf(motors_debug, "num_motors%d,req.motor%d,max_spd%d",
+        sprintf(motors_debug, (const char*)F("num_motors%d,req.motor%d,max_spd%d"),
         num_motors,req.motor,(int)(req.max_speed*1000));
         sub_nh->logwarn(motors_debug);
     }
