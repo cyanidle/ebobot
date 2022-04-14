@@ -59,7 +59,7 @@ local_planer:
   inertia_compensation_coeff: 0.04 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
-  cost_threshhold: 50 #100 are walls, then there is inflation
+  cost_threshhold: 10 #100 are walls, then there is inflation
   safe_footprint_radius: 0.20
   update_rate: 12 # in Hz
   rotate_at_end: 1
@@ -68,20 +68,20 @@ local_planer:
   #Features
   use_timed_adj_disable: 0
   use_twist_before: 4 #targets
-  cost_coeff_enable: 0
+  cost_coeff_enable: 1
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.2 #seconds
-  turn_threshhold: 0.11
+  turn_threshhold: 0.08
   cells_per_radian: 5 #in how many cells should robot turn by one radian (max turn speed)
-  turn_coeff: 0.8
-  min_turn_coeff: 0.2 #final!
+  turn_coeff: 0.75
+  min_turn_coeff: 0.25 #final!
   #speed coeffs
-  full_path_coeff_dist: 50 #dist from target in cells at which robot goes full spd (the lower the faster)
+  full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  0.8
   min_path_coeff: 0.15 #Final!!
   path_speed_coeff: 1.5 #В тугриках. Robot slows down at start and finish of the route
-  cost_speed_coeff: 0.0002
+  cost_speed_coeff: 0.05
   
   # Circles on which planer tries to find lowest cost position
   num_of_circles: 2

@@ -1,6 +1,6 @@
 laser_scan_callback:
   update_rate: 7 # More than 7 is useless
-  rads_offset: 2.018 # radians offset of lidar front from robot first wheel 2.093 = 120deg
+  rads_offset: 2.0325 # radians offset of lidar front from robot first wheel 2.093 = 120deg
   enable_centre_aprox: 1
   dist_between_dots_max: 0.08
   beacons/adjust_on_command: 1 #adjust_pos_using adjust_pos_service or all the time?
@@ -21,7 +21,7 @@ laser_scan_callback:
   #############
   min_dots: 1
   max_dots_per_obj: 60
-  objects_centre_coeff: 14 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
+  objects_centre_coeff: 32 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
   radius_thresh: 1.5
   ################
   obstacles:
@@ -58,13 +58,13 @@ laser_scan_callback:
     num_beacons: 3 #needed for proper auto-init
     ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (smallest x --> first beacon|biggest x --> last beacon)
     2/beacon0:
-      - 3.125
+      - 3.085
       - 0.085
     2/beacon1:
-      - -0.085   #meters, y
+      - -0.075   #meters, y
       - 1    #meters, x
     2/beacon2:
-      - 3.125
+      - 3.085
       - 1.96
     # yellow side
     1/beacon0:
