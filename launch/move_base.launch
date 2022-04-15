@@ -13,6 +13,11 @@
       <arg name="costmap_dir" default="$(find ebobot)/config/costmap"/>
       <arg name="costmap_file" default="$(find ebobot)/config/costmap/costmap.png"/>
 
+    
+    <group if="$(arg use_own)">
+        <rosparam file="$(find ebobot)/config/nodes/global_config.yaml"/>
+    </group>
+
     <include file="$(find ebobot)/launch/arduino_odom.launch">
       <arg name="arduino_baud" value="$(arg arduino_baud)"/>
       <arg name="use_own" value="$(arg use_own)"/>

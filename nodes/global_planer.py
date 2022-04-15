@@ -11,7 +11,7 @@ from threading import Thread
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32
 from ebobot.srv import ChangeCost, ChangeCostResponse
 #from visualization_msgs.msg import Marker
 ######
@@ -52,7 +52,10 @@ def robotPosCallback(odom):
     Global.costmap_resolution
     )
 def localStatusCallback(status):
-    if move_server.server.is_active():
+    if MoveServer.use_actionlib:
+        if move_server.server.is_active():
+            move_server.update(status.data,local=1)
+    else:
         move_server.update(status.data,local=1)
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
@@ -88,6 +91,8 @@ def costmapUpdateCallback(update): #not used
     
 def changeCostCB(req):
     _was=Global._default_max_cost
+    Global.change_cost_publisher.publish(Float32(_was))
+    Global.change_cost_publisher.publish(Float32(req.cost))
     Global.maximum_cost = req.cost
     Global._default_max_cost = req.cost
     rospy.logwarn(f"GLOBAL PLANER: Cost changed to {req.cost}")
@@ -151,10 +156,12 @@ class Global(): ##Полная жопа
     costmap_update_topic = rospy.get_param('~costmap_update_topic','costmap_server/updates')
     path_publish_topic =  rospy.get_param('~path_publish_topic', 'planers/global/path')
     pose_subscribe_topic =  rospy.get_param('~pose_subscribe_topic', 'move_base_simple/goal')
+    change_cost_service_name = rospy.get_param('/global/change_cost_service_name', 'change_cost_service')
     robot_pos_topic =  rospy.get_param('~robot_pos_topic',"odom")
     ####
-    #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
+    rospy.Service(change_cost_service_name,ChangeCost,changeCostCB)
+    change_cost_publisher = rospy.Publisher(f"{change_cost_service_name}_echo", Float32, queue_size=2)
     local_status_subscriber = rospy.Subscriber(local_status_topic, String, localStatusCallback)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
@@ -554,12 +561,13 @@ def main():
 ###########################################################
 from ebobot.srv import SetMoveTarget, SetMoveTargetResponse 
 def SetMoveCB(goal):
-    rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
     ###################
     if move_server.active:
         move_server._preemted = 1
+        rospy.logerr(f"PIZDEC, YA YEDU NA DRUGOI HUI({goal.x, goal.y})")
     else:    
         move_server.active = 1
+        rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
     ###################
     new_target = PoseStamped()
     new_target.pose.position.x = goal.x
@@ -575,21 +583,23 @@ def SetMoveCB(goal):
 #############################################################    
 
 class MoveServer:
-    use_actionlib = rospy.get_param("~use_actionlib", 1)
+    use_actionlib = rospy.get_param("/global/use_actionlib", 1)
     _preemted = 0
     if not use_actionlib:
-        rospy.Service("set_move_service", SetMoveTarget,SetMoveCB)
+        service_name = rospy.get_param("/global/move_service_name", "set_move_service")
+        rospy.Service(service_name, SetMoveTarget,SetMoveCB)
         feedback = "good"
         rospy.logwarn("GLOBAL: WARNING - USING EXPERIMENTAL COMMANDS (NOT ACTIONLIB)")
         def __init__(self) -> None:
             self.active = 0
             self._preempted = 0
+            self._success_flag = 0
+            self._fail_flag = 0 
             self.feedback = type(self).feedback
-        def execute(self,goal):
+        def execute(self):
             while ( not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.05)
-
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:
@@ -599,6 +609,7 @@ class MoveServer:
                     self.done(1)
         def done(self,status:int):
             "Status 1 = success, status 0 = fail"
+            self.active = 0
             if status:
                 self._success_flag = 1
             else:
@@ -629,7 +640,7 @@ class MoveServer:
             #
             while (not rospy.is_shutdown() and self._success_flag == 0 
             and self._fail_flag == 0):
-                rospy.logwarn(f"Robot driving to target")
+                #rospy.logwarn(f"Robot driving to target")
                 rospy.sleep(0.05)
             if self._success_flag:
                 self.server.set_succeeded(MoveResult(0))
