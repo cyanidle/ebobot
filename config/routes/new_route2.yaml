@@ -22,6 +22,17 @@ tasks:
     - score: 3
     - move: 1.68/0.61/-1.047
     - call: ArmDown
+    get_flipped2:
+     - move: 1.68/1.45/-1.047
+    - call: ArmHalfDown
+    - call: PumpOn
+    - move: 1.75/1.39/-1.047
+    - sleep: 0.2
+    - call: ArmUp
+    - sleep: 0.1
+    - move: 1.68/1.39/-1.047
+    - score: 1
+
   home:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
