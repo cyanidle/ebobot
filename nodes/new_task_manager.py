@@ -103,7 +103,7 @@ def startCallback(start):
             rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:
-            Flags._test_routes = 1
+            #Flags._test_routes = 1
             parse(Flags._current_route_num)
             try:
                 asyncio.run(showPrediction(0))
@@ -772,7 +772,7 @@ class Manager:
                     await showPrediction(1000 + Flags._current_route_num)
                     _done = 1
                     if not Flags._test_routes:
-                        Flags._test_routes = 1
+                        #Flags._test_routes = 1
                         parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
         #Manager.reset()
