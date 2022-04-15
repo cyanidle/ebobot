@@ -542,7 +542,7 @@ def main():
             Global._fail_count = 0
             #
             end_time = rospy.Time.now() ### end time
-            rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
+            #rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
             if Global.resend:
                 if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
                     Global.target_set = 0
@@ -550,57 +550,75 @@ def main():
 
         rate.sleep()
 class MoveServer:
+    use_actionlib = rospy.get_param("~use_actionlib", 0)
     feedback = MoveFeedback('good')
     _preemted = 0
-    def __init__(self):
-        self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
-        self.server.start()
-        self._success_flag = 0
-        self._fail_flag = 0
-    def execute(self,goal):
-        #MoveServer._preemted  = 1
-        rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
-        ###################
-        new_target = PoseStamped()
-        new_target.pose.position.x = goal.x
-        new_target.pose.position.y = goal.y
-        quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
-        new_target.pose.orientation.x = quat[0]
-        new_target.pose.orientation.y = quat[1]
-        new_target.pose.orientation.z = quat[2]
-        new_target.pose.orientation.w = quat[3]
-        targetCallback(new_target)
-        ###################
-        #rospy.logerr(f"Global {self._success_flag = }|{self._fail_flag = }")
-        #
-        while (not rospy.is_shutdown() and self._success_flag == 0 
-         and self._fail_flag == 0):
-            rospy.logwarn(f"Robot driving to target")
-            rospy.sleep(0.05)
-        if self._success_flag:
-            self.server.set_succeeded(MoveResult(0))
-        elif self._fail_flag:
-            self.server.set_aborted(MoveResult(1))
-        #else:
-        #    self.server.set_preempted(MoveResult(4))
-        self._fail_flag, self._success_flag = 0, 0#, 0
-    def update(self, fb, local=0):
-        self.feedback = fb
-        if local:
-            self.server.publish_feedback(MoveFeedback(self.feedback))
-            if self.feedback == "fail":
-                self.done(0)
-            elif self.feedback == "done":
-                self.done(1)
-        else:
-            self.server.publish_feedback(MoveFeedback(self.feedback))
-    def done(self,status:int):
-        "Status 1 = success, status 0 = fail"
-        if status:
-            self._success_flag = 1
-        else:
-            shutdownHook()
-            self._fail_flag = 1
+    if not use_actionlib:
+        rospy.logwarn("GLOBAL: WARNING - USING EXPERIMENTAL COMMANDS (NOT ACTIONLIB)")
+        def __init__(self) -> None:
+            pass
+        def execute(self,goal):
+            pass
+        def update(self,fb,local = 0):
+            pass
+        def done(self,status:int):
+            "Status 1 = success, status 0 = fail"
+            if status:
+                self._success_flag = 1
+            else:
+                shutdownHook()
+                self._fail_flag = 1
+    else:
+        def __init__(self):
+            self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
+            self.server.start()
+            self._success_flag = 0
+            self._fail_flag = 0
+        def execute(self,goal):
+            #MoveServer._preemted  = 1
+            rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
+            ###################
+            new_target = PoseStamped()
+            new_target.pose.position.x = goal.x
+            new_target.pose.position.y = goal.y
+            quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
+            new_target.pose.orientation.x = quat[0]
+            new_target.pose.orientation.y = quat[1]
+            new_target.pose.orientation.z = quat[2]
+            new_target.pose.orientation.w = quat[3]
+            targetCallback(new_target)
+            ###################
+            #rospy.logerr(f"Global {self._success_flag = }|{self._fail_flag = }")
+            #
+            while (not rospy.is_shutdown() and self._success_flag == 0 
+            and self._fail_flag == 0):
+                rospy.logwarn(f"Robot driving to target")
+                rospy.sleep(0.05)
+            if self._success_flag:
+                self.server.set_succeeded(MoveResult(0))
+            elif self._fail_flag:
+                self.server.set_aborted(MoveResult(1))
+            #else:
+            #    self.server.set_preempted(MoveResult(4))
+            self._fail_flag, self._success_flag = 0, 0#, 0
+        def update(self, fb, local=0):
+            self.feedback = fb
+            if local:
+                self.server.publish_feedback(MoveFeedback(self.feedback))
+                if self.feedback == "fail":
+                    self.done(0)
+                elif self.feedback == "done":
+                    self.done(1)
+            else:
+                self.server.publish_feedback(MoveFeedback(self.feedback))
+        def done(self,status:int):
+            "Status 1 = success, status 0 = fail"
+            if status:
+                self._success_flag = 1
+            else:
+                shutdownHook()
+                self._fail_flag = 1
+#####################################################
 if __name__=="__main__":
     move_server = MoveServer()
     rate = rospy.Rate(Global.update_rate)
