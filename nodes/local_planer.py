@@ -395,8 +395,7 @@ class Local():
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
         #rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
-        _cost = cls.getCost(cls.actual_target)
-        rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {cls.cost_threshhold})\n##### speed reduction = {cls.getCostCoeff(_cost)}')
+        
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
@@ -425,6 +424,8 @@ def main():
     rospy.on_shutdown(shutdownHook)
     rate = rospy.Rate(Local.update_rate)
     while not rospy.is_shutdown():
+            #_cost = Local.getCost(Local.actual_target)
+            #rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}')
         if not Local.goal_reached:
             Local.updateTarget()
             if np.linalg.norm(Local.robot_pos[:2] - Local.targets[-1][:2]) < Local.threshhold:

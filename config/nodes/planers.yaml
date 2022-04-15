@@ -41,8 +41,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_len: 5        # These two are important. Enabled by experimental cleanup.
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
   # MULTIPLIED BY STEP: (ALL SHOULD BE LESS THAN 1)
-  cleanup_repeats_threshhold: 0.95   # If planer hasnt moved in (cl_repeats_len) jumps from each
-  stuck_dist_threshhold: 0.4 #dist which should be reached in (stuck_check_jumps)
+  cleanup_repeats_threshhold: 0.85   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  stuck_dist_threshhold: 0.45 #dist which should be reached in (stuck_check_jumps)
   dead_end_dist_diff_threshhold: 0.8 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
   update_stop_thresh: 4 # Dist from target IN STEPS, when stops updating route
   # Step is added:
