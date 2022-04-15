@@ -61,7 +61,7 @@ def pathCallback(path):################Доделать
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
         shutdownHook()
     _cost = Local.getCost(Local.robot_pos)
-    rospy.logwarn(f'LOCAL: Cost of current robot pos is {_cost} (max is {Local.cost_threshhold}), coeff = {Local.getCostCoeff(_cost)}')
+    rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}')
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_height = costmap.info.height
@@ -352,7 +352,7 @@ class Local():
         return np.linalg.norm(cls.robot_pos[:2]-cls.actual_target[:2]) > cls.threshhold
     @classmethod
     def getCostCoeff(cls, cost: float):
-        _cost_coeff = cls.cost_threshhold/cost * cls.cost_speed_coeff
+        _cost_coeff = ((cost* 3)/cls.cost_threshhold)  * cls.cost_speed_coeff
         if _cost_coeff > cls.max_cost_speed_coeff:
             _cost_coeff = cls.max_cost_speed_coeff
         elif _cost_coeff < 1:
@@ -382,13 +382,17 @@ class Local():
             speed_coeff = 1
             if cls.cost_coeff_enable:
                 _cost_coeff = cls.getCostCoeff(cls.getCost(cls.actual_target))
-                speed_coeff = speed_coeff * _cost_coeff
-                rospy.logerr_once(f"Cost = {_cost_coeff}")
+                speed_coeff = speed_coeff / _cost_coeff
+                rospy.logerr_once(f"Cost coeff = {_cost_coeff}")
                 if speed_coeff > 1:
                     speed_coeff = 1
+                elif speed_coeff < cls.min_coeff:
+                    speed_coeff = cls.min_coeff
             if cls.path_coeff_enable:
                 speed_coeff = speed_coeff * cls.getPathSpdCoeff()
-            if speed_coeff < cls.min_coeff:
+            if speed_coeff > 1:
+                speed_coeff = 1
+            elif speed_coeff < cls.min_coeff:
                 speed_coeff = cls.min_coeff
             cmd_target = cls.remapToLocal(cls.actual_target-cls.robot_pos-(cls.robot_twist*cls.inertia_compensation_coeff)) ###ADJUSTS GLOBAL COMAND TO LOCAL
             cls.cmdVel(cmd_target, speed_coeff*cls.static_coeff)#make slower at last point
