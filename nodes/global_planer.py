@@ -106,7 +106,7 @@ class Global(): ##Полная жопа
     #/Features    
     #
     resend = rospy.get_param('~resend', 1)
-    update_stop_thresh = rospy.get_param('~update_stop_thresh', 8) #in cells
+    update_stop_thresh = rospy.get_param('~update_stop_thresh', 4) #in steps
     update_stop_thresh *= step
     update_rate = rospy.get_param('~update_rate',1) #per second
     #
@@ -237,7 +237,7 @@ class Global(): ##Полная жопа
     @staticmethod
     def checkIfStuck(num):
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
-            if Global.last_stuck.any() and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
+            if Global.last_stuck.any() and num and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
                 #rospy.logwarn(f"Planer stuck, using recovery!")
                 Global.lock_dir_num += 1
                 Global.lock_dir_num  = Global.lock_dir_num%len(Global.lock_dirs)
@@ -378,24 +378,33 @@ class Global(): ##Полная жопа
     @staticmethod 
     def cleanupDeadEnds():
         list_to_remove = []
-        max_dist = 0
-        for num, tuple in enumerate(Global.list):
-            _, dist = tuple
-            #rospy.loginfo(f"Checking dist ({dist})")
-            if dist > max_dist:
-                max_dist = dist
+        max_dist_num = 0
+        for num, tuple in enumerate(Global.list[1:Global.update_stop_thresh]):
+            num += 1
+            pos, dist = tuple
+            curr_dist = dist-Global.list[num-1][1]
+            if max_dist_num:
+                if num != max_dist_num:
+                    dist = np.linalg.norm(pos[:2]-Global.list[max_dist_num][0][:2])
+                    curr_dist = dist-np.linalg.norm(pos[:2]-Global.list[num-1][0][:2]) 
+                else:
+                    curr_dist = 100
+            if curr_dist > Global.dead_end_dist_diff_threshhold:
+                continue
             else:
-                for subnum , tuple in enumerate(Global.list[:num]):
-                    point, subdist = tuple
-                    if subdist-dist>Global.dead_end_dist_diff_threshhold:
-                        if Global.debug:
-                            rospy.loginfo(f"Scheduling point {point} for removal")
-                        list_to_remove.append(subnum)
-                for done,num in enumerate(list_to_remove):
-                    popped = Global.list.pop(num-done)
-                    if Global.debug:
-                        rospy.loginfo(f"Removing {popped}")
-                list_to_remove = []
+                if num < (len(Global.list)-Global.update_stop_thresh):
+                    list_to_remove.append(num-1)
+                    if not max_dist_num and Global.list[num+1][1]-dist > Global.dead_end_dist_diff_threshhold:
+                        max_dist_num = num+1
+                    elif (np.linalg.norm(Global.list[num+1][0][:2] -  pos[:2])> Global.dead_end_dist_diff_threshhold and 
+                        Global.list[num+1][1]-dist > Global.dead_end_dist_diff_threshhold):
+                        max_dist_num = num+1
+        rospy.loginfo(f"Removing {len(list_to_remove)} points...")
+        for done,num in enumerate(list_to_remove):
+            popped = Global.list.pop(num-done)
+            #if Global.debug:
+        
+        # list_to_remove = []
     @staticmethod
     def cleanupRepeats():
         list_to_remove = []
@@ -457,16 +466,15 @@ class Global(): ##Полная жопа
             target_pos = PoseStamped()
             if Global.debug:
                 rospy.loginfo(f"Last point {target}")
-            if len(target)>2:
-                quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
-            else:
-                quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
+            if len(target)<3:
+                target = np.append(target,0)
+            quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
             if Global.rviz_enable:
                 rviz_targ = PoseStamped()
                 rviz_targ.pose.position.y = target[0] / rviz_coeff
                 rviz_targ.pose.position.x = target[1]/rviz_coeff
                 if len(target) < 3:
-                    np.append(target, 0)
+                    target = np.append(target, 0)
                 rviz_quat = tf.transformations.quaternion_from_euler(0, 0, target[2]/ (1/Global.costmap_resolution))
                 rviz_targ.pose.orientation.x = rviz_quat[0]
                 rviz_targ.pose.orientation.y = rviz_quat[1]

@@ -1,3 +1,3 @@
-int16 P
-int16 I
-int16 D
+int16 prop
+int16 inter
+int16 diff

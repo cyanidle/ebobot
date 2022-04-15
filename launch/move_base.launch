@@ -1,10 +1,12 @@
 <launch>
       <arg name="inflate" default="0"/>
-      <arg name="arduino" default="true"/>
+      <arg name="arduino_both" default="true"/>
       <arg name="rviz" default="false"/>
       <arg name="laser" default="true"/>
       <arg name="arduino_port0" default="/dev/ttyACM0"/>
       <arg name="arduino_port1" default="/dev/ttyACM1"/>
+      <arg name="arduino0" default="true"/>
+      <arg name="arduino1" default="true"/>
       <arg name="arduino_baud" default="115200"/>
       <arg name="debug" default="0"/>
       <arg name="use_own" default="true"/>
@@ -17,7 +19,9 @@
       <arg name="port0" value="$(arg arduino_port0)"/>
       <arg name="port1" value="$(arg arduino_port1)"/>
       <arg name="debug" value="$(arg debug)"/>
-      <arg name="arduino_connected" value="$(arg arduino)"/>
+      <arg name="arduino_connected" value="$(arg arduino_both)"/>
+      <arg name="arduino0" value="$(arg arduino0)"/>
+      <arg name="arduino1" value="$(arg arduino1)"/>
     </include>
 
     <include file="$(find ebobot)/launch/costmap.launch">

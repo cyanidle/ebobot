@@ -60,7 +60,7 @@ def pathCallback(path):################Доделать
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
         shutdownHook()
-    rospy.loginfo(f'Goal Set!')
+    rospy.logwarn(f'LOCAL: Cost of current robot pos is {Local.getCost(Local.robot_pos)} (max is {Local.cost_threshhold})')
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_height = costmap.info.height
@@ -113,13 +113,13 @@ class Local():
     num_of_circles = rospy.get_param('~num_of_circles', 2)
     circles_dist = rospy.get_param('~circles_dist', 1) #in cells
     circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
-    cost_threshhold *= circles_step_radians_resolution
+    
     #### Params for footprint cost calc
     base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
     safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
     footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
     #### /Params for footprint cost calc
-
+    cost_threshhold *= footprint_calc_step_radians_resolution #!!!!!!!!!!!!!!!!!!!!!!!
     twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 1)
     inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params

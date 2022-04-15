@@ -11,16 +11,22 @@
     </group>
 
     <arg name ="arduino_connected" default="true"/>
+    <arg name ="arduino0" default="true"/>
+    <arg name ="arduino1" default="true"/>
     
     <group if="$(arg arduino_connected)">
+        <group if="$(arg arduino0)">
         <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node" output="screen">
             <param name="port" value="$(arg port0)"/>
             <param name="baud" value="$(arg arduino_baud)"/>
         </node>
+        </group>
+        <group if="$(arg arduino1)">
         <node pkg="rosserial_arduino" type="serial_node.py" name="arduino_serial_node_secondary" output="screen">
             <param name="port" value="$(arg port1)"/>
             <param name="baud" value="$(arg arduino_baud)"/>
         </node>
+        </group>
     </group>
 
     <node pkg="ebobot" type="motors_info_callback.py" name="motors_info_callback" output="screen" respawn="true" respawn_delay="10"> 

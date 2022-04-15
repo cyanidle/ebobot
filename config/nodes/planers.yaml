@@ -36,15 +36,15 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
     - bot
     
 #### Cleanup
-  cleanup_power: 2        # number of cleanups, ussualy one is enough
+  cleanup_power: 1        # number of cleanups, ussualy one is enough
   #################################
   cleanup_repeats_len: 5        # These two are important. Enabled by experimental cleanup.
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
   # MULTIPLIED BY STEP: (ALL SHOULD BE LESS THAN 1)
-  cleanup_repeats_threshhold: 0.6   # If planer hasnt moved in (cl_repeats_len) jumps from each
+  cleanup_repeats_threshhold: 1.5   # If planer hasnt moved in (cl_repeats_len) jumps from each
   stuck_dist_threshhold: 0.4 #dist which should be reached in (stuck_check_jumps)
-  dead_end_dist_diff_threshhold: 0.7 #if planer backtracks this number of cells, the last point is removed (considered a dead end)
-  update_stop_thresh: 10 # Dist from target, when stops updating route
+  dead_end_dist_diff_threshhold: 0.7 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
+  update_stop_thresh: 4 # Dist from target IN STEPS, when stops updating route
   # Step is added:
   dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
 ##################################
@@ -60,7 +60,7 @@ local_planer:
   inertia_compensation_coeff: 0.01 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
-  cost_threshhold: 20 #100 are walls, then there is inflation
+  cost_threshhold: 25 #100 are walls, then there is inflation (Represents median of cost of points)
   safe_footprint_radius: 0.20
   update_rate: 12 # in Hz
   rotate_at_end: 1
@@ -88,5 +88,6 @@ local_planer:
   num_of_circles: 2
   circles_dist: 1 #in cells
   circles_step_radians_resolution: 8 #number of points on each circle
+  footprint_calc_step_radians_resolution: 20 #how many points on circle for calculating cost
   #### Params for footprint cost calc
    
