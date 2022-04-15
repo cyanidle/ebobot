@@ -25,15 +25,15 @@ tasks:
     - move: 1.68/1.39/-1.047
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.83/1.39/-1.047
+    - move: 1.8/1.39/-1.047
     - sleep: 0.2
     - call: ArmUp
     - sleep: 0.1
     - move: 1.68/1.39/-1.047
     - score: 1
     - sleep: 0.2
-    - move: 1.68/0.78/-1.047
-    - move: 1.78/0.78/-1.047
+    - move: 1.68/0.81/-1.047
+    - move: 1.78/0.81/-1.047
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
