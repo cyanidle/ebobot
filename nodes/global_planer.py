@@ -549,18 +549,54 @@ def main():
                 #Global.goal_reached = 1
 
         rate.sleep()
+
+
+###########################################################
+from ebobot.srv import SetMoveTarget, SetMoveTargetResponse 
+def SetMoveCB(goal):
+    rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
+    ###################
+    if move_server.active:
+        move_server._preemted = 1
+    else:    
+        move_server.active = 1
+    ###################
+    new_target = PoseStamped()
+    new_target.pose.position.x = goal.x
+    new_target.pose.position.y = goal.y
+    quat = tf.transformations.quaternion_from_euler(0,0,goal.theta)
+    new_target.pose.orientation.x = quat[0]
+    new_target.pose.orientation.y = quat[1]
+    new_target.pose.orientation.z = quat[2]
+    new_target.pose.orientation.w = quat[3]
+    targetCallback(new_target)
+    move_server.execute()
+    return SetMoveTargetResponse(preempted=bool(move_server._preempted), status=move_server.feedback)
+#############################################################    
+
 class MoveServer:
     use_actionlib = rospy.get_param("~use_actionlib", 1)
-    feedback = MoveFeedback('good')
     _preemted = 0
     if not use_actionlib:
+        rospy.Service("set_move_service", SetMoveTarget,SetMoveCB)
+        feedback = "good"
         rospy.logwarn("GLOBAL: WARNING - USING EXPERIMENTAL COMMANDS (NOT ACTIONLIB)")
         def __init__(self) -> None:
-            pass
+            self.active = 0
+            self._preempted = 0
+            self.feedback = type(self).feedback
         def execute(self,goal):
-            pass
+            while ( not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
+            and not self._preemted):
+                rospy.sleep(0.05)
+
         def update(self,fb,local = 0):
-            pass
+            self.feedback = fb
+            if local:
+                if self.feedback == "fail":
+                    self.done(0)
+                elif self.feedback == "done":
+                    self.done(1)
         def done(self,status:int):
             "Status 1 = success, status 0 = fail"
             if status:
@@ -569,6 +605,7 @@ class MoveServer:
                 shutdownHook()
                 self._fail_flag = 1
     else:
+        feedback = MoveFeedback('good')
         def __init__(self):
             self.server = actionlib.SimpleActionServer('move', MoveAction, self.execute, False)
             self.server.start()
