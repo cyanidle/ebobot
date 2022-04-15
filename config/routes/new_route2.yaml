@@ -20,18 +20,20 @@ tasks:
     - call: PumpOff
     - call: ValveOff
     - score: 3
+    get_flipped2:
     - move: 1.68/0.61/-1.047
     - call: ArmDown
     - move: 1.68/1.39/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.8/1.39/-1.047
+    - move: 1.8/1.39/-1.047             #надо чекнуть подьезд (слишком много мб)
     - sleep: 0.2
     - call: ArmUp
     - sleep: 0.1
     - move: 1.68/1.39/-1.047
     - score: 1
     - sleep: 0.2
+    green_flipped:
     - move: 1.68/0.79/-1.047
     - move: 1.8/0.79/-1.047
     - call: ValveOn
