@@ -34,6 +34,7 @@ add_action_files(
   )
 add_service_files(
     FILES
+    SetMoveTarget.srv
     ChangeCost.srv
     PinReader.srv
     LcdShow.srv
