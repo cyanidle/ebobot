@@ -379,7 +379,9 @@ class Global(): ##Полная жопа
     def cleanupDeadEnds():
         list_to_remove = []
         max_dist_num = 0
-        for num, tuple in enumerate(Global.list[1:Global.update_stop_thresh]):
+        if len(Global.list) < Global.update_stop_thresh * 2:
+            return
+        for num, tuple in enumerate(Global.list[1:-Global.update_stop_thresh]):
             num += 1
             pos, dist = tuple
             curr_dist = dist-Global.list[num-1][1]
@@ -466,14 +468,14 @@ class Global(): ##Полная жопа
             target_pos = PoseStamped()
             if Global.debug:
                 rospy.loginfo(f"Last point {target}")
-            if len(target)<3:
+            if target.size<3:
                 target = np.append(target,0)
-            quaternion = tf.transformations.quaternion_from_euler(0, 0, 0)
+            quaternion = tf.transformations.quaternion_from_euler(0, 0, target[2])
             if Global.rviz_enable:
                 rviz_targ = PoseStamped()
                 rviz_targ.pose.position.y = target[0] / rviz_coeff
                 rviz_targ.pose.position.x = target[1]/rviz_coeff
-                if len(target) < 3:
+                if target.size < 3:
                     target = np.append(target, 0)
                 rviz_quat = tf.transformations.quaternion_from_euler(0, 0, target[2]/ (1/Global.costmap_resolution))
                 rviz_targ.pose.orientation.x = rviz_quat[0]

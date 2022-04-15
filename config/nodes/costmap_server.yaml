@@ -18,6 +18,6 @@ costmap_server:
     use_default: 1
     #
     default_radius: 30
-    base_infaltion_coeff: 15
+    base_infaltion_coeff: 5
     resolution: 15 #how round the obstacles are
   

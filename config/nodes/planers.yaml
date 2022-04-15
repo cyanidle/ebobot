@@ -53,14 +53,14 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
-  
-  skip_thresh: 5 #max points to skip if fails by cost
+  cost_threshhold: 35 #100 are walls, then there is inflation (Represents median of cost of points)
+  skip_thresh: 3 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 0.7 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.01 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
-  cost_threshhold: 25 #100 are walls, then there is inflation (Represents median of cost of points)
+  
   safe_footprint_radius: 0.20
   update_rate: 12 # in Hz
   rotate_at_end: 1
@@ -74,7 +74,7 @@ local_planer:
   #Turn
   pause_before_turn: 0.1 #seconds
   turn_threshhold: 0.08
-  cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed)
+  cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed, works with dynamic turn)
   turn_coeff: 0.75
   min_turn_coeff: 0.25 #final!
   #speed coeffs
@@ -82,8 +82,8 @@ local_planer:
   static_coeff:  0.8
   min_coeff: 0.24 #Final!!
   path_speed_coeff: 1.5 #В тугриках. Robot slows down at start and finish of the route
-  cost_speed_coeff: 1.2 # More = slower
-  
+  cost_speed_coeff: 1.4 # More = slower
+  max_cost_speed_coeff: 2 #more = more slowing 
   # Circles on which planer tries to find lowest cost position
   num_of_circles: 2
   circles_dist: 1 #in cells

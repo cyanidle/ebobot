@@ -60,7 +60,8 @@ def pathCallback(path):################Доделать
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
         shutdownHook()
-    rospy.logwarn(f'LOCAL: Cost of current robot pos is {Local.getCost(Local.robot_pos)} (max is {Local.cost_threshhold})')
+    _cost = Local.getCost(Local.robot_pos)
+    rospy.logwarn(f'LOCAL: Cost of current robot pos is {_cost} (max is {Local.cost_threshhold}), coeff = {Local.getCostCoeff(_cost)}')
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_height = costmap.info.height
@@ -104,7 +105,8 @@ class Local():
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
     
     update_rate = rospy.get_param('~update_rate', 20) # in Hz
-    cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 0.0002)
+    cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 2)
+    max_cost_speed_coeff = rospy.get_param('~max_cost_speed_coeff', 2)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
     
     skip_thresh=rospy.get_param('~skip_thresh', 4) #max skipped targets (from cost) before fail
@@ -351,10 +353,10 @@ class Local():
     @classmethod
     def getCostCoeff(cls, cost: float):
         _cost_coeff = cls.cost_threshhold/cost * cls.cost_speed_coeff
-        if _cost_coeff > cls.cost_speed_coeff:
+        if _cost_coeff > cls.max_cost_speed_coeff:
+            _cost_coeff = cls.max_cost_speed_coeff
+        elif _cost_coeff < 1:
             _cost_coeff = 1
-        elif _cost_coeff < cls.min_coeff:
-            _cost_coeff = cls.min_coeff
         return _cost_coeff
     @classmethod
     def updateTarget(cls):
