@@ -23,7 +23,7 @@
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 40
+      - "state": 36
 #######################
   - "Ohms":
     - "ohm_reader_service":
