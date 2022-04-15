@@ -576,7 +576,7 @@ class MoveServer:
         while (not rospy.is_shutdown() and self._success_flag == 0 
          and self._fail_flag == 0):
             rospy.logwarn(f"Robot driving to target")
-            rate.sleep()
+            rospy.sleep(1/Global.update_rate)
         if self._success_flag:
             self.server.set_succeeded(MoveResult(0))
         elif self._fail_flag:
