@@ -32,8 +32,8 @@ tasks:
     - move: 1.68/1.39/-1.047
     - score: 1
     - sleep: 0.2
-    - move: 1.68/0.61/-1.047
-    - move: 1.78/0.61/-1.047
+    - move: 1.68/0.56/-1.047
+    - move: 1.78/0.56/-1.047
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
