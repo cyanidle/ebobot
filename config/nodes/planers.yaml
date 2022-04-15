@@ -73,14 +73,14 @@ local_planer:
   path_coeff_enable:  1
   #Turn
   pause_before_turn: 0.1 #seconds
-  turn_threshhold: 0.08
+  turn_threshhold: 0.1
   cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed, works with dynamic turn)
   turn_coeff: 0.75
-  min_turn_coeff: 0.25 #final!
+  min_turn_coeff: 0.4 #final!
   #speed coeffs
   full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  0.8
-  min_coeff: 0.24 #Final!!
+  min_coeff: 0.4 #Final!!
   path_speed_coeff: 1.5 #В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 1.4 # More = slower
   max_cost_speed_coeff: 2 #more = more slowing 
