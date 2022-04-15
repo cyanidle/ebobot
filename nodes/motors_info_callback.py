@@ -31,7 +31,7 @@ rospy.Service("reset_odom_service", Empty, resetCB)
 def estimateCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.pose.orientation.x,target.pose.pose.orientation.y,target.pose.pose.orientation.z,target.pose.pose.orientation.w])
     goal = [target.pose.pose.position.x,target.pose.pose.position.y,euler[2]]
-    rospy.loginfo(f"MOTORS NEW ESTIMATE: {goal}")
+    #rospy.loginfo(f"MOTORS NEW ESTIMATE: {goal}")
     Motors.x,Motors.y,Motors.theta = goal[0], goal[1], goal[2]
 class Motors():
     #Params
