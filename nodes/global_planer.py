@@ -550,7 +550,7 @@ def main():
 
         rate.sleep()
 class MoveServer:
-    use_actionlib = rospy.get_param("~use_actionlib", 0)
+    use_actionlib = rospy.get_param("~use_actionlib", 1)
     feedback = MoveFeedback('good')
     _preemted = 0
     if not use_actionlib:
