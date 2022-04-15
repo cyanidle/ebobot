@@ -10,32 +10,19 @@
     - "servos_service":
       - "num": 0
       - "state": 80
-    - "servos_service":
-      - "num": 1
-      - "state": 20
-  #############
   - "ArmDown":
     - "servos_service":
       - "num": 0
       - "state": 0
-    - "servos_service":
-      - "num": 1
-      - "state": 80
   #############
   - "ArmHalfUp":
     - "servos_service":
       - "num": 0
       - "state": 60
-    - "servos_service":
-      - "num": 1
-      - "state": 60
   ##
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 40
-    - "servos_service":
-      - "num": 1
       - "state": 40
 #######################
   - "Ohms":

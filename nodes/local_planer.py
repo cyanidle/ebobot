@@ -282,7 +282,7 @@ class Local():
     def rotateAtEnd(cls):
         rospy.logwarn(f"Rotating...")
         #shutdownHook()
-        cals.cmdVel((0,0,0),1)
+        cls.cmdVel((0,0,0),1)
         rospy.sleep(cls.pause_before_turn)
         if cls.use_timed_adj_disable:
             cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
