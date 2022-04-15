@@ -38,6 +38,7 @@ tasks:
     - sleep: 0.3
     - call: PumpOff
     - call: ValveOff
+    - call: ArmDown
 
 
   home:
