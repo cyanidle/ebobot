@@ -4,7 +4,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
   update_rate: 10
-  step: 4
+  step: 5
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
   resend: 1
@@ -42,8 +42,8 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   ################################# point by (cl_rep_threshhold) cells -> All intermediate removed
   # MULTIPLIED BY STEP: (ALL SHOULD BE LESS THAN 1)
   cleanup_repeats_threshhold: 0.85   # If planer hasnt moved in (cl_repeats_len) jumps from each
-  stuck_dist_threshhold: 0.45 #dist which should be reached in (stuck_check_jumps)
-  dead_end_dist_diff_threshhold: 0.8 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
+  stuck_dist_threshhold: 0.3 #dist which should be reached in (stuck_check_jumps)
+  dead_end_dist_diff_threshhold: 0.95 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
   update_stop_thresh: 4 # Dist from target IN STEPS, when stops updating route
   # Step is added:
   dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
