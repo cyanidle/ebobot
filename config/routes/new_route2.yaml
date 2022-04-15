@@ -15,9 +15,9 @@ tasks:
     - call: ArmHalfDown
     - call: PumpOn
     - move: 1.75/1.39/-1.047
-    - sleep: 1
+    - sleep: 0.2
     - call: ArmUp
-    - sleep: 0.5
+    - sleep: 0.1
     - move: 1.68/1.39/-1.047
     - score: 1
   deliver_blue_flipped:
@@ -26,7 +26,7 @@ tasks:
     - move: 1.81/0.61/-1.047
     #- call: ArmHalfUp
     - call: ValveOn
-    - sleep: 1
+    - sleep: 0.3
     - call: PumpOff
     - call: ValveOff
     - score: 3
