@@ -66,8 +66,7 @@ def pathCallback(path):################Доделать
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
         shutdownHook()
-    _cost = Local.getCost(Local.robot_pos)
-    rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}')
+    
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_height = costmap.info.height
@@ -294,11 +293,13 @@ class Local():
         #shutdownHook()
         cls.cmdVel((0,0,0),1)
         rospy.sleep(cls.pause_before_turn)
+        _toggle_resp_f = None
         if cls.use_timed_adj_disable:
             cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         else:
             try:
                 _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+                _toggle_resp_f = True
             except:
                 rospy.logerr("Toggle unavailable")
         while cls.checkTurn() and not rospy.is_shutdown(): 
@@ -315,7 +316,7 @@ class Local():
             turn = diff/abs(diff) *  coeff      
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
-        if _toggle_resp.message == "was 1":
+        if _toggle_resp_f and _toggle_resp.message == "was 1":
             try:
                 cls._toggle_proxy(SetBoolRequest(data = True))
             except:
@@ -393,7 +394,9 @@ class Local():
             shutdownHook()
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
+        #rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
+        _cost = cls.getCost(cls.actual_target)
+        rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {cls.cost_threshhold})\n##### speed reduction = {cls.getCostCoeff(_cost)}')
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
