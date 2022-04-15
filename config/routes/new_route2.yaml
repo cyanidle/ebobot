@@ -22,6 +22,15 @@ tasks:
     - score: 3
     - move: 1.68/0.61/-1.047
     - call: ArmDown
+    - move: 1.68/1.39/-1.047
+    call: ArmHalfDown
+    - call: PumpOn
+    - move: 1.83/1.39/-1.047
+    - sleep: 0.2
+    - call: ArmUp
+    - sleep: 0.1
+    - move: 1.68/1.39/-1.047
+    - score: 1
 
 
   home:
