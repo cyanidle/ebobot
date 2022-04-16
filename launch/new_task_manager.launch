@@ -5,7 +5,7 @@
     <arg name="file1" default="$(find ebobot)/config/routes/new_route1.yaml"/>
     <arg name="file2" default="$(find ebobot)/config/routes/new_route2.yaml"/>
     <arg name="test_file1" default="$(find ebobot)/config/routes/test_route1.yaml"/>
-    <arg name="test_file2" default="$(find ebobot)/config/routes/dor_test.yaml"/>
+    <arg name="test_file2" default="$(find ebobot)/config/routes/test_route2.yaml"/>
     <arg name="use_own" default="true"/>
 
     <group if="$(arg use_own)">
