@@ -213,7 +213,7 @@ class Local():
                 _current_target = int(num + 1)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.current_target = _current_target
-        cls.actual_target = cls.robot_pos
+        cls.actual_target = cls.robot_pos + cls.robot_twist
         new_parsed_targets.append(final_target)  
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
