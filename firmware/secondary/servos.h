@@ -116,7 +116,7 @@ void servoDown(Servo_mot *servo){
     
 }
 void servosUpdate(){
-    for (int num=0;num<max_num;num++){
+    for (int num=0;num<=max_num;num++){
         Servo_mot *servo = ptr_list[num];
         if (servo->target_state > servo->curr_val) servoUp(servo); 
         else if (servo->target_state < servo->curr_val) servoDown(servo);
