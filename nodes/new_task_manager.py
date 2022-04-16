@@ -66,7 +66,7 @@ def startCallback(start):
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")
-            Flags._test_routes = 0
+            Flags._test_routes = 1
             parse(Flags._current_route_num)
             for n in range(3,-1,-1):
                 try:
@@ -737,6 +737,7 @@ class Manager:
                 rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
+        Flags._execute = 0
         Manager.route = {}
         Manager.obj_dict = {}
         Prediction.score = 0
