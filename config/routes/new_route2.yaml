@@ -3,14 +3,14 @@ tasks:
   obezd_govna:
     - move: 1.76/0.61/-1.047    # фишки больше не мешают 
   get_flipped: 
-    - move: 1.68/1.32/-1.047
+    - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.78/1.32/-1.047
+    - move: 1.78/1.34/-1.047
     - sleep: 0.2
     - call: ArmUp
     - sleep: 0.1
-    - move: 1.68/1.39/-1.047
+    - move: 1.68/1.394-1.047
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
@@ -25,12 +25,12 @@ tasks:
   get_flipped2:
     - move: 1.68/0.61/-1.047
     - call: ArmDown
-    - move: 1.68/1.32/-1.047             #ebashim do 2 fihki
+    - move: 1.68/1.34/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.79/1.32/-1.047             #надо чекнуть подьезд (слишком много мб)
+    - move: 1.79/1.34/-1.047             #надо чекнуть подьезд (слишком много мб)
     - call: ArmUp
-    - move: 1.68/1.32/-1.047
+    - move: 1.68/1.34/-1.047
     - score: 1
     
   green_flipped2:
@@ -45,14 +45,14 @@ tasks:
     - call: ArmDown
 
   get_flipped3:
-    - move: 1.68/1.32/-1.047
+    - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.78/1.32/-1.047
+    - move: 1.78/1.34/-1.047
     - sleep: 0.2
     - call: ArmUp
     - sleep: 0.1
-    - move: 1.68/1.32/-1.047
+    - move: 1.68/1.34/-1.047
     - score: 1
 
   red_flipped:
@@ -73,7 +73,7 @@ tasks:
   home:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
-    - score: 20 #20 for return 1 for hexagon
+    - score: 21 #20 for return 1 for hexagon
 
 variables: #MUST BE INTS
   default: 0
