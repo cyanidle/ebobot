@@ -13,13 +13,13 @@
 
 
     <include file="$(find ebobot)/launch/move_base.launch">
+      <arg name="arduino0" value="$(arg arduino0)"/>
+      <arg name="arduino1" value="$(arg arduino1)"/>
       <arg name="rviz" value="$(arg rviz)"/>
       <arg name="debug" value="$(arg debug)"/>
     </include>
 
     <include file="$(find ebobot)/launch/new_task_manager.launch">
-        <arg name="arduino0" value="$(arg arduino0)"/>
-        <arg name="arduino1" value="$(arg arduino1)"/>
         <arg name="debug" value="$(arg debug)"/>
         <arg name="file1" value="$(find ebobot)/config/routes/$(arg file1).yaml"/>
         <arg name="file2" value="$(find ebobot)/config/routes/$(arg file2).yaml"/>
