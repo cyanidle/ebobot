@@ -606,10 +606,13 @@ class MoveServer:
             self._fail_flag = 0 
             self.feedback = type(self).feedback
         def execute(self):
+            self.feedback = "executing"
             while (not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.1)
             rospy.logwarn(f"GLOBAL: Exiting service loop!")
+            self._success_flag = 0
+            self._fail_flag = 0 
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:

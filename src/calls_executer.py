@@ -369,17 +369,18 @@ class ProxyClient:
         self._done = False
         resp = self.proxy(req)
         self._done = True
-        self.state = resp.status
+        #self.state = resp.status
         feedback_cb(MoveFeedback(self.state))
+        rospy.logwarn(f"EXECUTER: Move done status = {self.state}")
         if not resp.preempted:
             if resp.status == "done":
-                return GoalStatus.SUCCEEDED
+                self.state = GoalStatus.SUCCEEDED
             elif resp.status == "fail":
-                return GoalStatus.ABORTED
+                self.state = GoalStatus.ABORTED
             else:
-                return GoalStatus.ACTIVE
+                self.state = GoalStatus.ACTIVE
         else:
-            return GoalStatus.ACTIVE
+            self.state =  GoalStatus.ACTIVE
     def wait_for_result(self):
         while not rospy.is_shutdown() and not self._done():
             rospy.sleep(0.1)
