@@ -66,7 +66,7 @@ def startCallback(start):
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")
-            Flags._test_routes = 1
+            
             parse(Flags._current_route_num)
             for n in range(3,-1,-1):
                 try:
@@ -74,6 +74,7 @@ def startCallback(start):
                 except:
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
+            Flags._test_routes = 0
             startCallback(Int8(3))
     else:
         if start.data == 1:
@@ -94,14 +95,14 @@ def startCallback(start):
             Flags._current_route_num = 2
             #rospy.sleep(0.5)
             parse(2)
-        elif start.data == 3:
-            Flags._test_routes = 0
-            #parse(Flags._current_route_num)
+        elif start.data == 3:  
+            parse(Flags._current_route_num)
             try:
                 asyncio.run(showPrediction(0))
             except:
                 rospy.logwarn("No lcd found!")
             Flags._execute = 1
+            Flags._test_routes = 1
             rospy.logwarn(f"Executing chosen route!")
         else:
             rospy.logerr("Incorrect start sequence!")
@@ -757,14 +758,17 @@ class Manager:
             else:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
-                if not Flags._test_routes and not _done:
+                if not _done:
                     #
                     _done = 1
                     if not Flags._test_routes:
-                        parse(Flags._current_route_num)
-                    else:
-                        #Flags._test_routes = 1
+                        Flags._test_routes = 1
                         parse(10 + Flags._current_route_num)
+                    else:
+                        #
+                        Flags._test_routes = 0
+                        parse(Flags._current_route_num)
+                        
             await asyncio.sleep(0.05)
         Manager.current_task = 0
         Flags._execute = 0

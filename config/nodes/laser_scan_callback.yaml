@@ -22,7 +22,7 @@ laser_scan_callback:
   #############
   min_dots: 1
   max_dots_per_obj: 60
-  objects_centre_coeff: 36 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
+  objects_centre_coeff: 35 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
   radius_thresh: 1.5
   ################
   obstacles:
@@ -36,7 +36,7 @@ laser_scan_callback:
     ####
     radius_coeff: 1
     dots_thresh: 200
-    min_dots: 1
+    min_dots: 2
     safe_footprint_radius: 0.4 #Minimal radius around obstacles (if not default)
   ################
   beacons:
