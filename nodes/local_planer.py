@@ -12,7 +12,7 @@ from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
 from visualization_msgs.msg import Marker
-from std_msgs.msg import String, Int8
+from std_msgs.msg import String, Int8, Float32
 from std_srvs.srv import SetBool, SetBoolRequest
 ######
 from dorlib import turnVect, dCoordsOnCircle
@@ -44,7 +44,13 @@ def robotPosCallback(robot):
         tf.transformations.euler_from_quaternion(quat)[2]])
     #if Local.debug:
         #rospy.loginfo(f"New pos = {Local.new_pos}")
-
+def changeCostCallback(fl):
+    cost = fl.data
+    if not Local.global_cost_relation:
+        Local.global_cost_relation = Local.cost_threshhold/cost
+    else:
+        Local.cost_threshhold = cost * Local.global_cost_relation
+        rospy.logwarn(f"LOCAL: New global cost {cost}, threshhold {Local.cost_threshhold}")
 def pathCallback(path):################Доделать
     #Local.targets.clear()
     Local.new_targets.clear()
@@ -60,8 +66,7 @@ def pathCallback(path):################Доделать
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
         shutdownHook()
-    _cost = Local.getCost(Local.robot_pos)
-    rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}')
+    
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
     Local.costmap_height = costmap.info.height
@@ -128,6 +133,7 @@ class Local():
 
     #Topics
     #rviz_point_topic = rospy.get_param('~rviz_topic', 'local_points')
+    change_cost_service_echo_name = f"{rospy.get_param('/global/change_cost_service_name', 'change_cost_service')}_echo"
     status_publish_topic = rospy.get_param('~status_publish_topic', 'planers/local/status')
     path_subscribe_topic =  rospy.get_param('~path_subscribe_topic', 'planers/global/path')
     costmap_topic = rospy.get_param('~costmap_topic', 'costmap_server/costmap')
@@ -144,6 +150,7 @@ class Local():
         disable_adjust_publisher = rospy.Publisher(disable_adjust_sec_topic, Int8, queue_size = 4)
     ######
     #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
+    cost_sub = rospy.Subscriber(change_cost_service_echo_name, Float32, changeCostCallback)
     rviz_broadcaster = tf.TransformBroadcaster()
     status_publisher = rospy.Publisher(status_publish_topic, String, queue_size = 5)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
@@ -154,6 +161,7 @@ class Local():
     #/Topics
 
     #cls values
+    global_cost_relation = 0
     robot_twist = np.array([0,0,0])
     last_target = []
     actual_target = []
@@ -205,6 +213,7 @@ class Local():
                 _current_target = int(num + 1)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.current_target = _current_target
+        cls.actual_target = cls.robot_pos
         new_parsed_targets.append(final_target)  
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
@@ -284,10 +293,15 @@ class Local():
         #shutdownHook()
         cls.cmdVel((0,0,0),1)
         rospy.sleep(cls.pause_before_turn)
+        _toggle_resp_f = None
         if cls.use_timed_adj_disable:
             cls.disable_adjust_publisher.publish(Int8(cls.disable_adjust_sec_time))
         else:
-            _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+            try:
+                _toggle_resp = cls._toggle_proxy(SetBoolRequest(data = False))
+                _toggle_resp_f = True
+            except:
+                rospy.logerr("Toggle unavailable")
         while cls.checkTurn() and not rospy.is_shutdown(): 
             diff =  (cls.getRadNorm(cls.last_target[2]) - cls.getRadNorm(cls.robot_pos[2]))
             if diff >= 3.1415:
@@ -302,8 +316,11 @@ class Local():
             turn = diff/abs(diff) *  coeff      
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
-        if _toggle_resp.message == "was 1":
-            cls._toggle_proxy(SetBoolRequest(data = True))
+        if _toggle_resp_f and _toggle_resp.message == "was 1":
+            try:
+                cls._toggle_proxy(SetBoolRequest(data = True))
+            except:
+                rospy.logerr("Toggle unavailable")
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
@@ -377,7 +394,8 @@ class Local():
             shutdownHook()
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
+        #rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
+        
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
@@ -403,10 +421,11 @@ class Local():
 # import os
 # import cv2
 def main():
-    
     rospy.on_shutdown(shutdownHook)
     rate = rospy.Rate(Local.update_rate)
     while not rospy.is_shutdown():
+            #_cost = Local.getCost(Local.actual_target)
+            #rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}')
         if not Local.goal_reached:
             Local.updateTarget()
             if np.linalg.norm(Local.robot_pos[:2] - Local.targets[-1][:2]) < Local.threshhold:

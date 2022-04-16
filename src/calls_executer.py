@@ -309,11 +309,19 @@ class Execute:
                 if Execute.debug:
                     rospy.logerr(f"Syntax error for dynamic {call_name}! (No available services or duplicate call name)")
 
+
+from ebobot.srv import SetMoveTarget, SetMoveTargetRequest
 class Move:
+    proxy_name = rospy.get_param("/global/move_service_name", "set_move_service")
+    use_actionlib = rospy.get_param("/global/use_actionlib", 1)
     def __init__(self,cb):
         "Init a client with a callback function!"
         self.cb = cb
-        self.client = actionlib.SimpleActionClient('move', MoveAction)
+        if Move.use_actionlib:
+            self.client = actionlib.SimpleActionClient('move', MoveAction)
+        else:
+            #print("EPICEPIC")
+            self.client = ProxyClient()
         if Execute.debug:
             rospy.logwarn(f"Waiting for server 'move'...")
         self.client.wait_for_server()
@@ -344,7 +352,35 @@ class Move:
             return "executing"
     def waitResult(self):
         self.client.wait_for_result()
-
+##############################################
+class ProxyClient:
+    proxy = rospy.ServiceProxy(Move.proxy_name, SetMoveTarget, True)
+    def __init__(self):
+        self.state = "init"
+        #self.proxy = ProxyClient.proxy
+        self._done = True
+    def wait_for_server(self):
+        rospy.logwarn("CALLS EXEC: USING SERVICES INSTEAD OF ACTIONLIB!!")
+    def get_state(self):
+        return self.state
+    def send_goal(self,goal,*, feedback_cb):
+        req = SetMoveTargetRequest(x = goal.x, y = goal.y, theta = goal.theta)
+        self._done = False
+        resp = self.proxy(req)
+        self._done = True
+        feedback_cb(self)
+        if not resp.preempted:
+            if resp.status == "done":
+                return GoalStatus.SUCCEEDED
+            elif resp.status == "fail":
+                return GoalStatus.ABORTED
+            else:
+                return GoalStatus.ACTIVE
+        else:
+            return GoalStatus.ACTIVE
+    def wait_for_result(self):
+        while not rospy.is_shutdown() and not self._done():
+            rospy.sleep(0.1)
 rospy.loginfo(f"Parsing calls from file {Execute.file}...")
 Execute.read()
 Execute.parse()

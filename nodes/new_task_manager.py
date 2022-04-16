@@ -314,8 +314,7 @@ class Move(Template):
         _ended = 0
         while not _ended and not rospy.is_shutdown() and Flags._execute:
             _stat = type(self).client.checkResult()
-            if Manager.debug:
-                rospy.loginfo(f"Move server feedback {_stat}")
+            rospy.loginfo(f"Move server feedback {_stat}")
             if _stat == "executing":
                 if await Task.checkForInterrupt():
                     type(self).client.cancel_goal()
@@ -452,7 +451,7 @@ class Task(Template):
             await micro.exec()
             if self._fail_flag:
                 self.status.set("fail")
-            if not Flags._execute:
+            if not Flags._execute or rospy.is_shutdown():
                 return
         if not self._fail_flag:
             self.status.set("done")

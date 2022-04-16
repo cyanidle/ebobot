@@ -11,7 +11,7 @@ from threading import Thread
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32
 from ebobot.srv import ChangeCost, ChangeCostResponse
 #from visualization_msgs.msg import Marker
 ######
@@ -52,7 +52,10 @@ def robotPosCallback(odom):
     Global.costmap_resolution
     )
 def localStatusCallback(status):
-    if move_server.server.is_active():
+    if MoveServer.use_actionlib:
+        if move_server.server.is_active():
+            move_server.update(status.data,local=1)
+    else:
         move_server.update(status.data,local=1)
 def targetCallback(target): 
     euler = tf.transformations.euler_from_quaternion([target.pose.orientation.x,target.pose.orientation.y,target.pose.orientation.z,target.pose.orientation.w])
@@ -67,7 +70,7 @@ def targetCallback(target):
     Global.target_set = 1
     if Global.rviz_enable:
         #markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target',debug=Global.debug)
-        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target',debug=Global.debug)
+        markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target',debug=0)
     #!!!!!!!!!!!!!!
 def costmapCallback(costmap):
     Global.costmap_resolution = costmap.info.resolution
@@ -88,6 +91,8 @@ def costmapUpdateCallback(update): #not used
     
 def changeCostCB(req):
     _was=Global._default_max_cost
+    Global.change_cost_publisher.publish(Float32(_was))
+    Global.change_cost_publisher.publish(Float32(req.cost))
     Global.maximum_cost = req.cost
     Global._default_max_cost = req.cost
     rospy.logwarn(f"GLOBAL PLANER: Cost changed to {req.cost}")
@@ -121,25 +126,25 @@ class Global(): ##Полная жопа
     recovery_cost_step /= update_rate
     #
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
-    stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',6) #in cells (if havent moved in the last (stuck check jumps))
-    stuck_dist_threshhold *= step
+    stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',0.5) #in cells (if havent moved in the last (stuck check jumps))
+    stuck_dist_threshhold *= step # * 2
     #
     twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff',0.02)
     #
     dead_end_dist_diff_threshhold = rospy.get_param('~dead_end_dist_diff_threshhold',2) #in cells
-    dead_end_dist_diff_threshhold *= step
+    dead_end_dist_diff_threshhold *= step * 2
     maximum_jumps = rospy.get_param('~maximum_jumps',600)
     consecutive_jumps_threshhold = rospy.get_param('~consecutive_jumps_threshhold',5)
     fail_count_threshhold = rospy.get_param('~fail_count_threshhold',5)
     num_of_tries_for_last = rospy.get_param('~num_of_tries_for_last',5)
     dist_to_target_threshhold =  rospy.get_param('~global_dist_to_target_threshhold',3) #in cells
     dist_to_target_threshhold += step
-    step_radians_resolution = rospy.get_param('~step_radians_resolution', 36)  #number of points on circle to try (even)
+    step_radians_resolution = rospy.get_param('~step_radians_resolution', 24)  #number of points on circle to try (even)
     #Cleanup params
     cleanup_repeats_len = rospy.get_param('~cleanup_repeats_len',8) #jumps (if doenst exeed thr in (len) jumps - deleted)
     cleanup_power = rospy.get_param('~cleanup_power',1) #num times cleaning is used (1 is best, 2 for open spaces)   
     cleanup_repeats_threshhold = rospy.get_param('~cleanup_repeats_threshhold',step * cleanup_repeats_len * cleanup_power * 0.5 ) #cells CHANGE CAREFULLY!!
-    cleanup_repeats_threshhold *= step
+    cleanup_repeats_threshhold = cleanup_repeats_threshhold * step * cleanup_repeats_len
     #/Params
     
 
@@ -151,10 +156,12 @@ class Global(): ##Полная жопа
     costmap_update_topic = rospy.get_param('~costmap_update_topic','costmap_server/updates')
     path_publish_topic =  rospy.get_param('~path_publish_topic', 'planers/global/path')
     pose_subscribe_topic =  rospy.get_param('~pose_subscribe_topic', 'move_base_simple/goal')
+    change_cost_service_name = rospy.get_param('/global/change_cost_service_name', 'change_cost_service')
     robot_pos_topic =  rospy.get_param('~robot_pos_topic',"odom")
     ####
-    #point_publisher = rospy.Publisher(rviz_point_topic, Marker, queue_size = 10)
     path_broadcaster = tf.TransformBroadcaster()
+    rospy.Service(change_cost_service_name,ChangeCost,changeCostCB)
+    change_cost_publisher = rospy.Publisher(f"{change_cost_service_name}_echo", Float32, queue_size=2)
     local_status_subscriber = rospy.Subscriber(local_status_topic, String, localStatusCallback)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
@@ -362,7 +369,7 @@ class Global(): ##Полная жопа
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
-        rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
+        #rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
         if cls._fail_count >= cls.fail_count_threshhold:
             rospy.logerr(f"Global planer cancels current goal!!")
             if cls.resend:
@@ -379,31 +386,34 @@ class Global(): ##Полная жопа
     def cleanupDeadEnds():
         list_to_remove = []
         max_dist_num = 0
-        if len(Global.list) < Global.update_stop_thresh * 2:
+        _jumps = int(round(Global.update_stop_thresh/Global.step))
+        if len(Global.list) < _jumps * 2:
             return
-        for num, tuple in enumerate(Global.list[1:-Global.update_stop_thresh]):
+        for num, _tuple in enumerate(Global.list[1:-_jumps]):
             num += 1
-            pos, dist = tuple
-            curr_dist = dist-Global.list[num-1][1]
+            pos, dist = _tuple
+            curr_dist = dist-Global.list[num-2][1]
             if max_dist_num:
                 if num != max_dist_num:
-                    dist = np.linalg.norm(pos[:2]-Global.list[max_dist_num][0][:2])
-                    curr_dist = dist-np.linalg.norm(pos[:2]-Global.list[num-1][0][:2]) 
+                    #dist = np.linalg.norm(pos[:2]-Global.list[max_dist_num][0][:2])
+                    curr_dist = np.linalg.norm(pos[:2]-Global.list[num-2][0][:2]) 
                 else:
                     curr_dist = 100
             if curr_dist > Global.dead_end_dist_diff_threshhold:
                 continue
             else:
-                if num < (len(Global.list)-Global.update_stop_thresh):
-                    list_to_remove.append(num-1)
-                    if not max_dist_num and Global.list[num+1][1]-dist > Global.dead_end_dist_diff_threshhold:
-                        max_dist_num = num+1
-                    elif (np.linalg.norm(Global.list[num+1][0][:2] -  pos[:2])> Global.dead_end_dist_diff_threshhold and 
-                        Global.list[num+1][1]-dist > Global.dead_end_dist_diff_threshhold):
-                        max_dist_num = num+1
-        rospy.loginfo(f"Removing {len(list_to_remove)} points...")
+                if 3 < num < (len(Global.list)-_jumps):
+                    list_to_remove.append(num-2)
+                    #if not max_dist_num and Global.list[num+2][1]-dist > Global.dead_end_dist_diff_threshhold:
+                    #    max_dist_num = num + 2  and 
+                    #    Global.list[num+2][1]-dist > Global.dead_end_dist_diff_threshhold
+                    if np.linalg.norm(Global.list[num+2][0][:2] -  pos[:2])> Global.dead_end_dist_diff_threshhold:
+                        max_dist_num = num+2
+                        #rospy.loginfo(f"max_dist_num{max_dist_num}")
+        #rospy.loginfo(f"Removing {len(list_to_remove)} points...")
         for done,num in enumerate(list_to_remove):
-            popped = Global.list.pop(num-done)
+            if (num-done) in range(len(Global.list)):
+                popped = Global.list.pop(num-done)
             #if Global.debug:
         
         # list_to_remove = []
@@ -416,6 +426,8 @@ class Global(): ##Полная жопа
         for num in range(len(Global.list)):
             if num > check_for and (max_num-num) > check_for:
                 #rospy.loginfo(f"{num =}")
+                if not num-check_for in range(len(Global.list)):
+                    continue
                 if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) < Global.cleanup_repeats_threshhold:
                     #rospy.loginfo(f"added for remove, len is {max_num}")
                     for i in range(num - check_for,num):
@@ -499,7 +511,7 @@ class Global(): ##Полная жопа
                 Global.path_publisher.publish(Path())
             else:
                 Global.path_publisher.publish(msg)    
-            rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
+            #rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
 
 
 
@@ -554,12 +566,13 @@ def main():
 ###########################################################
 from ebobot.srv import SetMoveTarget, SetMoveTargetResponse 
 def SetMoveCB(goal):
-    rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
     ###################
     if move_server.active:
         move_server._preemted = 1
+        rospy.logerr(f"PIZDEC, YA YEDU NA DRUGOI HUI({goal.x, goal.y})")
     else:    
         move_server.active = 1
+        rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
     ###################
     new_target = PoseStamped()
     new_target.pose.position.x = goal.x
@@ -575,21 +588,23 @@ def SetMoveCB(goal):
 #############################################################    
 
 class MoveServer:
-    use_actionlib = rospy.get_param("~use_actionlib", 1)
+    use_actionlib = rospy.get_param("/global/use_actionlib", 1)
     _preemted = 0
     if not use_actionlib:
-        rospy.Service("set_move_service", SetMoveTarget,SetMoveCB)
+        service_name = rospy.get_param("/global/move_service_name", "set_move_service")
+        rospy.Service(service_name, SetMoveTarget,SetMoveCB)
         feedback = "good"
         rospy.logwarn("GLOBAL: WARNING - USING EXPERIMENTAL COMMANDS (NOT ACTIONLIB)")
         def __init__(self) -> None:
             self.active = 0
             self._preempted = 0
+            self._success_flag = 0
+            self._fail_flag = 0 
             self.feedback = type(self).feedback
-        def execute(self,goal):
+        def execute(self):
             while ( not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.05)
-
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:
@@ -599,6 +614,7 @@ class MoveServer:
                     self.done(1)
         def done(self,status:int):
             "Status 1 = success, status 0 = fail"
+            self.active = 0
             if status:
                 self._success_flag = 1
             else:
@@ -629,7 +645,7 @@ class MoveServer:
             #
             while (not rospy.is_shutdown() and self._success_flag == 0 
             and self._fail_flag == 0):
-                rospy.logwarn(f"Robot driving to target")
+                #rospy.logwarn(f"Robot driving to target")
                 rospy.sleep(0.05)
             if self._success_flag:
                 self.server.set_succeeded(MoveResult(0))
