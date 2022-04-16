@@ -25,10 +25,15 @@
       - "num": 0
       - "state": 36
 
-  - "MicroArmup":
+  - "MicroArmUp":
     - "servos_service":
-      - "num": 1
-      - "state": 36
+      - "num": 3
+      - "state": 100
+
+  - "MicroArmDowm":
+    - "servos_service":
+      - "num": 3
+      - "state": 0
 #######################
   - "Ohms":
     - "ohm_reader_service":
