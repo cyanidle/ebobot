@@ -59,10 +59,9 @@ def startCallback(start):
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
             #Flags._test_routes = 0
-            if not Flags._test_routes:
-                Flags._execute = 1
-                if Manager.debug:
-                    rospy.logwarn(f"Executing test route!")
+            Flags._execute = 1
+            if Manager.debug:
+                rospy.logwarn(f"Executing test route!")
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")

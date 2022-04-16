@@ -1,7 +1,7 @@
 tasks:
 
   obezd_govna:
-    - move: 1.68/0.61/-1.047    # фишки больще не мешают 
+    - move: 1.68/0.61/-1.047    # фишки больше не мешают 
   get_flipped: 
     - move: 1.68/1.39/-1.047
     - call: ArmHalfDown
