@@ -1,0 +1,33 @@
+<launch>
+
+
+    
+    <arg name="rviz" default="false"/>
+    <arg name="debug" default="false"/>
+    <arg name="file1" default="new_route1"/>
+    <arg name="file2" default="new_route2"/>
+    <arg name="test_file1" default="$(find ebobot)/config/routes/test_route1.yaml"/>
+    <arg name="test_file2" default="$(find ebobot)/config/routes/test_route2.yaml"/>
+    <arg name="arduino0" default="true"/>
+    <arg name="arduino1" default="false"/>
+    <arg name="arduino_port0" default="/dev/ttyUSB0"/>
+    <arg name="arduino_port1" default="/dev/ttyACM1"/>
+
+    <include file="$(find ebobot)/launch/move_base.launch">
+        <arg name="arduino_port0" value="$(arg arduino_port0)"/>
+      <arg name="arduino_port1" value="$(arg arduino_port1)"/>
+      <arg name="arduino0" value="$(arg arduino0)"/>
+      <arg name="arduino1" value="$(arg arduino1)"/>
+      <arg name="rviz" value="$(arg rviz)"/>
+      <arg name="debug" value="$(arg debug)"/>
+    </include>
+
+    <include file="$(find ebobot)/launch/new_task_manager.launch">
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="file1" value="$(find ebobot)/config/routes/$(arg file1).yaml"/>
+        <arg name="file2" value="$(find ebobot)/config/routes/$(arg file2).yaml"/>
+        <arg name="test_file1" value="$(arg test_file1)"/>
+        <arg name="test_file2" value="$(arg test_file2)"/>
+    </include>
+
+</launch>
