@@ -50,7 +50,7 @@ tasks:
 variables: #MUST BE INTS
   default: 0
   get_flipped_var: 1 
-interrupts: 
-  return_to_base:
-    - interrupt_condition: "timers/main/50"
-    - move: 1/1/0
+# interrupts:              # едем домой (врубить после теста всего маршрута)
+#   return_to_base:
+#     - interrupt_condition: "timers/main/50"
+#     - move: 1/1/0
