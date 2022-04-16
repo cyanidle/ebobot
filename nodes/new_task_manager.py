@@ -757,7 +757,7 @@ class Manager:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
                 if not Flags._test_routes and not _done:
-                    await showPrediction(1000 + Flags._current_route_num)
+                    #
                     _done = 1
                     if not Flags._test_routes:
                         parse(Flags._current_route_num)
