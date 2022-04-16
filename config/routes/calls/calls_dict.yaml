@@ -30,7 +30,7 @@
       - "num": 3
       - "state": 100
 
-  - "MicroArmDowm":
+  - "MicroArmDown":
     - "servos_service":
       - "num": 3
       - "state": 0
