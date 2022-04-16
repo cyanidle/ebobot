@@ -584,7 +584,11 @@ def SetMoveCB(goal):
     new_target.pose.orientation.w = quat[3]
     targetCallback(new_target)
     move_server.execute()
-    return SetMoveTargetResponse(preempted=bool(move_server._preempted), status=move_server.feedback)
+    resp = SetMoveTargetResponse(()
+    resp.preempted= bool(move_server._preempted)
+    resp.status= move_server.feedback
+    rospy.loginfo(f"GLOBAL: Service preemted = {resp.preempted}, status = {resp.status}")
+    return resp
 #############################################################    
 
 class MoveServer:
@@ -605,8 +609,7 @@ class MoveServer:
             while (not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.1)
-            self.st
-            rospy.logwarn("GLOBAL: Exiting service loop!")
+            rospy.logwarn(f"GLOBAL: Exiting service loop!")
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:
