@@ -761,6 +761,7 @@ class Manager:
                     rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
                     _done = 1
                     parse(Flags._current_route_num)
+                    Flags._execute = 0
                         
             await asyncio.sleep(0.05)
         Manager.current_task = 0

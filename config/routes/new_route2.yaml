@@ -63,9 +63,9 @@ tasks:
     - call: PumpOff
     - score: 3
     - call: ValveOff
-    - move: 1.68/0.79/-1.047
+    - move: 1.68/1.03/-1.047
     - call: ArmDown
-    - move: 1.48/0.98/-1.047
+    - move: 1.48/1.03/-1.047
 
 
     
