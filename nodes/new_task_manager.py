@@ -58,7 +58,7 @@ def startCallback(start):
                 except:
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
-            #Flags._test_routes = 0
+            Flags._test_routes = 0
             Flags._execute = 1
             if Manager.debug:
                 rospy.logwarn(f"Executing test route!")
@@ -100,7 +100,7 @@ def startCallback(start):
             except:
                 rospy.logwarn("No lcd found!")
             Flags._execute = 1
-            #Flags._test_routes = 1
+            Flags._test_routes = 1
             rospy.logwarn(f"Executing chosen route!")
         else:
             rospy.logerr("Incorrect start sequence!")
@@ -760,13 +760,7 @@ class Manager:
                     #
                     rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
                     _done = 1
-                    if not Flags._test_routes:
-                        Flags._test_routes = 1
-                        parse(10 + Flags._current_route_num)
-                    else:
-                        #
-                        Flags._test_routes = 0
-                        parse(Flags._current_route_num)
+                    parse(Flags._current_route_num)
                         
             await asyncio.sleep(0.05)
         Manager.current_task = 0
