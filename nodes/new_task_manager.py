@@ -46,6 +46,7 @@ def startCallback(start):
     elif start.data == 0:
         Flags._test_routes = 1
         Flags._countdown = 1
+        rospy.logwarn(f"MANAGER: Test Start!")
         for n in range(3,0,-1):
             try:
                 asyncio.run(showPrediction(n))
@@ -62,10 +63,16 @@ def startCallback(start):
     elif start.data == 3:
         Flags._test_routes = 0
         if Flags._countdown:
+            rospy.logwarn(f"MANAGER: Fast Start!")
             _parse()
+        else:
+            rospy.logwarn(f"MANAGER: Route Start!")
         _run()
     else:
-        rospy.logerr("MANAGER: Unexpected start data!")
+        try:
+            asyncio.run(showPrediction(9999))
+        finally:
+            rospy.logerr("MANAGER: Unexpected start data!")
 ##################################################
 def _parse():
     parse(Flags._test_routes*10 + Flags._current_route_num)
