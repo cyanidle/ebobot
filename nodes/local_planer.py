@@ -210,10 +210,10 @@ class Local():
             dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
             if dist < min_dist:
                 min_dist = dist
-                _current_target = int(num + 1)
+                _current_target = int(num)
         cls.targets = new_parsed_targets #IMPORTANT
         cls.current_target = _current_target
-        cls.actual_target = cls.robot_pos + cls.robot_twist
+        #cls.actual_target = cls.robot_pos + cls.robot_twist
         new_parsed_targets.append(final_target)  
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
