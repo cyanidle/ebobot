@@ -537,6 +537,7 @@ class Variable(Template):
             return None
         else:
             rospy.logerr("Find var called with zero init variables!")
+            return None
     def midExec(self) -> None:
         pass
     def rawString(self):
@@ -548,7 +549,11 @@ class ChangeVar(Template):
         parsed = args.split("/")
         self._var = parsed[0]
         self._action = parsed[1]
-        self._value = int(parsed[2])
+        var = Variable.find(parsed[2])
+        if var:
+            self._value = var.value
+        else:
+            self._value = int(parsed[2])
     def apply(self, val: int):
         if self._action == "add":
             return val + self._value
