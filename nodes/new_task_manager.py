@@ -23,92 +23,58 @@ from abc import ABC, abstractmethod
 rospy.sleep(1)
 #####################################
 def startCallback(start):
-    rospy.logwarn(f"Got new start command {start.data}")
+    rospy.logwarn(f"MANAGER: Got new start command {start.data}")
     Flags._execute = 0
-     
-    #if Manager.debug:
-    #    rospy.logwarn(Manager.route)
-    if Flags._test_routes:
-        if start.data == 1:
+    if start.data == 1:
+        try:
+            asyncio.run(showPrediction(7771))
+        except:
+            rospy.logwarn("No lcd found!")
+        if Manager.debug:
+            rospy.logwarn(f"Route 1!")
+        Flags._current_route_num = 1
+        _parse()
+    elif start.data == 2:
+        try:
+            asyncio.run(showPrediction(7772))
+        except:
+            rospy.logwarn("No lcd found!")
+        if Manager.debug:
+            rospy.logwarn(f"Route 2!")
+        Flags._current_route_num = 2
+        _parse()
+    elif start.data == 0:
+        Flags._test_routes = 1
+        Flags._countdown = 1
+        for n in range(3,0,-1):
             try:
-                asyncio.run(showPrediction(7771))
+                asyncio.run(showPrediction(n))
+                if not Flags._test_routes:
+                    break
             except:
                 rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing test_route1!")
-            Flags._current_route_num = 1
-            rospy.sleep(0.5)  
-            parse(11)
-        elif start.data == 2:
-            try:
-                asyncio.run(showPrediction(7772))
-            except:
-                rospy.logwarn("No lcd found!")
-            if Manager.debug:
-                rospy.logwarn(f"Parsing test_route2!")
-            Flags._current_route_num = 2
-            rospy.sleep(0.5)
-            parse(12)
-        elif start.data == 0:
-            for n in range(3,-1,-1):
-                try:
-                    asyncio.run(showPrediction(n))
-                    if not Flags._test_routes:
-                        break
-                except:
-                    rospy.logwarn("No lcd found!")
-                rospy.sleep(1)
-            Flags._test_routes = 0
-            Flags._execute = 1
-            if Manager.debug:
-                rospy.logwarn(f"Executing test route!")
-        else:
-            if Manager.debug:
-                rospy.logerr("Fast start!")
-            parse(Flags._current_route_num)
-            for n in range(3,-1,-1):
-                try:
-                    asyncio.run(showPrediction(n))
-                except:
-                    rospy.logwarn("No lcd found!")
-                rospy.sleep(1)
-            Flags._test_routes = 0
-            startCallback(Int8(3))
+            rospy.sleep(1)
+        Flags._countdown = 1
+        asyncio.run(showPrediction(0))
+        _run()
+        Flags._test_routes = 0
+        _parse()
+    elif start.data == 3:
+        Flags._test_routes = 0
+        if Flags._countdown:
+            _parse()
+        _run()
     else:
-        if start.data == 1:
-            try:
-                asyncio.run(showPrediction(1001))
-            except:
-                rospy.logwarn("No lcd found!")
-            rospy.logwarn(f"Parsing route1!")
-            Flags._current_route_num = 1
-            #rospy.sleep(0.5)
-            parse(1)
-        elif start.data == 2:
-            try:
-                asyncio.run(showPrediction(1002))
-            except:
-                rospy.logwarn("No lcd found!")
-            rospy.logwarn(f"Parsing route2!")
-            Flags._current_route_num = 2
-            #rospy.sleep(0.5)
-            parse(2)
-        elif start.data == 3:  
-            #parse(Flags._current_route_num)
-            try:
-                asyncio.run(showPrediction(0))
-            except:
-                rospy.logwarn("No lcd found!")
-            Flags._execute = 1
-            Flags._test_routes = 1
-            rospy.logwarn(f"Executing chosen route!")
-        else:
-            rospy.logerr("Incorrect start sequence!")
-            try:
-                asyncio.run(showPrediction(9999))
-            except:
-                rospy.logwarn("No lcd found!")
-            Flags._test_routes = 1
+        rospy.logerr("MANAGER: Unexpected start data!")
+##################################################
+def _parse():
+    parse(Flags._test_routes*10 + Flags._current_route_num)
+def _run():
+    while Flags._busy:
+        rospy.sleep(0.05)
+    Flags._busy = 1
+    Flags._busy = asyncio.run(Manager.exec())
+##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
     reduce_rate_for_move = rospy.get_param("~/status/reduce_rate_for_move", 1)
@@ -722,12 +688,13 @@ class Manager:
                 unparsed_list = cls.route["tasks"][task_name]
                 new_task = Task(task_name,unparsed_list)
             ###
-            _color_step = 1/len(Manager.obj_dict["Move"])
-            pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
-            for num, _mv in enumerate(Manager.obj_dict["Move"]):
-               pubMarker(_mv.pos,num,300,frame_name="task_moves",
-               type="cube",size=0.05,g=1-((num) * _color_step),r=1,b=1-((num) * _color_step),debug=1,add=1)
-            ###
+            if "Move" in cls.obj_dict.keys():
+                _color_step = 1/len(Manager.obj_dict["Move"])
+                pubMarker((0,0),0,1,frame_name="task_moves", deletall=1)
+                for num, _mv in enumerate(Manager.obj_dict["Move"]):
+                    pubMarker(_mv.pos,num,300,frame_name="task_moves",
+                    type="cube",size=0.05,g=1-((num) * _color_step),r=1,b=1-((num) * _color_step),debug=1,add=1)
+                    ###
         else:
             if Manager.debug:
                 rospy.logerr("NO TASKS IN ROUTE FILE!")
@@ -747,6 +714,11 @@ class Manager:
         Prediction.score = 0
     @staticmethod
     async def exec():
+        Flags._execute = 1
+        if Manager.debug:
+            rospy.logwarn(f"Starting route!")
+        main_timer = Timer(Timer,"main","main")
+        main_timer._allow_flag = 1
         _done = 0
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
@@ -762,22 +734,22 @@ class Manager:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
                 if not _done:
-                    #
                     rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
                     _done = 1
-                    parse(Flags._current_route_num)
-                    Flags._execute = 0
-                        
+                    if not Flags._test_routes:
+                        parse(Flags._current_route_num)      
             await asyncio.sleep(0.05)
         Manager.current_task = 0
-        Flags._execute = 0
+        return 0
 ##############################
 class Flags:
     _execute = 0
-    _test_routes=1
+    _test_routes = 1
     _current_route_num = 2
     _update_prediction = 0
     _goto = False
+    _busy = 0
+    _countdown = 0
 def parse(route = 11):
     Manager.reset() #pls fix
     if route == 11:
@@ -804,29 +776,23 @@ def parse(route = 11):
     Manager.parse()
     if Manager.debug:
         rospy.logwarn(f"Route parsed in {(rospy.Time.now() - start_time).to_sec()}")
-    if Manager.debug:
-        rospy.loginfo(f"{Manager.obj_dict}")
+    #if Manager.debug:
+    #    rospy.loginfo(f"{Manager.obj_dict}")
     if Manager.debug:
         rospy.loginfo("Waiting for start topic...")
     
 def main():
-    parse()
+    _parse()
     while not rospy.is_shutdown():
-        if Flags._execute:
-            asyncio.run(executeRoute())
-        if Manager.debug:
-            rospy.loginfo("Waiting for start topic...")
-        rospy.sleep(0.1)
+        rospy.spin()
+        # if Flags._execute:
+        #     asyncio.run(executeRoute())
+        # if Manager.debug:
+        #     rospy.loginfo("Waiting for start topic...")
+        # rospy.sleep(0.1)
     
     
-        
-##################
-async def executeRoute():
-    if Manager.debug:
-        rospy.logwarn(f"Starting route!")
-    main_timer = Timer(Timer,"main","main")
-    main_timer._allow_flag = 1
-    await Manager.exec()
+
 ##################
 def shutdownHook():
     rospy.signal_shutdown("Task Manager switched off!")

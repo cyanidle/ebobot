@@ -243,7 +243,10 @@ async def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
     parsed.num = num
-    return await Calls.LcdExec(parsed)
+    try:
+        return await Calls.LcdExec(parsed)
+    except:
+        rospy.logerr("No Lcd found!")
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")

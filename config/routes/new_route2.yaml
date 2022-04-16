@@ -10,7 +10,7 @@ tasks:
     - sleep: 0.2
     - call: ArmUp
     - sleep: 0.1
-    - move: 1.68/1.394-1.047
+    - move: 1.68/1.39/-1.047
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
