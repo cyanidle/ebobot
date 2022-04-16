@@ -74,6 +74,7 @@ def _run():
         rospy.sleep(0.05)
     Flags._busy = 1
     Flags._busy = asyncio.run(Manager.exec())
+    Flags._test_routes = not Flags._test_routes
 ##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
