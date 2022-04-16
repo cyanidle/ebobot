@@ -1,4 +1,4 @@
-#include <FaBoPWM_PCA9685.h>
+#include <iarduino_MultiServo.h>
 #include <Arduino.h>
 #include <ros.h>
 #include <ebobot/Servos.h>
@@ -6,14 +6,14 @@
 //
 //ros::NodeHandle_<ArduinoHardware, 10, 10, 1024, 1532> nh;
 #define MAX_SERVOS 8
-FaBoPWM servos_shield;
+iarduino_MultiServo servos_shield;
 bool servosSetup(){
-  if (servos_shield.begin()){
-    servos_shield.init(300);
-    servos_shield.set_hz(50);
+  servos_shield.begin();
+    //servos_shield.init(300);
+    //servos_shield.set_hz(50);
     return true;
   }
-}
+
 //
 int freeRam () {
   extern int __heap_start, *__brkval;
@@ -59,7 +59,7 @@ void createNewServo(int num,  int channel, int speed, int min_val, int max_val, 
     ptr->min_val = min_val;
     ptr->curr_val = curr_val;
     ptr->target_state = min_val;
-    servos_shield.set_channel_value(ptr->channel,ptr->curr_val);
+    servos_shield.analogWrite(ptr->channel,ptr->curr_val);
     sprintf(servos_debug, "New serv%d:ch%d,spd%d,min%d,max%d,bytes%d",
          ptr->num, ptr->channel ,ptr->speed, ptr->min_val, ptr->max_val,sizeof(Servo_mot)+sizeof(Servo_mot*));
     servos_debugged = false;
@@ -120,7 +120,7 @@ void servosUpdate(){
         Servo_mot *servo = ptr_list[num];
         if (servo->target_state > servo->curr_val) servoUp(servo); 
         else if (servo->target_state < servo->curr_val) servoDown(servo);
-        servos_shield.set_channel_value(servo->channel,servo->curr_val);   
+        servos_shield.analogWrite(servo->channel,servo->curr_val);   
         }  
          
     }
