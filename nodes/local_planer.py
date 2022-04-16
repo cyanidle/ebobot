@@ -210,10 +210,11 @@ class Local():
             dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
             if dist < min_dist:
                 min_dist = dist
-                _current_target = int(num + 1)
+                _current_target = int(num)
+                _actual = target
         cls.targets = new_parsed_targets #IMPORTANT
         cls.current_target = _current_target
-        cls.actual_target = cls.robot_pos
+        cls.actual_target = _actual #cls.robot_pos #+ cls.robot_twist/100
         new_parsed_targets.append(final_target)  
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
@@ -255,6 +256,8 @@ class Local():
             turn = 0
         else:
             turn = (vect[2]-curr_ang)/dist * cls.cells_per_radian *  cls.turn_coeff
+        if dist < 0.01:
+            dist = 0.01
         result = np.array([new_vect[0] /dist,  new_vect[1]/dist,   turn])
         #if cls.debug:
             #rospy.loginfo(f"Remapping... {vect=},{result=}")

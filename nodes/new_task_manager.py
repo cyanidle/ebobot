@@ -59,14 +59,12 @@ def startCallback(start):
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
             Flags._test_routes = 0
-            if not Flags._test_routes:
-                Flags._execute = 1
-                if Manager.debug:
-                    rospy.logwarn(f"Executing test route!")
+            Flags._execute = 1
+            if Manager.debug:
+                rospy.logwarn(f"Executing test route!")
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")
-            Flags._test_routes = 0
             parse(Flags._current_route_num)
             for n in range(3,-1,-1):
                 try:
@@ -74,6 +72,7 @@ def startCallback(start):
                 except:
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
+            Flags._test_routes = 0
             startCallback(Int8(3))
     else:
         if start.data == 1:
@@ -94,14 +93,14 @@ def startCallback(start):
             Flags._current_route_num = 2
             #rospy.sleep(0.5)
             parse(2)
-        elif start.data == 3:
-            Flags._test_routes = 0
+        elif start.data == 3:  
             #parse(Flags._current_route_num)
             try:
                 asyncio.run(showPrediction(0))
             except:
                 rospy.logwarn("No lcd found!")
             Flags._execute = 1
+            Flags._test_routes = 1
             rospy.logwarn(f"Executing chosen route!")
         else:
             rospy.logerr("Incorrect start sequence!")
@@ -320,7 +319,7 @@ class Move(Template):
                self.status.set(_stat)
                if _stat == "fail":
                    self.parent._fail_flag = 1
-            await asyncio.sleep((1/Status.update_rate) * Status.reduce_rate_for_move)
+            await asyncio.sleep((0.05) * Status.reduce_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     
@@ -737,6 +736,7 @@ class Manager:
                 rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
+        Flags._execute = 0
         Manager.route = {}
         Manager.obj_dict = {}
         Prediction.score = 0
@@ -756,13 +756,13 @@ class Manager:
             else:
                 if Manager.debug:
                     rospy.logwarn("No tasks left!")
-                if not Flags._test_routes and not _done:
+                if not _done:
                     #
+                    rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
                     _done = 1
-                    if not Flags._test_routes:
-                        parse(Flags._current_route_num)
-                    else:
-                        parse(10 + Flags._current_route_num)
+                    parse(Flags._current_route_num)
+                    Flags._execute = 0
+                        
             await asyncio.sleep(0.05)
         Manager.current_task = 0
         Flags._execute = 0
@@ -811,7 +811,7 @@ def main():
             asyncio.run(executeRoute())
         if Manager.debug:
             rospy.loginfo("Waiting for start topic...")
-        rospy.sleep(1/Status.update_rate)
+        rospy.sleep(0.1)
     
     
         

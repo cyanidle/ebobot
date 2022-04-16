@@ -65,6 +65,7 @@ class Laser:
     #
     max_dots_per_obj = rospy.get_param("~max_dots_per_obj",130) 
     range_max_custom = rospy.get_param("~range_max_custom",6) 
+    range_min_custom = rospy.get_param("~range_min_custom",0.15) 
     objects_centre_coeff = rospy.get_param("~objects_centre_coeff",1)
     radius_thresh = rospy.get_param("~radius_thresh",0.5)
     twist_amplify_coeff = rospy.get_param("~twist_amplify_coeff",0.5)
@@ -155,7 +156,7 @@ class Laser:
             else: 
                 range,coeffs = _cont
             y_coeff, x_coeff = coeffs
-            if range < cls.range_max_custom and range > cls.range_min:
+            if range < cls.range_max_custom and range > cls.range_min_custom:
                 meters_pos = (range * y_coeff, range * x_coeff) 
                 rotated_meters_pos = applyRotor(meters_pos,  rotor)
                 rospy.logerr_once(f"{meters_pos}|{rotated_meters_pos}")

@@ -570,7 +570,7 @@ def SetMoveCB(goal):
     if move_server.active:
         move_server._preemted = 1
         rospy.logerr(f"PIZDEC, YA YEDU NA DRUGOI HUI({goal.x, goal.y})")
-    else:    
+    else:
         move_server.active = 1
         rospy.logerr(f"PIZDEC, YA YEDU NAHUI ({goal.x, goal.y})")
     ###################
@@ -583,6 +583,7 @@ def SetMoveCB(goal):
     new_target.pose.orientation.z = quat[2]
     new_target.pose.orientation.w = quat[3]
     targetCallback(new_target)
+    move_server.reset()
     move_server.execute()
     resp = SetMoveTargetResponse()
     resp.preempted= bool(move_server._preempted)
@@ -605,14 +606,24 @@ class MoveServer:
             self._success_flag = 0
             self._fail_flag = 0 
             self.feedback = type(self).feedback
+        def reset(self):
+            self.active = 0
+            self._success_flag = 0
+            self._fail_flag = 0 
         def execute(self):
             self.feedback = "executing"
+            self.active = 1
             while (not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.1)
-            rospy.logwarn(f"GLOBAL: Exiting service loop!")
+            rospy.logwarn(f"GLOBAL: Exiting service loop! fail: {self._fail_flag}, success: {self._success_flag}, prempt: {self._preempted}")
+            if self._success_flag:
+                self.feedback = "done"
+            else:
+                self.feedback == "fail"
             self._success_flag = 0
             self._fail_flag = 0 
+            #move_server._preemted = 0
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:
@@ -626,6 +637,7 @@ class MoveServer:
             self.active = 0
             if status:
                 self._success_flag = 1
+                self._preempted = 0
             else:
                 shutdownHook()
                 self._fail_flag = 1

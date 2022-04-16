@@ -1,6 +1,6 @@
 0: #num
   - 0 #channel
-  - 20 #speed
+  - 15 #speed
   - 200 #min value
   - 500 #max value
 1:
