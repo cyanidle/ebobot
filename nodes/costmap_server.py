@@ -271,7 +271,7 @@ class Objects:
                 infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
                 if infl > 100:
                     infl = 100
-                self.inflation.append(infl)
+                self.inflation.append(int(infl))
         else:
             self.pos = pos
             Objects.list.append(self)
@@ -320,7 +320,9 @@ def main():
     while not rospy.is_shutdown():
         if not Costmap.publish_on_obstacles_recieve:
             Costmap.publish()
-        rate.sleep()
+            rate.sleep()
+        else:
+            rospy.spin()
 
 if __name__=="__main__":
     Costmap.initCostmap()

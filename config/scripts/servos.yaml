@@ -13,3 +13,8 @@
   - 20 #speed
   - 500 #min value
   - 200 #max value
+2:
+  - 2 #channel
+  - 20 #speed
+  - 500 #min value
+  - 200 #max value

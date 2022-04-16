@@ -368,7 +368,7 @@ class ProxyClient:
         self._done = False
         resp = self.proxy(req)
         self._done = True
-        feedback_cb(self)
+        feedback_cb(MoveFeedback(self.state))
         if not resp.preempted:
             if resp.status == "done":
                 return GoalStatus.SUCCEEDED

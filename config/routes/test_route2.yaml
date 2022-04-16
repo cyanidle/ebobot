@@ -15,13 +15,12 @@ tasks: #move: x/y/th
     - sleep: 0.5
     - call: ArmDown
     - sleep: 0.5
-  top_right: 
-    - move: 1.02/0.44/0 
-    - sleep: 0.5
     - call: PumpOff
     - sleep: 0.5
     - call: ValveOff
     - sleep: 0.5
+  top_right: 
+    - move: 1.02/0.44/0 
   top_left:
     - move: 1.62/0.44/0
   start:

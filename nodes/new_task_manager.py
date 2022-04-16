@@ -26,8 +26,8 @@ def startCallback(start):
     rospy.logwarn(f"Got new start command {start.data}")
     Flags._execute = 0
      
-    if Manager.debug:
-        rospy.logwarn(Manager.route)
+    #if Manager.debug:
+    #    rospy.logwarn(Manager.route)
     if Flags._test_routes:
         if start.data == 1:
             try:
@@ -770,7 +770,7 @@ class Manager:
 class Flags:
     _execute = 0
     _test_routes=1
-    _current_route_num = 1
+    _current_route_num = 2
     _update_prediction = 0
     _goto = False
 def parse(route = 11):
