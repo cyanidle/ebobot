@@ -17,9 +17,11 @@ tasks:
     - move: 1.68/0.61/-1.047
     - move: 1.78/0.61/-1.047
     #- call: ArmHalfUp
+    - call: PumpOff
+    - sleep: 0.3
     - call: ValveOn
     - sleep: 0.3
-    - call: PumpOff
+    
     - call: ValveOff
     - score: 3
   get_flipped2:
@@ -36,9 +38,11 @@ tasks:
   green_flipped:
     - move: 1.68/0.79/-1.047
     - move: 1.8/0.79/-1.047
+    - call: PumpOff
+    - sleep: 0.3
     - call: ValveOn
     - sleep: 0.3
-    - call: PumpOff
+    
     - score: 3
     - call: ValveOff
     - move: 1.68/0.79/-1.047
@@ -58,9 +62,10 @@ tasks:
   red_flipped:
     - move: 1.68/1.03/-1.047
     - move: 1.8/1.03/-1.047
+    - call: PumpOff
+    - sleep: 0.3
     - call: ValveOn
     - sleep: 0.3
-    - call: PumpOff
     - score: 3
     - call: ValveOff
     - move: 1.68/1.03/-1.047
