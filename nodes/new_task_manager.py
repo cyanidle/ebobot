@@ -76,12 +76,7 @@ def startCallback(start):
                 rospy.sleep(1)
             startCallback(Int8(3))
     else:
-        if start.data == 9:
-            if Manager.debug:
-                rospy.logwarn(f"Parsing route{Flags._current_route_num}!")
-            #rospy.sleep(0.5)
-            parse(Flags._current_route_num)
-        elif start.data == 1:
+        if start.data == 1:
             try:
                 asyncio.run(showPrediction(1001))
             except:
