@@ -28,12 +28,12 @@ tasks:
     - move: 1.68/1.39/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.76/1.39/-1.047             #надо чекнуть подьезд (слишком много мб)
+    - move: 1.79/1.39/-1.047             #надо чекнуть подьезд (слишком много мб)
     - call: ArmUp
     - move: 1.68/1.39/-1.047
     - score: 1
     
-  green_flipped:
+  green_flipped2:
     - move: 1.68/0.79/-1.047
     - move: 1.8/0.79/-1.047
     - call: ValveOn
