@@ -20,8 +20,7 @@ tasks:
     - call: PumpOff
     - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.3
-    
+    - sleep: 0.1
     - call: ValveOff
     - score: 3
   get_flipped2:
@@ -41,7 +40,7 @@ tasks:
     - call: PumpOff
     - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.3
+    - sleep: 0.1
     
     - score: 3
     - call: ValveOff
@@ -65,7 +64,7 @@ tasks:
     - call: PumpOff
     - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.3
+    - sleep: 0.1
     - score: 3
     - call: ValveOff
     - move: 1.68/1.03/-1.047
