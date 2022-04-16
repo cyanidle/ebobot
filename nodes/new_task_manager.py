@@ -56,10 +56,10 @@ def startCallback(start):
                 rospy.logwarn("No lcd found!")
             rospy.sleep(1)
         Flags._countdown = 1
-        asyncio.run(showPrediction(0))
-        _run()
-        Flags._test_routes = 0
-        _parse()
+        if Flags._test_routes:
+            asyncio.run(showPrediction(0))
+            _run()
+            _parse()
     elif start.data == 3:
         Flags._test_routes = 0
         if Flags._countdown:
@@ -77,8 +77,10 @@ def startCallback(start):
 def _parse():
     parse(Flags._test_routes*10 + Flags._current_route_num)
 def _run():
+    rospy.loginfo("MANAGER: Waiting for exec_finish...")
     while Flags._busy:
         rospy.sleep(0.05)
+    rospy.loginfo("MANAGER: Route end!")
     Flags._busy = 1
     Flags._busy = asyncio.run(Manager.exec())
     Flags._test_routes = not Flags._test_routes
