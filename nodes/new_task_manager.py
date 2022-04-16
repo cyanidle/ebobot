@@ -58,7 +58,7 @@ def startCallback(start):
                 except:
                     rospy.logwarn("No lcd found!")
                 rospy.sleep(1)
-            Flags._test_routes = 0
+            #Flags._test_routes = 0
             if not Flags._test_routes:
                 Flags._execute = 1
                 if Manager.debug:
@@ -66,7 +66,6 @@ def startCallback(start):
         else:
             if Manager.debug:
                 rospy.logerr("Fast start!")
-            
             parse(Flags._current_route_num)
             for n in range(3,-1,-1):
                 try:
@@ -102,7 +101,7 @@ def startCallback(start):
             except:
                 rospy.logwarn("No lcd found!")
             Flags._execute = 1
-            Flags._test_routes = 1
+            #Flags._test_routes = 1
             rospy.logwarn(f"Executing chosen route!")
         else:
             rospy.logerr("Incorrect start sequence!")
