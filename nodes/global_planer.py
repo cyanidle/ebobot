@@ -602,9 +602,11 @@ class MoveServer:
             self._fail_flag = 0 
             self.feedback = type(self).feedback
         def execute(self):
-            while ( not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
+            while (not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
-                rospy.sleep(0.05)
+                rospy.sleep(0.1)
+            self.st
+            rospy.logwarn("GLOBAL: Exiting service loop!")
         def update(self,fb,local = 0):
             self.feedback = fb
             if local:
@@ -614,6 +616,7 @@ class MoveServer:
                     self.done(1)
         def done(self,status:int):
             "Status 1 = success, status 0 = fail"
+            rospy.logwarn("GLOBAL: Goal reached!")
             self.active = 0
             if status:
                 self._success_flag = 1
