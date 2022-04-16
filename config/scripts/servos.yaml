@@ -6,13 +6,13 @@
 1:
   - 1 #channel
   - 20 #speed
-  - 100 #min value
-  - 200 #max value
+  - 000 #min value
+  - 000 #max value
 2:
   - 2 #channel
   - 20 #speed
-  - 100 #min value
-  - 200 #max value
+  - 000 #min value
+  - 000 #max value
 3:
   - 3 #channel
   - 20 #speed
