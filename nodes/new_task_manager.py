@@ -94,7 +94,7 @@ def startCallback(start):
             #rospy.sleep(0.5)
             parse(2)
         elif start.data == 3:  
-            parse(Flags._current_route_num)
+            #parse(Flags._current_route_num)
             try:
                 asyncio.run(showPrediction(0))
             except:
@@ -319,7 +319,7 @@ class Move(Template):
                self.status.set(_stat)
                if _stat == "fail":
                    self.parent._fail_flag = 1
-            await asyncio.sleep((1/Status.update_rate) * Status.reduce_rate_for_move)
+            await asyncio.sleep((0.05) * Status.reduce_rate_for_move)
         self.status.set(type(self).client.fetchResult()) 
     client = move_client_constructor(mv_cb)
     
@@ -758,6 +758,7 @@ class Manager:
                     rospy.logwarn("No tasks left!")
                 if not _done:
                     #
+                    rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
                     _done = 1
                     if not Flags._test_routes:
                         Flags._test_routes = 1
@@ -815,7 +816,7 @@ def main():
             asyncio.run(executeRoute())
         if Manager.debug:
             rospy.loginfo("Waiting for start topic...")
-        rospy.sleep(1/Status.update_rate)
+        rospy.sleep(0.1)
     
     
         
