@@ -17,10 +17,9 @@ tasks:
     - move: 1.68/0.61/-1.047
     - move: 1.78/0.61/-1.047
     #- call: ArmHalfUp
-    - call: PumpOff
-    - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.1
+    - sleep: 0.3
+    - call: PumpOff
     - call: ValveOff
     - score: 3
   get_flipped2:
@@ -29,19 +28,17 @@ tasks:
     - move: 1.68/1.39/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 1.76/1.39/-1.047             #надо чекнуть подьезд (слишком много мб)
+    - move: 1.79/1.39/-1.047             #надо чекнуть подьезд (слишком много мб)
     - call: ArmUp
     - move: 1.68/1.39/-1.047
     - score: 1
     
-  green_flipped:
+  green_flipped2:
     - move: 1.68/0.79/-1.047
     - move: 1.8/0.79/-1.047
-    - call: PumpOff
-    - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.1
-    
+    - sleep: 0.3
+    - call: PumpOff
     - score: 3
     - call: ValveOff
     - move: 1.68/0.79/-1.047
@@ -61,15 +58,14 @@ tasks:
   red_flipped:
     - move: 1.68/1.03/-1.047
     - move: 1.8/1.03/-1.047
-    - call: PumpOff
-    - sleep: 0.3
     - call: ValveOn
-    - sleep: 0.1
+    - sleep: 0.3
+    - call: PumpOff
     - score: 3
     - call: ValveOff
     - move: 1.68/1.03/-1.047
     - call: ArmDown
-    - move: 1.48/1.03/-1.047
+    - move: 1.4/1.03/-1.047
 
 
     
