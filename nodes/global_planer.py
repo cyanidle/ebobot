@@ -584,7 +584,7 @@ def SetMoveCB(goal):
     new_target.pose.orientation.w = quat[3]
     targetCallback(new_target)
     move_server.execute()
-    resp = SetMoveTargetResponse(()
+    resp = SetMoveTargetResponse()
     resp.preempted= bool(move_server._preempted)
     resp.status= move_server.feedback
     rospy.loginfo(f"GLOBAL: Service preemted = {resp.preempted}, status = {resp.status}")

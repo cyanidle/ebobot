@@ -355,6 +355,7 @@ class Move:
 ##############################################
 class ProxyClient:
     proxy = rospy.ServiceProxy(Move.proxy_name, SetMoveTarget, True)
+    rospy.wait_for_service(Move.proxy_name)
     def __init__(self):
         self.state = "init"
         #self.proxy = ProxyClient.proxy
