@@ -24,7 +24,8 @@
     - "servos_service":
       - "num": 0
       - "state": 36
-      "MicroArmup":
+
+  - "MicroArmup":
     - "servos_service":
       - "num": 1
       - "state": 36
