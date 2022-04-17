@@ -70,7 +70,7 @@ def pathCallback(path):################Доделать
     rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}, innate coeff = {Local._innate_cost_coeff}')
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
-        shutdownHook()
+        Local.cmdVel((0,0,0),1)
     
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
@@ -397,7 +397,7 @@ class Local():
     def updateTarget(cls):
         if cls.shutdown_f:
             return
-        cls.status_publisher.publish(String('ok'))
+        #cls.status_publisher.publish(String('ok'))
         if Local.debug:
             rospy.loginfo(f"robot pos {cls.robot_pos}")
         if cls.debug:

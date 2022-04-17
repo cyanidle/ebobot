@@ -605,8 +605,8 @@ def SetMoveCB(goal):
     move_server.execute()
     resp = SetMoveTargetResponse()
     resp.preempted= bool(move_server._preempted)
-    resp.status= move_server.feedback
-    rospy.loginfo(f"GLOBAL: Service preemted = {resp.preempted}, status = {resp.status}")
+    resp.status = move_server.feedback
+    rospy.loginfo(f"GLOBAL: Service responce(preemted = {resp.preempted}, status = {resp.status})")
     return resp
 #############################################################    
 
@@ -631,14 +631,17 @@ class MoveServer:
         def execute(self):
             self.feedback = "executing"
             self.active = 1
+            self._success_flag = 0
+            self._fail_flag = 0 
             while (not self._fail_flag and not rospy.is_shutdown() and not self._success_flag
             and not self._preemted):
                 rospy.sleep(0.1)
-            rospy.logwarn(f"GLOBAL: Exiting service loop! fail: {self._fail_flag}, success: {self._success_flag}, prempt: {self._preempted}")
+            rospy.logwarn(f"GLOBAL: Exiting service loop!\n fail: {self._fail_flag}, success: {self._success_flag}, preempt: {self._preempted}, rospy {rospy.is_shutdown()}")
             if self._success_flag:
                 self.feedback = "done"
             else:
-                self.feedback == "fail"
+                self.feedback = "fail"
+            self.active = 0
             self._success_flag = 0
             self._fail_flag = 0 
         # def update(self,fb,local = 0):
