@@ -419,10 +419,9 @@ class Task(Template):
             rospy.logwarn(f"Micros in task {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            if self._fail_flag:
+            if self._fail_flag or not Flags._execute or rospy.is_shutdown():
                 self.status.set("fail")
-            if not Flags._execute or rospy.is_shutdown():
-                return
+                break
         if not self._fail_flag:
             self.status.set("done")
     @staticmethod
@@ -467,7 +466,7 @@ class Interrupt(Template):
             rospy.logwarn(f"Micros in interrupt {self} - {self.micros_list}")
         for micro in self.micros_list:
             await micro.exec()
-            if self._fail_flag or not Flags._execute:
+            if self._fail_flag or not Flags._execute or rospy.is_shutdown():
                 self.status.set("fail")
                 break
         if not self._fail_flag:
