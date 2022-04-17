@@ -161,7 +161,7 @@ class Global(): ##Полная жопа
     ####
     path_broadcaster = tf.TransformBroadcaster()
     rospy.Service(change_cost_service_name,ChangeCost,changeCostCB)
-    change_cost_publisher = rospy.Publisher(f"{change_cost_service_name}_echo", Float32, queue_size=2)
+    change_cost_publisher = rospy.Publisher(f"{change_cost_service_name}_echo", Float32, queue_size=10)
     local_status_subscriber = rospy.Subscriber(local_status_topic, String, localStatusCallback)
     costmap_update_subscriber = rospy.Subscriber(costmap_update_topic, OccupancyGridUpdate, costmapUpdateCallback)
     costmap_subscriber = rospy.Subscriber(costmap_topic, OccupancyGrid, costmapCallback)
@@ -174,6 +174,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    _return_local_cost_flag = 0
     _fail_count = 0
     robot_twist = np.array([0,0,0])
     target_set = 0
@@ -265,7 +266,11 @@ class Global(): ##Полная жопа
         if Global.debug:
             rospy.loginfo(f"###############################\nPopped {current_pos}") 
         target_vect = np.array(Global.target[:2]) - current_pos
-        delta_vect = target_vect/np.linalg.norm(target_vect) * Global.step
+        _d_norm = np.linalg.norm(target_vect)
+        if not _d_norm:
+            delta_vect = np.array(0,0,target_vect[2])
+        else:
+            delta_vect = target_vect/_d_norm * Global.step
         next_pos = current_pos + delta_vect 
         Global.num_jumps += 1
         if Global.debug:
@@ -305,7 +310,7 @@ class Global(): ##Полная жопа
                 next_dist = np.linalg.norm(next_pos - Global.start_pos[:2])       #and for next point
                 ######################################################
                 if Global.num_jumps > Global.maximum_jumps:                       #check for jumps overflow
-                    rospy.logerr(f"Jumps > maximum({Global.maximum_jumps})")
+                    rospy.logerr(f"Jumps > maximum({Global.maximum_jumps}), fail score {Global._fail_count}")
                     Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
@@ -329,7 +334,9 @@ class Global(): ##Полная жопа
                         Global.num_jumps = 0                                                              #if too close - ignored, last target added
                         Global.goal_reached = 1
                         #
-                        Global.maximum_cost = Global._default_max_cost #For recovery
+                        if Global.maximum_cost != Global._default_max_cost:
+                            Global._return_local_cost_flag = 1
+                            Global.maximum_cost = Global._default_max_cost #For recovery
                         Global._fail_count = 0
                         #
                         if not Global.resend:
@@ -358,8 +365,10 @@ class Global(): ##Полная жопа
                     if Global.debug:
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:
-            rospy.logerr (f"All start points failed! Goal ignored| Current max cost {Global.maximum_cost}")
+            rospy.logerr_once (f"All start points failed! Goal ignored| Current cost step {Global.recovery_cost_step}")
+            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.maximum_cost += Global.recovery_cost_step
+            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.goal_reached = 1
             Global.checkFail()
         else:
@@ -372,6 +381,9 @@ class Global(): ##Полная жопа
         #rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
         if cls._fail_count >= cls.fail_count_threshhold:
             rospy.logerr(f"Global planer cancels current goal!!")
+            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+            cls.maximum_cost = cls._default_max_cost
+            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))      
             if cls.resend:
                 cls.target_set = 0
                 cls.goal_reached = 1
@@ -551,13 +563,19 @@ def main():
                 Global.publish()
             #######
             Global.error = 0
-            Global._fail_count = 0
+            
             #
             end_time = rospy.Time.now() ### end time
             #rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
             if Global.resend:
                 if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
                     Global.target_set = 0
+                    Global._fail_count = 0
+                    if Global._return_local_cost_flag:
+                        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+                        Global._return_local_cost_flag = 0
+            else:
+                Global._fail_count = 0
                 #Global.goal_reached = 1
 
         rate.sleep()
@@ -623,24 +641,25 @@ class MoveServer:
                 self.feedback == "fail"
             self._success_flag = 0
             self._fail_flag = 0 
-            #move_server._preemted = 0
-        def update(self,fb,local = 0):
-            self.feedback = fb
-            if local:
-                if self.feedback == "fail":
-                    self.done(0)
-                elif self.feedback == "done":
-                    self.done(1)
-        def done(self,status:int):
-            "Status 1 = success, status 0 = fail"
-            rospy.logwarn("GLOBAL: Goal reached!")
-            self.active = 0
-            if status:
-                self._success_flag = 1
-                self._preempted = 0
-            else:
-                shutdownHook()
-                self._fail_flag = 1
+        # def update(self,fb,local = 0):
+        #     self.feedback = fb
+        #     if local:
+        #         if self.feedback == "fail":
+        #             self.done(0)
+        #         elif self.feedback == "done":
+        #             self.done(1)
+        # def done(self,status:int):
+        #     "Status 1 = success, status 0 = fail"
+        #     self.active = 0
+        #     if status:
+        #         rospy.logwarn("GLOBAL: Goal reached!")
+        #         self._success_flag = 1
+        #         self._preempted = 0
+        #     else:
+        #         rospy.logerr("GLOBAL: Goal failed!")
+        #         self._fail_flag = 1
+        #         Global.target_set = 0
+        #         Global.goal_reached = 1
     else:
         feedback = MoveFeedback('good')
         def __init__(self):
@@ -675,23 +694,25 @@ class MoveServer:
             #else:
             #    self.server.set_preempted(MoveResult(4))
             self._fail_flag, self._success_flag = 0, 0#, 0
-        def update(self, fb, local=0):
-            self.feedback = fb
-            if local:
+    def update(self, fb, local=0):
+        self.feedback = fb
+        if local:
+            if MoveServer.use_actionlib:
                 self.server.publish_feedback(MoveFeedback(self.feedback))
-                if self.feedback == "fail":
-                    self.done(0)
-                elif self.feedback == "done":
-                    self.done(1)
-            else:
-                self.server.publish_feedback(MoveFeedback(self.feedback))
-        def done(self,status:int):
-            "Status 1 = success, status 0 = fail"
-            if status:
-                self._success_flag = 1
-            else:
-                shutdownHook()
-                self._fail_flag = 1
+            if self.feedback == "fail":
+                self.done(0)
+            elif self.feedback == "done":
+                self.done(1)
+        elif MoveServer.use_actionlib:
+            self.server.publish_feedback(MoveFeedback(self.feedback))
+    def done(self,status:int):
+        "Status 1 = success, status 0 = fail"
+        if status:
+            self._success_flag = 1
+        else:
+            Global.target_set = 0
+            Global.goal_reached = 1
+            self._fail_flag = 1
 #####################################################
 if __name__=="__main__":
     move_server = MoveServer()

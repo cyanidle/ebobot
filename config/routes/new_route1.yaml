@@ -1,3 +1,4 @@
+############################################ МАРШРУТ 1
 tasks:
   flip_ohms_second:
     - call: AdjustOn
