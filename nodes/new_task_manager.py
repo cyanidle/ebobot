@@ -25,6 +25,8 @@ rospy.sleep(1)
 def startCallback(start):
     rospy.logerr(f"MANAGER: Got new start command {start.data}")
     Flags._execute = 0
+    # while Flags._busy:
+    #    rospy.sleep(0.03)
     if start.data == 1:
         try:
             asyncio.run(showPrediction(7771))
@@ -58,8 +60,7 @@ def startCallback(start):
         Flags._countdown = 0
         if Flags._test_routes:
             asyncio.run(showPrediction(0))
-            _run()
-            _parse()
+            _run()    
     elif start.data == 3:
         Flags._test_routes = 0
         if Flags._countdown:
@@ -77,13 +78,10 @@ def startCallback(start):
 def _parse():
     parse(Flags._test_routes*10 + Flags._current_route_num)
 def _run():
-    rospy.loginfo("MANAGER: Waiting for exec_finish...")
-    while Flags._busy:
-        rospy.sleep(0.05)
-    rospy.loginfo("MANAGER: Route ended!")
+    rospy.loginfo("MANAGER: Setting flag...")
     Flags._busy = 1
     Flags._execute = 1
-    #Flags._busy = asyncio.run(Manager.exec())
+
 ##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -723,7 +721,6 @@ class Manager:
         Prediction.score = 0
     @staticmethod
     async def exec():
-        Flags._execute = 1
         if Manager.debug:
             rospy.logwarn(f"Starting route!")
         main_timer = Timer(Timer,"main","main")
@@ -744,7 +741,10 @@ class Manager:
                     rospy.logwarn_once("No tasks left!")
                 if not _done:
                     rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
-                    _done = 1    
+                    _done = 1   
+                    _busy = 0
+                    if Flags._test_routes:
+                        _parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
         Manager.current_task = 0
         return 0
