@@ -1,7 +1,8 @@
 <launch>
 
 
-    
+    <arg name="use_prefix" default="true"/>
+    <arg name="prefix" default="boba_"/>
     <arg name="rviz" default="false"/>
     <arg name="debug" default="false"/>
     <arg name="file1" default="boba_route1"/>
@@ -18,11 +19,13 @@
 
     <include file="$(find ebobot)/launch/move_base.launch">
         <arg name="arduino_port0" value="$(arg arduino_port0)"/>
-      <arg name="arduino_port1" value="$(arg arduino_port1)"/>
-      <arg name="arduino0" value="$(arg arduino0)"/>
-      <arg name="arduino1" value="$(arg arduino1)"/>
-      <arg name="rviz" value="$(arg rviz)"/>
-      <arg name="debug" value="$(arg debug)"/>
+        <arg name="arduino_port1" value="$(arg arduino_port1)"/>
+        <arg name="arduino0" value="$(arg arduino0)"/>
+        <arg name="arduino1" value="$(arg arduino1)"/>
+        <arg name="rviz" value="$(arg rviz)"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="use_prefix" value="$(arg use_prefix)"/>
+        <arg name="prefix" value="$(arg prefix)"/>
     </include>
 
     <include file="$(find ebobot)/launch/new_task_manager.launch">

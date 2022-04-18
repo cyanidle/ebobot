@@ -7,7 +7,15 @@
 
     <arg name="use_own" default="true"/>
     <group if="$(arg use_own)">
-    <rosparam file="$(find ebobot)/config/nodes/arduino_odom.yaml" />
+    
+        <group if="$(arg use_prefix)">
+    <rosparam file="$(find ebobot)/config/nodes/arduino_odom.yaml"/>
+        </group>
+        
+        <group unless="$(arg use_prefix)">
+    <rosparam file="$(find ebobot)/config/nodes/$(arg prefix)arduino_odom.yaml" /> 
+        </group>
+
     </group>
 
     <arg name ="arduino_connected" default="true"/>

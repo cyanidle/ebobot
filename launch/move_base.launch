@@ -12,7 +12,8 @@
       <arg name="use_own" default="true"/>
       <arg name="costmap_dir" default="$(find ebobot)/config/costmap"/>
       <arg name="costmap_file" default="$(find ebobot)/config/costmap/costmap.png"/>
-
+      <arg name="use_prefix" default="false"/>
+      <arg name="prefix" default=""/>
 
     <group if="$(arg use_own)">
         <rosparam file="$(find ebobot)/config/nodes/global_config.yaml"/>
@@ -27,6 +28,8 @@
       <arg name="arduino_connected" value="$(arg arduino_both)"/>
       <arg name="arduino0" value="$(arg arduino0)"/>
       <arg name="arduino1" value="$(arg arduino1)"/>
+      <arg name="use_prefix" value="$(arg use_prefix)"/>
+      <arg name="prefix" value="$(arg prefix)"/>
     </include>
 
     <include file="$(find ebobot)/launch/costmap.launch">
@@ -51,10 +54,13 @@
     </group>
 
     <group if="$(arg laser)">
+        
         <include file="$(find rplidar_ros)/launch/rplidar.launch"/>     
         <include file="$(find ebobot)/launch/laser_callback.launch">
         <arg name="use_own" value="$(arg use_own)"/>
         <arg name="debug" value = "$(arg debug)"/>
+        <arg name="use_prefix" value="$(arg use_prefix)"/>
+        <arg name="prefix" value="$(arg prefix)"/>
         </include>
     </group>
 

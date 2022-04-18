@@ -1,0 +1,80 @@
+
+laser_scan_callback:
+  update_rate: 7 # More than 7 is useless
+  rads_offset: 2.0325 # radians offset of lidar front from robot first wheel 2.093 = 120deg
+  enable_centre_aprox: 1
+  dist_between_dots_max: 0.1
+  beacons/adjust_on_command: 1 #adjust_pos_using adjust_pos_service or all the time?
+  beacons/enable_adjust_toggle: 1
+  default_side: 2 #purple - default
+  ############### TOPICS
+  disable_adjust_sec_topic: disable_adjust_sec
+  side_topic: ebobot/begin
+  ###############
+  twist_amplify_coeff: 0.2
+  #
+  minimal_x: -0.3
+  minimal_y: -0.3
+  maximum_x: 2.3
+  maximum_y: 3.3
+  skip_scans: 0
+  range_min_custom: 0.2
+  range_max_custom: 6 #meters
+  #############
+  min_dots: 1
+  max_dots_per_obj: 60
+  objects_centre_coeff: 35 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
+  radius_thresh: 1.5
+  ################
+  obstacles:
+    minimal_x: 0.05
+    minimal_y: 0.05
+    maximum_x: 1.95
+    maximum_y: 2.95
+    ####
+    rviz_point_topic: /clicked_point
+    point_pub_time: 30
+    ####
+    radius_coeff: 1
+    dots_thresh: 200
+    min_dots: 2
+    safe_footprint_radius: 0.4 #Minimal radius around obstacles (if not default)
+  ################
+  beacons:
+    ## Features
+    max_th_for_linear_adj: 0.008
+    #
+    max_th_adj: 0.2 #radians
+    max_pos_adj: 0.3 #meters
+    #
+    enable_adjust: 1
+    pub_all: 1
+    only_linear_adj: 0
+    ##
+    cycles_per_update: 2
+    min_rad: 0.0005
+    max_rad: 0.1
+    max_dist_from_expected: 0.3
+    adjust_time: 1
+    #####################
+    num_beacons: 3 #needed for proper auto-init
+    ########### BEACONS SHOULD BE INITIALISED FROM LEFT TO RIGHT!!!! (smallest x --> first beacon|biggest x --> last beacon)
+    2/beacon0:
+      - 3.085
+      - 0.085
+    2/beacon1:
+      - -0.075   #meters, y
+      - 1    #meters, x
+    2/beacon2:
+      - 3.085
+      - 1.96
+    # yellow side
+    1/beacon0:
+      - -0.045      #meters, y
+      - 0.085    #meters, x
+    1/beacon1:
+      - 3.115
+      - 1
+    1/beacon2:
+      - -0.045
+      - 1.96

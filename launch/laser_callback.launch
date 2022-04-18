@@ -1,8 +1,19 @@
 <launch>
     <arg name="debug" default="1"/>
     <arg name="use_own" default="true"/>
+    <arg name="use_prefix" default="false"/>
+    <arg name="prefix" default=""/>
+
     <group if="$(arg use_own)">
-    <rosparam file="$(find ebobot)/config/nodes/laser_scan_callback.yaml" />
+
+         <group if="$(arg use_prefix)">
+    <rosparam file="$(find ebobot)/config/nodes/$(arg prefix)laser_scan_callback.yaml" />    
+        </group>
+        
+        <group unless="$(arg use_prefix)">
+    <rosparam file="$(find ebobot)/config/nodes/laser_scan_callback.yaml" />    
+        </group>
+
     </group>
     <node pkg="ebobot" type="laser_scan_callback.py" name="laser_scan_callback" respawn="true" respawn_delay="1"> 
         <param name = "debug" value = "$(arg debug)"/>
