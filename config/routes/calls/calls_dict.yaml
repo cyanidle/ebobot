@@ -24,17 +24,50 @@
     - "servos_service":
       - "num": 0
       - "state": 36
-
+   ##
   - "MicroArmUp":
     - "servos_service":
       - "num": 3
       - "state": 100
-
-  - "MicroArmDowm":
+    ##
+  - "MicroArmDown":
     - "servos_service":
       - "num": 3
-      - "state": 0
+      - "state": -50
+#####
+  - "MicroArmHalf":
+    - "servos_service":
+      - "num": 3
+      - "state": 65
 #######################
+  - "kub_input":
+    - "servos_service":
+      - "num": 2
+      - "state": 20
+      ##
+
+  - "kub_output":
+    - "servos_service":
+      - "num": 2
+      - "state": -100
+      ##
+  - "izmerenie":
+    - "servos_service":
+      - "num": 1
+      - "state": 70
+   ##
+  - "nado_plitka":
+    - "servos_service":
+      - "num": 1
+      - "state": -100
+  ##
+  - "nenado_plitka":
+    - "servos_service":
+      - "num": 1
+      - "state": 50
+
+  
+    
   - "Ohms":
     - "ohm_reader_service":
       - "pin": 0 #(read ohms on "num" analog pin to ground)

@@ -1,0 +1,5 @@
+tasks:
+  one:
+    - log: "W: 1"
+  two: 
+    - log: "W: 2"
