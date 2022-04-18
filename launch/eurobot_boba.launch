@@ -8,11 +8,14 @@
     <arg name="file2" default="boba_route2"/>
     <arg name="test_file1" default="$(find ebobot)/config/routes/test_route1.yaml"/>
     <arg name="test_file2" default="$(find ebobot)/config/routes/test_route2.yaml"/>
-    <arg name="arduino0" default="true"/>
     <arg name="arduino1" default="false"/>
-    <arg name="arduino_port0" default="/dev/ttyUSB0"/>
-    <arg name="lidar_port" default="/dev/ttyUSB1"/>
-    <arg name="arduino_port1" default="/dev/ttyACM1"/>
+    <arg name="arduino_port1" default="/dev/ttyACM0"/>
+
+
+    <arg name="arduino0" default="true"/>
+    <arg name="arduino_port0" default="/dev/ttyUSB1"/>
+    <arg name="lidar_port" default="false"/>
+    
 
     <include file="$(find ebobot)/launch/move_base.launch">
         <arg name="arduino_port0" value="$(arg arduino_port0)"/>
@@ -21,7 +24,6 @@
       <arg name="arduino1" value="$(arg arduino1)"/>
       <arg name="rviz" value="$(arg rviz)"/>
       <arg name="debug" value="$(arg debug)"/>
-      <arg name="lidar_port" value="$(arg lidar_port)"/>
     </include>
 
     <include file="$(find ebobot)/launch/new_task_manager.launch">
