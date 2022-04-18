@@ -23,7 +23,7 @@ from abc import ABC, abstractmethod
 rospy.sleep(1)
 #####################################
 def startCallback(start):
-    rospy.logwarn(f"MANAGER: Got new start command {start.data}")
+    rospy.logerr(f"MANAGER: Got new start command {start.data}")
     Flags._execute = 0
     if start.data == 1:
         try:
@@ -55,7 +55,7 @@ def startCallback(start):
             except:
                 rospy.logwarn("No lcd found!")
             rospy.sleep(1)
-        Flags._countdown = 1
+        Flags._countdown = 0
         if Flags._test_routes:
             asyncio.run(showPrediction(0))
             _run()
@@ -64,7 +64,7 @@ def startCallback(start):
         Flags._test_routes = 0
         if Flags._countdown:
             rospy.logwarn(f"MANAGER: Fast Start!")
-            _parse()
+            _parse(Flags._current_route_num)
         else:
             rospy.logwarn(f"MANAGER: Route Start!")
         _run()
@@ -82,8 +82,8 @@ def _run():
         rospy.sleep(0.05)
     rospy.loginfo("MANAGER: Route ended!")
     Flags._busy = 1
-    Flags._busy = asyncio.run(Manager.exec())
-    #Flags._test_routes = not Flags._test_routes
+    Flags._execute = 1
+    #Flags._busy = asyncio.run(Manager.exec())
 ##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -117,7 +117,7 @@ class Status:
     def checkDeps(obj):
         obj_str = Status.getRawString(obj)
         if Manager.debug:
-            rospy.logwarn(f"Checking deps of {obj}: {obj_str}")
+            rospy.loginfo(f"Checking deps of {obj}: {obj_str}")
         if obj_str in Status.deps_dict.keys():
             for dep in Status.deps_dict[obj_str]:
                 dep.trigger()
@@ -426,8 +426,8 @@ class Task(Template):
             self.status.set("done")
     @staticmethod
     async def checkForInterrupt():
-        if Manager.debug:
-            rospy.loginfo(f"Checking for interrupts")
+        #if Manager.debug:
+        #    rospy.loginfo(f"Checking for interrupts")
         _return = 0
         while len(Interrupt.queue):
             _return = 1
@@ -741,12 +741,10 @@ class Manager:
                     Manager.current_task += 1
             else:
                 if Manager.debug:
-                    rospy.logwarn("No tasks left!")
+                    rospy.logwarn_once("No tasks left!")
                 if not _done:
                     rospy.logwarn(f"MANAGER: Route done test = {Flags._test_routes}")
-                    _done = 1
-                    if not Flags._test_routes:
-                        parse(Flags._current_route_num)      
+                    _done = 1    
             await asyncio.sleep(0.05)
         Manager.current_task = 0
         return 0
@@ -793,7 +791,9 @@ def parse(route = 11):
 def main():
     _parse()
     while not rospy.is_shutdown():
-        rospy.spin()
+        if Flags._execute:
+            asyncio.run(Manager.exec())
+        rospy.sleep(0.025)
         # if Flags._execute:
         #     asyncio.run(executeRoute())
         # if Manager.debug:
