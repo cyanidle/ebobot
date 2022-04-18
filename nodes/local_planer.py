@@ -334,6 +334,7 @@ class Local():
             turn = diff/abs(diff) *  coeff      
             cls.cmdVel([0,0,turn])
             rospy.sleep(1/cls.update_rate)
+        cls.cmdVel((0,0,0),1)
         if _toggle_resp_f and _toggle_resp.message == "was 1":
             try:
                 cls._toggle_proxy(SetBoolRequest(data = True))
