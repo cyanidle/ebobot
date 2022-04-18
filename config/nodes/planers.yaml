@@ -67,8 +67,8 @@ local_planer:
   get_lowest_cost: 0 #correct targets to follow lowest cost route NOT TESTED
   #Params
   #Features
-  use_timed_adj_disable: 0 #or block only for while turning
-  use_twist_before: 4 #targets
+  use_timed_adj_disable: 0 # or block only for while turning
+  use_twist_before: 3 #targets
   cost_coeff_enable: 1
   path_coeff_enable:  1
   #Turn
