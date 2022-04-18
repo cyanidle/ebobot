@@ -8,7 +8,8 @@ Panels:
         - /Status1
         - /Marker1
         - /Path1
-      Splitter Ratio: 0.5
+        - /LaserScan1
+      Splitter Ratio: 0.5009980201721191
     Tree Height: 313
   - Class: rviz/Selection
     Name: Selection
@@ -28,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -69,7 +70,12 @@ Visualization Manager:
       Marker Topic: /markers
       Name: Marker
       Namespaces:
-        {}
+        expected_beacon: true
+        first_scan: true
+        global_target: true
+        local_actual_target: true
+        relative_beacon: true
+        task_moves: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -82,6 +88,50 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        arm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        arm_box:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_scan:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        baza:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_3_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -127,6 +177,34 @@ Visualization Manager:
       Topic: /rviz_path
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/LaserScan
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: LaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.05000000074505806
+      Style: Flat Squares
+      Topic: /scan
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -164,10 +242,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 125.48223876953125
+      Scale: 89.90292358398438
       Target Frame: <Fixed Frame>
-      X: 1.5323084592819214
-      Y: 1.0653880834579468
+      X: 1.3337732553482056
+      Y: 1.3487337827682495
     Saved: ~
 Window Geometry:
   Displays:
