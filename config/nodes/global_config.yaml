@@ -3,5 +3,3 @@ global:
   default_side: 2
   move_service_name: set_move_service
   change_cost_service_name: change_cost_service
-rplidarNode:
-  serial_port: /dev/ttyUSB1
