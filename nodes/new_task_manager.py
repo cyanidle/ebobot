@@ -80,10 +80,10 @@ def _run():
     rospy.loginfo("MANAGER: Waiting for exec_finish...")
     while Flags._busy:
         rospy.sleep(0.05)
-    rospy.loginfo("MANAGER: Route end!")
+    rospy.loginfo("MANAGER: Route ended!")
     Flags._busy = 1
     Flags._busy = asyncio.run(Manager.exec())
-    Flags._test_routes = not Flags._test_routes
+    #Flags._test_routes = not Flags._test_routes
 ##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
