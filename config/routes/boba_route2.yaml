@@ -77,6 +77,12 @@ tasks:
     - move: 1.4/0.25/1.57
     - score: 1
     - move: 1.4/0.4/1.57
+
+  bokovaia1:
+    - move: 0.77/0.35/-2.617
+    - call: ArmHalfDown
+    
+
     
 
 variables: #MUST BE INTS
