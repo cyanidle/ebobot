@@ -3,7 +3,9 @@ tasks:
 
   obezd_govna:
     - score: 4                  # ставим статуэтку и витрину
-    - move: 1.7/0.61/-1.047    # фишки больше не мешают 
+    - move: 1.7/0.61/0
+    - sleep: 0.5
+    - move: 1.7/0.61/-1.047  # фишки больше не мешают 
 
   get_flipped: 
     - move: 1.68/1.34/-1.047
@@ -76,7 +78,32 @@ tasks:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
     - score: 1
-    - move: 1.4/0.4/1.57
+    - move: 1.4/0.53/0
+
+  bokovaia1:
+    - move: 0.74/0.44/-2.58
+    - call: ArmHalfDown
+    - call: PumpOn
+    - move: 0.81/0.27/-2.58
+    - sleep: 0.3
+    - call: ArmMegaUp
+    - sleep: 0.3
+    - score: 1
+    - move: 0.81/0.4/-2.58
+   # - call: PumpOff
+   
+  get_flippedbok:
+    - move: 0.5/0.53/-3.43
+    - sleep: 0.2
+    - move: 0.28/0.25/-3.43
+    - call: ValveOn
+    - call: PumpOff
+    - score: 5
+    - call: ValveOff
+
+  parkovka:
+   - move: 0.78/0.86/-3.43
+   - score: 20 
     
 
 variables: #MUST BE INTS
