@@ -4,6 +4,8 @@
     <arg name="port1" default="/dev/ttyACM1"/>
     <arg name="arduino_baud" default="115200"/>
     <arg name="debug" default="1"/>
+    <arg name="use_prefix" default="false"/>
+    <arg name="prefix" default=""/>
 
     <arg name="use_own" default="true"/>
     <group if="$(arg use_own)">
