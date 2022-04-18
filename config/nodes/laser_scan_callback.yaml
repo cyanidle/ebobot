@@ -1,3 +1,4 @@
+
 laser_scan_callback:
   update_rate: 7 # More than 7 is useless
   rads_offset: 2.0325 # radians offset of lidar front from robot first wheel 2.093 = 120deg
