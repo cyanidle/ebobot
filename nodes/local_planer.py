@@ -11,7 +11,6 @@ import numpy as np
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Twist, Vector3
 from nav_msgs.msg import Path, OccupancyGrid, Odometry
 from map_msgs.msg import OccupancyGridUpdate
-from visualization_msgs.msg import Marker
 from std_msgs.msg import String, Int8, Float32
 from std_srvs.srv import SetBool, SetBoolRequest
 ######
@@ -22,7 +21,9 @@ roslib.load_manifest('ebobot')
 rospy.init_node('local_planer')
 ######Callbacks
 def shutdownHook():
+    rospy.logwarn("LOCAL: Shutdown!!!")
     Local.goal_reached = 1
+    Local.shutdown_f = 1
     twist = Twist()
     twist.linear.x = 0
     twist.linear.y = 0
@@ -48,7 +49,9 @@ def changeCostCallback(fl):
     cost = fl.data
     if not Local.global_cost_relation:
         Local.global_cost_relation = Local.cost_threshhold/cost
+        Local.global_cost_coeff_rel = Local._innate_cost_coeff/cost
     else:
+        Local._innate_cost_coeff = cost * Local.global_cost_coeff_rel
         Local.cost_threshhold = cost * Local.global_cost_relation
         rospy.logwarn(f"LOCAL: New global cost {cost}, threshhold {Local.cost_threshhold}")
 def pathCallback(path):################Доделать
@@ -63,9 +66,11 @@ def pathCallback(path):################Доделать
         Local.new_targets.append(target)
     Local.last_target = target
     Local.parseTargets()
+    _cost = Local.getCost(Local.actual_target)
+    rospy.logwarn(f'LOCAL:\n##### Cost of current robot pos is {_cost} (max is {Local.cost_threshhold})\n##### speed reduction = {Local.getCostCoeff(_cost)}, innate coeff = {Local._innate_cost_coeff}')
     if not len(Local.new_targets): # == 1 and np.linalg.norm(Local.targets[-1][:2] - Local.robot_pos[:2]) < Local.threshhold):
         rospy.logerr("LOCAL SHUTDOWN HOOK ACTIVATED, GOAL UNREACHABLE!")
-        shutdownHook()
+        Local.cmdVel((0,0,0),1)
     
 def costmapCallback(costmap):
     Local.costmap_resolution = costmap.info.resolution
@@ -161,6 +166,9 @@ class Local():
     #/Topics
 
     #cls values
+    global_cost_coeff_rel = 2 # default, gets changed anyway
+    _innate_cost_coeff = 3
+    shutdown_f = 0
     global_cost_relation = 0
     robot_twist = np.array([0,0,0])
     last_target = []
@@ -205,9 +213,15 @@ class Local():
         #     delta_theta = final_target[2]
         min_dist = 100
         _current_target = 0
+        _actual = cls.robot_pos
+        _wanted = (cls.robot_pos[:2]+cls.robot_twist[:2])
+        #
+        markers.pubMarker((_wanted[0]*cls.costmap_resolution,_wanted[1]*cls.costmap_resolution),0
+        ,1/cls.update_rate + 0.3,frame_name="local_actual_target",type="sphere",size=0.08,g=0.5,r=1,b=0.5,debug=0,add=1)
+        #
         for num,target in enumerate(cls.new_targets):
             new_parsed_targets.append(np.append(target[:2],delta_theta * num))
-            dist = np.linalg.norm(target[:2] - (cls.robot_pos[:2]+cls.robot_twist[:2]))
+            dist = np.linalg.norm(target[:2] - _wanted)
             if dist < min_dist:
                 min_dist = dist
                 _current_target = int(num)
@@ -216,6 +230,7 @@ class Local():
         cls.current_target = _current_target
         cls.actual_target = _actual #cls.robot_pos #+ cls.robot_twist/100
         new_parsed_targets.append(final_target)  
+        cls.shutdown_f = 0
         if cls.debug:
             rospy.loginfo(f"Parsed targets = {cls.targets}")
         cls.goal_reached = 0
@@ -328,7 +343,7 @@ class Local():
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
         if cls.skipped >= cls.skip_thresh:
-            rospy.loginfo(f"Goal failed! Sending Stop!")
+            rospy.logwarn(f"LOCAL: Goal failed! Sending Stop!")
             cls.status_publisher.publish(String('fail'))
             cls.goal_reached = 1
             cls.skipped = 0
@@ -350,14 +365,13 @@ class Local():
                     min_cost = curr_cost
             if cls.debug:
                 rospy.loginfo(f"Best subpoint = {point}({point_cost})")
-            if point_cost > cls.cost_threshhold: 
-                cls.status_publisher.publish(String('warn'))
-                if cls.debug:
-                    rospy.loginfo(f"Point failed cost check({point_cost})! Recursing...")
-                cls.skipped += 1
-                #cls.current_target += 1
-                #cls.fetchPoint(current, target)
-                return cls.fetchPoint(current_pos)
+        if point_cost > cls.cost_threshhold: 
+            cls.status_publisher.publish(String('warn'))
+            rospy.logwarn(f"LOCAL: Point failed cost check({point_cost})! Recursing...")
+            cls.skipped += 1
+            #cls.current_target += 1
+            #cls.fetchPoint(current, target)
+            return cls.fetchPoint(current_pos)
         if cls.debug:
             rospy.loginfo(f"Fetching target point = {point}\ncurr = {current_pos}")
         cls.skipped = 0 
@@ -373,7 +387,7 @@ class Local():
         return np.linalg.norm(cls.robot_pos[:2]-cls.actual_target[:2]) > cls.threshhold
     @classmethod
     def getCostCoeff(cls, cost: float):
-        _cost_coeff = ((cost* 3)/cls.cost_threshhold)  * cls.cost_speed_coeff
+        _cost_coeff = ((cost* cls._innate_cost_coeff)/cls.cost_threshhold)  * cls.cost_speed_coeff
         if _cost_coeff > cls.max_cost_speed_coeff:
             _cost_coeff = cls.max_cost_speed_coeff
         elif _cost_coeff < 1:
@@ -381,8 +395,9 @@ class Local():
         return _cost_coeff
     @classmethod
     def updateTarget(cls):
-        #rospy.logwarn(f"{cls.current_target =  }|{cls.robot_twist = }")
-        cls.status_publisher.publish(String('ok'))
+        if cls.shutdown_f:
+            return
+        #cls.status_publisher.publish(String('ok'))
         if Local.debug:
             rospy.loginfo(f"robot pos {cls.robot_pos}")
         if cls.debug:
@@ -397,8 +412,10 @@ class Local():
             shutdownHook()
         if cls.debug:
             rospy.loginfo(f'Riding to {cls.actual_target}')
-        #rospy.loginfo(f"Pubbing marker {cls.actual_target[:2]}")
-        
+        ###
+        markers.pubMarker((cls.actual_target[0]*cls.costmap_resolution,cls.actual_target[1]*cls.costmap_resolution),1
+        ,3,frame_name="local_actual_target",type="sphere",size=0.08,g=0.1,r=1,b=0.1,debug=0,add=1)
+        ###
         while cls.checkPos() and not rospy.is_shutdown() and not cls.goal_reached:
             #Local.updatePos()
             speed_coeff = 1
@@ -434,10 +451,11 @@ def main():
             if np.linalg.norm(Local.robot_pos[:2] - Local.targets[-1][:2]) < Local.threshhold:
                 if Local.rotate_at_end:
                     Local.rotateAtEnd()
-                rospy.loginfo(f'Goal reached!')
-                Local.status_publisher.publish(String('done'))
+                rospy.loginfo(f'LOCAL: Goal reached!')
+                if not Local.shutdown_f:
+                    Local.status_publisher.publish(String('done'))
                 Local.goal_reached = 1
-                shutdownHook()
+                Local.cmdVel((0,0,0),1)
                 #Local.current_target = len(Local.targets)-1
         rate.sleep()
 

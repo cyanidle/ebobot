@@ -243,7 +243,10 @@ async def showPrediction(num):
     """Костыль)))"""
     parsed = LcdShowRequest()
     parsed.num = num
-    return await Calls.LcdExec(parsed)
+    try:
+        return await Calls.LcdExec(parsed)
+    except:
+        rospy.logerr("No Lcd found!")
 #############
 class Execute:
     file = rospy.get_param("~calls_file", "config/calls/calls_dict.yaml")
@@ -368,9 +371,9 @@ class ProxyClient:
         req = SetMoveTargetRequest(x = goal.x, y = goal.y, theta = goal.theta)
         self._done = False
         resp = self.proxy(req)
+        rospy.logwarn(f"EXECUTER: Move server responce = {resp}")
         self._done = True
         #self.state = resp.status
-        feedback_cb(MoveFeedback(self.state))
         rospy.logwarn(f"EXECUTER: Move done status = {self.state}")
         if not resp.preempted:
             if resp.status == "done":
@@ -381,6 +384,7 @@ class ProxyClient:
                 self.state = GoalStatus.ACTIVE
         else:
             self.state =  GoalStatus.ACTIVE
+        feedback_cb(MoveFeedback(self.state))
     def wait_for_result(self):
         while not rospy.is_shutdown() and not self._done():
             rospy.sleep(0.1)

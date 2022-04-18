@@ -4,17 +4,17 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
   update_rate: 8
-  step: 4
+  step: 3.5
   # Features
   cleanup_feature: 1 #works well if you dont have to go closer to start point during route
   resend: 1
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
-  #
-  recovery_cost_step: 5 #if stuck in beginnig increases allowed cost (DIVIDED BY UPDATE RATE)
+  # (MULTIPLIED BY UPDATE RATE)
+  recovery_cost_step: 1 #if stuck in begining increases allowed cost 
   #
   twist_amplify_coeff: -0.2
-  consecutive_jumps_threshhold: 2 #Leave a target each 'n' straight hops
+  consecutive_jumps_threshhold: 1 #Leave a target each 'n' straight hops
   
   
   step_radians_resolution: 12
@@ -54,14 +54,14 @@ local_planer:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
   cost_threshhold: 35 #100 are walls, then there is inflation (Represents median of cost of points)
-  skip_thresh: 3 #max points to skip if fails by cost
+  skip_thresh: 2 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
-  twist_amplify_coeff: 1.1 #depends on resolution, allows to skip points behind
+  twist_amplify_coeff: 2.5 #depends on resolution, allows to skip points behind
   inertia_compensation_coeff: 0.01 #allows for shrap turns (in theory)
   # Important
   disable_adjust_sec_time: 3
   
-  safe_footprint_radius: 0.20
+  safe_footprint_radius: 0.24
   update_rate: 12 # in Hz
   rotate_at_end: 1
   get_lowest_cost: 0 #correct targets to follow lowest cost route NOT TESTED
@@ -79,11 +79,11 @@ local_planer:
   min_turn_coeff: 0.4 #final!
   #speed coeffs
   full_path_coeff_dist: 50 #dist from target in cells at which robot goes full spd (the lower the faster)
-  static_coeff:  0.8
-  min_coeff: 0.3 #Final!!
+  static_coeff:  1
+  min_coeff: 0.15 #Final!!
   path_speed_coeff: 1.3 #More = faster. В тугриках. Robot slows down at start and finish of the route
-  cost_speed_coeff: 1.3 # More = slower
-  max_cost_speed_coeff: 2 #more = more slowing 
+  cost_speed_coeff: 0.9 # More = slower
+  max_cost_speed_coeff: 3 #more = more slowing 
   # Circles on which planer tries to find lowest cost position
   num_of_circles: 2
   circles_dist: 1 #in cells

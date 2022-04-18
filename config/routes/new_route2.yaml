@@ -1,7 +1,10 @@
+############################################ МАРШРУТ 1
 tasks:
 
   obezd_govna:
-    - move: 1.7/0.61/-1.047    # фишки больше не мешают 
+    - score: 4                  # ставим статуэтку и витрину
+    - move: 1.76/0.61/-1.047    # фишки больше не мешают 
+
   get_flipped: 
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
@@ -73,7 +76,8 @@ tasks:
     - log: "W: Going home!"
     - move: 1.4/0.25/1.57
     - score: 1
-    - move: 1.4/0.4/1.57
+    
+    
 
 variables: #MUST BE INTS
   default: 0
