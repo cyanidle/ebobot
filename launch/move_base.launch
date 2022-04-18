@@ -12,7 +12,8 @@
       <arg name="use_own" default="true"/>
       <arg name="costmap_dir" default="$(find ebobot)/config/costmap"/>
       <arg name="costmap_file" default="$(find ebobot)/config/costmap/costmap.png"/>
-    
+      <arg name="lidar_port" default="dev/ttyUSB0"/>
+
     <group if="$(arg use_own)">
         <rosparam file="$(find ebobot)/config/nodes/global_config.yaml"/>
     </group>
@@ -50,7 +51,8 @@
     </group>
 
     <group if="$(arg laser)">
-        <include file="$(find rplidar_ros)/launch/rplidar.launch"/> 
+        <param name="/rplidarNode/serial_port" value="$(arg lidar_port)"/>
+        <include file="$(find rplidar_ros)/launch/rplidar.launch"/>     
         <include file="$(find ebobot)/launch/laser_callback.launch">
         <arg name="use_own" value="$(arg use_own)"/>
         <arg name="debug" value = "$(arg debug)"/>
