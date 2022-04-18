@@ -46,6 +46,7 @@ def startCallback(start):
         Flags._current_route_num = 2
         _parse()
     elif start.data == 0:
+        parse(10+Flags._current_route_num)
         Flags._test_routes = 1
         Flags._countdown = 1
         rospy.logwarn(f"MANAGER: Test Start!")
@@ -744,7 +745,7 @@ class Manager:
                     _done = 1   
                     _busy = 0
                     if Flags._test_routes:
-                        _parse(Flags._current_route_num)
+                        parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
         Manager.current_task = 0
         return 0
