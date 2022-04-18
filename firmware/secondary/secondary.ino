@@ -9,7 +9,7 @@
 #include "servos.h"
 #include "kadyrov_lcd.h"
 ////////////////////////////Все скорости в м/с
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1424> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
 //######################
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
