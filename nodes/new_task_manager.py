@@ -552,6 +552,14 @@ class ChangeVar(Template):
         #         rospy.logerr("No variables available")
         #     self.status.set("fail")
 ########################################################
+class StopRoute(Template):
+    def __init__(self, parent,name,args):
+        super().__init__(parent, name, args)
+        self.log = args
+    async def midExec(self) -> None:
+        rospy.logerr(f"ROUTE ENDED (LOG:{self.log})")
+        Manager.reset()
+########################################################
 class Timer(Template):
     name = "timer"
     def __init__(self, parent,name,args):
@@ -641,7 +649,8 @@ constructors_dict = {  #syntax for route.yaml
         "schedule_task": Schedule,
         "timer": Timer,
         "change_var": ChangeVar,
-        "change_cost": ChangeCostClass
+        "change_cost": ChangeCostClass,
+        "route_stop": StopRoute
         } 
 
 
@@ -745,8 +754,10 @@ class Manager:
                     _done = 1   
                     _busy = 0
                     if Flags._test_routes:
-                        parse(Flags._current_route_num)
+                        Flags._execute = 0
             await asyncio.sleep(0.05)
+        if Flags._test_routes:
+            parse(Flags._current_route_num)
         Manager.current_task = 0
         return 0
 ##############################
