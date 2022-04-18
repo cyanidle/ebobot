@@ -9,7 +9,7 @@
 #include "pin_reader.h"
 #include "start_trigger.h"
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1424> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
