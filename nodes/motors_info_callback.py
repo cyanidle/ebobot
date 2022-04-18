@@ -32,6 +32,7 @@ def estimateCallback(target):
     euler = tf.transformations.euler_from_quaternion([target.pose.pose.orientation.x,target.pose.pose.orientation.y,target.pose.pose.orientation.z,target.pose.pose.orientation.w])
     goal = [target.pose.pose.position.x,target.pose.pose.position.y,euler[2]]
     #rospy.loginfo(f"MOTORS NEW ESTIMATE: {goal}")
+    Motors._laser_adj_flag = 1
     Motors.x,Motors.y,Motors.theta = goal[0], goal[1], goal[2]
 class Motors():
     #Params
@@ -47,6 +48,7 @@ class Motors():
     x_coeff = rospy.get_param('~x_coeff',1)
     wheels_footprint_rad = rospy.get_param('~wheels_footprint_radius',0.15) #in meters
     #/Params
+    _laser_adj_flag = 0
     side = default_side
     num = 3
     start_theta = rospy.get_param(f'~{side}/start_theta', 3.1415/2)
@@ -92,9 +94,11 @@ class Motors():
             if mot.ddist != 0:
                 Motors.x += mot.ddist * math.cos(Motors.theta + mot.radians) / len(Motors.list) * 2 * Motors.x_coeff#temporary
                 Motors.y += mot.ddist * math.sin(Motors.theta + mot.radians) / len(Motors.list) * 2 * Motors.y_coeff#temporary
-        Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) / delta_secs, (Motors.y - Motors.last_y)/delta_secs
+        if not Motors._laser_adj_flag:
+            Motors.spd_x, Motors.spd_y =  (Motors.x - Motors.last_x) / delta_secs, (Motors.y - Motors.last_y)/delta_secs
+            Motors.spd_turn = Motors.theta - Motors.last_theta
+        Motors._laser_adj_flag = 0
         Motors.last_x, Motors.last_y, Motors.last_theta = Motors.x, Motors.y, Motors.theta
-        Motors.spd_turn = Motors.theta - Motors.last_theta
         Motors.theta = Motors.theta % (2 * math.pi)
 #######################################################      
 def callback(info):
