@@ -2,13 +2,13 @@ motors_info_callback:
   default_side: 2 #purple - default
   side_topic: ebobot/begin
   #
-  2/start_x: 0.5
-  2/start_y: 0.25
-  2/start_theta: 1.57
+  2/start_x: 1.2
+  2/start_y: 0.16
+  2/start_theta: -1.57
   ########
-  1/start_x: 0.5
-  1/start_y: 2.71
-  1/start_theta: 4.71
+  1/start_x: 1.2
+  1/start_y: 2.88
+  1/start_theta: 1.57
   ########
   footprint_radius: 0.09
   update_rate: 20
