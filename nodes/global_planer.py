@@ -123,7 +123,7 @@ class Global(): ##Полная жопа
     maximum_cost = rospy.get_param('~maximum_cost',40) 
     _default_max_cost = maximum_cost
     recovery_cost_step = rospy.get_param('~recovery_cost_step',1)
-    recovery_cost_step *= update_rate
+    recovery_cost_step /= update_rate
     #
     stuck_check_jumps = rospy.get_param('~jumps_till_stuck_check',15)
     stuck_dist_threshhold = rospy.get_param('~stuck_dist_threshhold',0.5) #in cells (if havent moved in the last (stuck check jumps))
