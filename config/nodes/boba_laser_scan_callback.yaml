@@ -1,7 +1,7 @@
 
 laser_scan_callback:
   update_rate: 7 # More than 7 is useless
-  rads_offset: 2.0325 # radians offset of lidar front from robot first wheel 2.093 = 120deg
+  rads_offset: 2.055 # radians offset of lidar front from robot first wheel 2.093 = 120deg
   enable_centre_aprox: 1
   dist_between_dots_max: 0.1
   beacons/adjust_on_command: 1 #adjust_pos_using adjust_pos_service or all the time?
@@ -23,7 +23,7 @@ laser_scan_callback:
   #############
   min_dots: 1
   max_dots_per_obj: 60
-  objects_centre_coeff: 35 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
+  objects_centre_coeff: -30 #dont even think about it, but the larger the coeff, the farther from robot aprox center of objects is
   radius_thresh: 1.5
   ################
   obstacles:
@@ -53,7 +53,7 @@ laser_scan_callback:
     ##
     cycles_per_update: 2
     min_rad: 0.0005
-    max_rad: 0.1
+    max_rad: 0.12
     max_dist_from_expected: 0.3
     adjust_time: 1
     #####################

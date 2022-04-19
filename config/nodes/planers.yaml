@@ -62,7 +62,7 @@ local_planer:
   disable_adjust_sec_time: 3
   
   safe_footprint_radius: 0.24
-  update_rate: 12 # in Hz
+  update_rate: 15 # in Hz
   rotate_at_end: 1
   get_lowest_cost: 0 #correct targets to follow lowest cost route NOT TESTED
   #Params
@@ -72,8 +72,8 @@ local_planer:
   cost_coeff_enable: 1
   path_coeff_enable:  1
   #Turn
-  pause_before_turn: 0.1 #seconds
-  turn_threshhold: 0.05
+  pause_before_turn: 0.2 #seconds
+  turn_threshhold: 0.03
   cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed, works with dynamic turn)
   turn_coeff: 0.9 #More = faster
   min_turn_coeff: 0.4 #final!
