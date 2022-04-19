@@ -1,41 +1,33 @@
 ############################################ МАРШРУТ 1
 tasks:
-  flip_ohms_second:
-    - call: AdjustOn
-    - score: 10 #One flipped right
-    - call: ArmDown
-    - move: 0.35/2.14/2.07
-    - call: ArmHalfDown
-    - move: 0.17/2.14/2.07
-    #- score: 12
-    - move: 0.35/2.14/2.07
-    - call: ArmDown
-    - score: 2 #One flipped right
-  get_flipped: 
-    - move: 1.68/1.65/-1.047
-    - call: ArmHalfDown
-    - call: PumpOn
-    - move: 1.75/1.65/-1.047
-    - sleep: 1
-    - call: ArmUp
-    - sleep: 0.5
-    - move: 1.68/1.65/-1.047
-    - score: 1
-  deliver_blue_flipped:
-    - log: "W: Delivering blue"
-    - move: 1.68/2.43/-1.047
-    - move: 1.81/2.43/-1.047
-    - call: ValveOn
-    - sleep: 1
-    - call: PumpOff
-    - call: ValveOff
-    - score: 3
-    - move: 1.68/2.43/-1.047
-    - call: ArmDown
-  home:
-    - log: "W: Going home!"
-    - move: 1.4/2.79/-1.57
-    - score: 20 #20 for return 1 for hexagon
+
+   za_statuetkoi:
+    - move : 0.51/0.56/xx
+    - call : MicroArmHalf
+    - call: PumOn
+    - sleep: 0.2
+    - move: 0.43/0.45/xx
+    - call: MicroArmUp
+
+   zamena:
+    - move: 0.43/0.45/xx    ##поворачиваемся к реплике
+    - move : 0.4/0.36/xx
+    - call : KubOtput
+    - sleep: 0.1
+    - call: KubInput
+
+   sgruz:
+    - move: 1.83/0.23/xx   
+    - move: 1.7/0.23/xx
+    - call: MicroArmDown
+
+  izmerenie1:
+   - move: 0.16/0.77/xx
+   
+
+  
+
+    
 
 variables: #MUST BE INTS
   default: 0
