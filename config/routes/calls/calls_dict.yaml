@@ -59,17 +59,17 @@
   - "Izmerenie":
     - "servos_service":
       - "num": 1
-      - "state": 70
+      - "state": 0
    ##
   - "NadoPlitka":
     - "servos_service":
       - "num": 1
-      - "state": -100
+      - "state": 100
   ##
   - "NeNadoPlitka":
     - "servos_service":
       - "num": 1
-      - "state": 50
+      - "state": 20
 
   
     

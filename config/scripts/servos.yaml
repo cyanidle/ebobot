@@ -6,8 +6,8 @@
 1:
   - 1 #channel
   - 100 #speed
-  - 10 #min value
-  - 360 #max value
+  - 350 #min value
+  - 115 #max value
 2:
   - 2 #channel
   - 100 #speed
