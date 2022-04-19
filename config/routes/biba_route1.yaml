@@ -1,41 +1,118 @@
 ############################################ МАРШРУТ 1
 tasks:
-  flip_ohms_second:
-    - call: AdjustOn
-    - score: 10 #One flipped right
-    - call: ArmDown
-    - move: 0.35/2.14/2.07
-    - call: ArmHalfDown
-    - move: 0.17/2.14/2.07
-    #- score: 12
-    - move: 0.35/2.14/2.07
-    - call: ArmDown
-    - score: 2 #One flipped right
-  get_flipped: 
-    - move: 1.68/1.65/-1.047
-    - call: ArmHalfDown
-    - call: PumpOn
-    - move: 1.75/1.65/-1.047
-    - sleep: 1
-    - call: ArmUp
+  obezd_govna:
+    - score: 4                  # ставим статуэтку и витрину
+    - move: 1.7/2.43/0
     - sleep: 0.5
-    - move: 1.68/1.65/-1.047
+    - move: 1.7/2.43/-1.047  # фишки больше не мешают 
+
+  get_flipped: 
+    - move: 1.68/1.69/-1.047
+    - call: ArmHalfDown
+    - sleep: 0.4
+    - call: PumpOn
+    - move: 1.78/1.69/-1.047
+    - sleep: 0.2
+    - call: ArmUp
+    - sleep: 0.1
+    - move: 1.68/1.69/-1.047
     - score: 1
   deliver_blue_flipped:
     - log: "W: Delivering blue"
     - move: 1.68/2.43/-1.047
-    - move: 1.81/2.43/-1.047
+    - move: 1.8/2.43/-1.047
+    #- call: ArmHalfUp
     - call: ValveOn
-    - sleep: 1
+    - sleep: 0.3
     - call: PumpOff
     - call: ValveOff
     - score: 3
+  get_flipped2:
     - move: 1.68/2.43/-1.047
     - call: ArmDown
-  home:
+    - move: 1.68/1.69/-1.047             #ebashim do 2 fihki
+    - call: ArmHalfDown
+    - sleep: 0.4
+    - call: PumpOn
+    - move: 1.78/1.69/-1.047                #  вроде норм подьезд
+    - sleep: 0.2             
+    - call: ArmUp
+    - sleep: 0.1
+    - move: 1.68/1.69/-1.047
+    - score: 1
+    
+  green_flipped2:
+    - move: 1.68/2.25/-1.047
+    - move: 1.8/2.25/-1.047
+    - call: ValveOn
+    - sleep: 0.3
+    - call: PumpOff
+    - score: 3
+    - call: ValveOff
+    - move: 1.68/2.25/-1.047
+    - call: ArmDown
+
+  get_flipped3:
+    - move: 1.68/1.69/-1.047
+    - call: ArmHalfDown
+    - sleep: 0.4
+    - call: PumpOn
+    - move: 1.78/1.69/-1.047
+    - sleep: 0.2
+    - call: ArmUp
+    - sleep: 0.1
+    - move: 1.68/1.69/-1.047
+    - score: 1
+
+  red_flipped:
+    - move: 1.68/2.01/-1.047
+    - move: 1.8/2.01/-1.047
+    - call: ValveOn
+    - sleep: 0.3
+    - call: PumpOff
+    - score: 3
+    - call: ValveOff
+    - move: 1.68/2.01/-1.047
+    - call: ArmDown
+    - move: 1.25/2.01/-1.047
+
+  tolkaem_fishku:
     - log: "W: Going home!"
-    - move: 1.4/2.79/-1.57
-    - score: 20 #20 for return 1 for hexagon
+    - move: 1.4/2.79/1.57
+    - score: 1
+    - move: 1.4/2.51/0.15
+    - sleep: 0.2
+    - move: 1.4/2.51/0.15
+
+  bokovaia1:
+    - move: 0.76/2.6/0.3
+    - move: 0.76/2.6/0.3
+    - call: ArmHalfDown
+    - sleep: 0.4
+    - call: PumpOn
+    - move: 0.76/2.77/0.3
+    - sleep: 0.3
+    - call: ArmMegaUp
+    - sleep: 0.3
+    - score: 1
+    - move: 0.76/2.6/0.3
+   # - call: PumpOff
+   
+  get_flippedbok:
+    - move: 0.5/2.51/1.5
+    - sleep: 0.2
+    - move: 0.3/2.74/1.5
+    - call: ValveOn
+    - call: PumpOff
+    - score: 5
+    - call: ValveOff
+
+  parkovka:
+    - change_cost: 70
+    - move: 0.68/2.12/1.5
+    - score: 20 
+    - route_stop: epic
+    
 
 variables: #MUST BE INTS
   default: 0
