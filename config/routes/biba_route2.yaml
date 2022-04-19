@@ -2,6 +2,7 @@
 tasks:
 
    obezd_govna:
+    - change_cost: 7
     - score: 4                  # ставим статуэтку и витрину
     - move: 1.7/0.61/0
     - sleep: 0.5

@@ -1,0 +1,20 @@
+tasks: #move: x/y/th
+  init:
+    - call: AdjustOn
+    - call: PumpOn
+    - sleep: 0.5
+    - call: PumpOff
+    - call: ArmUp
+    - sleep: 1
+    - call: ArmDown
+    - sleep: 0.5
+    - call: ValveOn
+    - sleep: 0.5
+    - call: ValveOff
+    - change_cost: 60
+  top_left:
+    - move: 1.02/0.44/0
+  start:
+    - move: 1.2/0.3/2.617
+    - score: 1000
+    - change_cost: 7
