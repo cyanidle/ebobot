@@ -10,6 +10,7 @@ tasks:
   get_flipped: 
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
+    - sleep: 0.4
     - call: PumpOn
     - move: 1.78/1.34/-1.047
     - sleep: 0.2
@@ -32,6 +33,7 @@ tasks:
     - call: ArmDown
     - move: 1.68/1.34/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
+    - sleep: 0.4
     - call: PumpOn
     - move: 1.78/1.34/-1.047                #  вроде норм подьезд
     - sleep: 0.2             
@@ -54,6 +56,7 @@ tasks:
   get_flipped3:
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
+    - sleep: 0.4
     - call: PumpOn
     - move: 1.78/1.34/-1.047
     - sleep: 0.2
@@ -84,7 +87,9 @@ tasks:
 
   bokovaia1:
     - move: 0.76/0.44/-2.56
+    - move: 0.76/0.44/-2.56
     - call: ArmHalfDown
+    - sleep: 0.4
     - call: PumpOn
     - move: 0.76/0.27/-2.56
     - sleep: 0.3
