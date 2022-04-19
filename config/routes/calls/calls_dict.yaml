@@ -48,13 +48,13 @@
   - "KubInput":
     - "servos_service":
       - "num": 2
-      - "state": 20
+      - "state": 0
       ##
 
   - "KubOutput":
     - "servos_service":
       - "num": 2
-      - "state": -100
+      - "state": 100
       ##
   - "Izmerenie":
     - "servos_service":

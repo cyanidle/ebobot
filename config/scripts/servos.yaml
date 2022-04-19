@@ -10,9 +10,9 @@
   - 360 #max value
 2:
   - 2 #channel
-  - 50 #speed
-  - 200 #min value
-  - 400 #max value
+  - 100 #speed
+  - 320 #min value
+  - 100 #max value
 3:
   - 3 #channel
   - 50 #speed
