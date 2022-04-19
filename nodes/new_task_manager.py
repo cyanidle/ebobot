@@ -759,6 +759,8 @@ class Manager:
                         parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
         Manager.current_task = 0
+        if Flags._test_routes:
+            parse(Flags._current_route_num)
         return 0
 ##############################
 class Flags:
