@@ -79,30 +79,32 @@ tasks:
     - move: 1.4/0.25/1.57
     - score: 1
     - move: 1.4/0.53/0
+    - sleep: 0.2
+    - move: 1.4/0.53/-2.56
 
   bokovaia1:
-    - move: 0.74/0.44/-2.58
+    - move: 0.76/0.44/-2.56
     - call: ArmHalfDown
     - call: PumpOn
-    - move: 0.81/0.27/-2.58
+    - move: 0.76/0.27/-2.56
     - sleep: 0.3
     - call: ArmMegaUp
     - sleep: 0.3
     - score: 1
-    - move: 0.81/0.4/-2.58
+    - move: 0.76/0.44/-2.56
    # - call: PumpOff
    
   get_flippedbok:
-    - move: 0.5/0.53/-3.43
+    - move: 0.5/0.53/-3.44
     - sleep: 0.2
-    - move: 0.28/0.25/-3.43
+    - move: 0.3/0.3/-3.43
     - call: ValveOn
     - call: PumpOff
     - score: 5
     - call: ValveOff
 
   parkovka:
-   - move: 0.78/0.86/-3.43
+   - move: 0.68/0.92/-3.43
    - score: 20 
     
 
