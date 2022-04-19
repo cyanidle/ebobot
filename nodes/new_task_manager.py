@@ -725,6 +725,7 @@ class Manager:
                 rospy.logwarn("No variables found!")
     @staticmethod
     def reset():
+        rospy.logwarn(f"MANAGER: Reset called!")
         Flags._execute = 0
         Manager.route = {}
         Manager.obj_dict = {}
@@ -755,9 +756,8 @@ class Manager:
                     _busy = 0
                     if Flags._test_routes:
                         Flags._execute = 0
+                        parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
-        if Flags._test_routes:
-            parse(Flags._current_route_num)
         Manager.current_task = 0
         return 0
 ##############################
