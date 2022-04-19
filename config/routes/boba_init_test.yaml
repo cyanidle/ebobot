@@ -1,0 +1,34 @@
+tasks:
+  izmer0:
+    - call: Izmerenie
+    - sleep: 1 
+  izmer1:
+  izmer2:
+  izmer3:
+  izmer4:
+  izmer5:
+  loop:
+    - goto: izmer0
+interrupts:
+  flip!:
+    - interrupt_condition: izmer0/call/1/mid
+    - interrupt_condition: izmer1/call/1/mid
+    - interrupt_condition: izmer2/call/1/mid
+    - interrupt_condition: izmer3/call/1/mid
+    - interrupt_condition: izmer4/call/1/mid
+    - interrupt_condition: izmer5/call/1/mid
+    - call: NadoPlitka
+  no_flip!:  
+    - interrupt_condition: izmer0/call/1/low
+    - interrupt_condition: izmer1/call/1/low
+    - interrupt_condition: izmer2/call/1/low
+    - interrupt_condition: izmer3/call/1/low
+    - interrupt_condition: izmer4/call/1/low
+    - interrupt_condition: izmer5/call/1/low
+    - interrupt_condition: izmer0/call/1/high
+    - interrupt_condition: izmer1/call/1/high
+    - interrupt_condition: izmer2/call/1/high
+    - interrupt_condition: izmer3/call/1/high
+    - interrupt_condition: izmer4/call/1/high
+    - interrupt_condition: izmer5/call/1/high
+    - call: NeNadoPlitka

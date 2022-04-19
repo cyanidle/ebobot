@@ -45,28 +45,28 @@
       - "num": 3
       - "state": 65
 #######################
-  - "kub_input":
+  - "KubInput":
     - "servos_service":
       - "num": 2
       - "state": 20
       ##
 
-  - "kub_output":
+  - "KubOutput":
     - "servos_service":
       - "num": 2
       - "state": -100
       ##
-  - "izmerenie":
+  - "Izmerenie":
     - "servos_service":
       - "num": 1
       - "state": 70
    ##
-  - "nado_plitka":
+  - "NadoPlitka":
     - "servos_service":
       - "num": 1
       - "state": -100
   ##
-  - "nenado_plitka":
+  - "NeNadoPlitka":
     - "servos_service":
       - "num": 1
       - "state": 50
