@@ -1,7 +1,7 @@
 ############################################ МАРШРУТ 1
 tasks:
 
-  obezd_govna:
+   obezd_govna:
     - score: 4                  # ставим статуэтку и витрину
     - move: 1.7/0.61/0
     - sleep: 0.5
@@ -112,6 +112,7 @@ tasks:
     - change_cost: 70
     - move: 0.68/0.92/-3.43
     - score: 20 
+    - route_stop: epic
     
 
 variables: #MUST BE INTS
