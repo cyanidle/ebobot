@@ -104,8 +104,9 @@ tasks:
     - call: ValveOff
 
   parkovka:
-   - move: 0.68/0.92/-3.43
-   - score: 20 
+    - change_cost: 70
+    - move: 0.68/0.92/-3.43
+    - score: 20 
     
 
 variables: #MUST BE INTS
