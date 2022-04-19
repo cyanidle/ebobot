@@ -7,7 +7,7 @@
     <arg name="debug" default="false"/>
     <arg name="file1" default="boba_route1"/>
     <arg name="file2" default="boba_route2"/>
-    <arg name="test_file1" default="$(find ebobot)/config/routes/test_route1.yaml"/>
+    <arg name="test_file1" default="$(find ebobot)/config/routes/boba_init_test.yaml"/>
     <arg name="test_file2" default="$(find ebobot)/config/routes/test_route2.yaml"/>
     <arg name="arduino1" default="false"/>
     <arg name="arduino_port1" default="/dev/ttyACM0"/>
