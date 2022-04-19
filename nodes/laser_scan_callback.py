@@ -385,16 +385,17 @@ class Beacons(Laser):
                 if rel.num in nums:
                     try:
                         _curr_rel_dist = np.linalg.norm(rel - cls.expected_list[rel.num])
+                        if _curr_rel_dist < min_dists[rel.num]:
+                            rel._pub = True
+                            min_dists[rel.num] = _curr_rel_dist
+                            if len(rel_list) < 2 and not rel.num in _rel_list_meta:
+                                rel_list.append(rel)
+                                _rel_list_meta.append(rel.num) #remaps number to the list
+                            else: 
+                                rel_list[_rel_list_meta.index(rel.num)] = rel
                     except:
                         rospy.logerr("Expected beacons not init!")
-                    if _curr_rel_dist < min_dists[rel.num]:
-                        rel._pub = True
-                        min_dists[rel.num] = _curr_rel_dist
-                        if len(rel_list) < 2 and not rel.num in _rel_list_meta:
-                            rel_list.append(rel)
-                            _rel_list_meta.append(rel.num) #remaps number to the list
-                        else: 
-                            rel_list[_rel_list_meta.index(rel.num)] = rel
+                    
             if len(nums) <2:
                 return
             for num in nums:
