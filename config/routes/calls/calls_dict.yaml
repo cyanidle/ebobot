@@ -43,7 +43,7 @@
   - "MicroArmHalf":
     - "servos_service": 
       - "num": 3
-      - "state": 65
+      - "state": 50
 #######################
   - "KubInput":
     - "servos_service":

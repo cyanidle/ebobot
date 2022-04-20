@@ -3,12 +3,13 @@ tasks:
 
   za_statuetkoi:
     - change_cost: 7
-    - move : 1/0.56/1.7
-    - move : 0.51/0.56/1.7
+    - call: NeNadoPlitka
+    - move : 1/0.46/1.8
+    - move : 0.51/0.46/1.8
     - call : MicroArmHalf
     - call: PumpOn
     - sleep: 0.2
-    - move: 0.43/0.45/1.7
+    - move: 0.42/0.42/1.8
     - call: MicroArmUp
 
   zamena:
