@@ -51,7 +51,7 @@ def startCallback(start):
         if Flags._test_routes:
             _run()    
     elif start.data == 3:
-        rospy.sleep(0.2)
+        rospy.sleep(0.1)
         Flags._test_routes = 0
         if Flags._countdown:
             rospy.logwarn(f"MANAGER: Fast Start!")
@@ -739,6 +739,9 @@ class Manager:
         _done = 0
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
+            if not "Task" in Manager.obj_dict.keys():
+                asyncio.sleep(0.1)
+                continue
             if Manager.current_task<len(Manager.obj_dict["Task"]):
                 task = Manager.obj_dict["Task"][Manager.current_task]
                 proc = asyncio.create_task(task.exec())
