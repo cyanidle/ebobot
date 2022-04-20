@@ -2,6 +2,7 @@
 tasks:
 
   za_statuetkoi:
+    - change_cost: 7
     - move : 1/0.56/1.7
     - move : 0.51/0.56/1.7
     - call : MicroArmHalf
