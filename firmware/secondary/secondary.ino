@@ -9,14 +9,14 @@
 #include "servos.h"
 #include "kadyrov_lcd.h"
 ////////////////////////////Все скорости в м/с
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1524, 1524> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1724, 1724> nh; // recieve/publish
 //######################
 ebobot::MotorsInfo motors_msg;
 ros::Publisher motors_info("motors_info", &motors_msg);
 #define BAUD_RATE 115200
 const int servo_loop_delay = 80;
 TimerMs servo_loop(servo_loop_delay, 1, 0);
-TimerMs spin_loop(40, 1 , 0);
+TimerMs spin_loop(5, 1 , 0);
 void debugServo(int num){
      Servo_mot* servo = ptr_list[num];
      char buffer[60];
