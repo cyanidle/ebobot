@@ -44,7 +44,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_threshhold: 0.85   # If planer hasnt moved in (cl_repeats_len) jumps from each
   stuck_dist_threshhold: 0.3 #dist which should be reached in (stuck_check_jumps)
   dead_end_dist_diff_threshhold: 0.95 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
-  update_stop_thresh: 5 # Dist from target IN STEPS, when stops updating route
+  update_stop_thresh: 1.5 # Dist from target IN STEPS, when stops updating route
   # Step is added:
   dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
 ##################################
