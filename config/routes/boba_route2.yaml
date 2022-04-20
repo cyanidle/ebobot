@@ -28,45 +28,45 @@ tasks:
     
 
   izmerenie0:
-    - move: 0.4/0.77/2.09
-    - move: 0.16/0.77/2.09
+    - move: 0.4/0.67/2.09
+    - move: 0.17/0.67/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.16/0.87/2.09
+    - move : 0.17/0.87/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
     
 
   izmerenie2:
-   - move: 0.16/1.05/2.09
+   - move: 0.17/1.05/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie3:
-   - move: 0.16/1.24/2.09
+   - move: 0.17/1.24/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie4:
-   - move: 0.16/1.44/2.09
+   - move: 0.17/1.44/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie5:
-   - move: 0.16/1.62/2.09
+   - move: 0.17/1.62/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie6:
-   - move: 0.16/1.82/2.09
+   - move: 0.17/1.82/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
