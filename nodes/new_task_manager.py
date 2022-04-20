@@ -51,6 +51,7 @@ def startCallback(start):
         if Flags._test_routes:
             _run()    
     elif start.data == 3:
+        rospy.sleep(0.2)
         Flags._test_routes = 0
         if Flags._countdown:
             rospy.logwarn(f"MANAGER: Fast Start!")
