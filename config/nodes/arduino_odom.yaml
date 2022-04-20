@@ -5,11 +5,11 @@ motors_info_callback:
   #
   2/start_x: 1.43
   2/start_y: 0.26
-  2/start_theta: 2.1816
+  2/start_theta: 0.78
   ########
   1/start_x: 1.43
   1/start_y: 2.78
-  1/start_theta: -2.1816
+  1/start_theta: -0.78
   ########
   footprint_radius: 0.09
   update_rate: 20
