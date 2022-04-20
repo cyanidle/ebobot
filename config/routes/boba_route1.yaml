@@ -1,65 +1,122 @@
 ############################################ МАРШРУТ 1
 tasks:
 
-   a_statuetkoi:
-    - move : 0.51/0.56/0
+  za_statuetkoi:
+    - change_cost: 7
+    - call: NeNadoPlitka
+    - move : 1/0.44/1.8
+    - move : 0.49/0.43/1.75
+    - move : 0.49/0.43/1.75
     - call : MicroArmHalf
-    - call: PumOn
+    - call: PumpOn
     - sleep: 0.2
-    - move: 0.43/0.45/0
+    - move: 0.38/0.39/1.8
     - call: MicroArmUp
 
   zamena:
-    - move: 0.43/0.45/0    ##поворачиваемся к реплике
-    - move : 0.4/0.36/0
-    - call : KubOtput
+    - move: 0.43/0.45/-2.15    ##поворачиваемся к реплике
+    - move : 0.4/0.36/-2.15
+    - call : KubOutput
     - sleep: 0.1
     - call: KubInput
 
   sgruz:
-    - move: 1.83/0.23/0   
-    - move: 1.7/0.23/0
+    - move: 1.6/0.23/-2.10  
+    - change_cost: 90
+    - move: 1.81/0.23/-2.10   
+    - sleep: 0.2
+    - call: ValveOn
+    - sleep: 0.3
+    - call: PumpOff
+    - call: ValveOff
+    - sleep: 0.2
+    - move: 1.7/0.23/-2.10
+    - change_cost: 7
+    - move: 1.6/0.23/-2.10
     - call: MicroArmDown
+    
 
   izmerenie0:
-    - move: 0.16/0.77/0
+    - move: 0.4/0.67/2.09
+    - move: 0.17/0.67/2.09
+    - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.16/0.87/0
+    - move : 0.17/0.87/2.09
+    - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
+    - call: NadoPlitka
+    - sleep: 0.1
+    - call: NeNadoPlitka
     
 
   izmerenie2:
-   - move: 0.16/1.05/0
+   - move: 0.17/1.05/2.09
+   - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie3:
-   - move: 0.16/1.24/0
+   - move: 0.17/1.24/2.09
+   - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie4:
-   - move: 0.16/1.44/0
+   - move: 0.17/1.44/2.09
+   - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie5:
-   - move: 0.16/1.62/0
+   - move: 0.17/1.62/2.09
+   - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie6:
-   - move: 0.16/1.82/0
+   - move: 0.17/1.82/2.09
+   - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   Parkovka:
-   - move: 0.45/1.12/0
+   - move: 0.45/1.12/2.09
    - route_stop: epic
+interrupts:
+  flip!:
+    - interrupt_condition: izmerenie0/call/1/purple
+    - interrupt_condition: izmerenie1/call/1/purple
+    - interrupt_condition: izmerenie2/call/1/purple
+    - interrupt_condition: izmerenie3/call/1/purple
+    - interrupt_condition: izmerenie4/call/1/purple
+    - interrupt_condition: izmerenie5/call/1/purple
+    - interrupt_condition: izmerenie6/call/1/purple
+    - call: NadoPlitka
+    - sleep: 1
+    - call: NeNadoPlitka
+  no_flip!:  
+    - interrupt_condition: izmerenie0/call/1/yellow
+    - interrupt_condition: izmerenie1/call/1/yellow
+    - interrupt_condition: izmerenie2/call/1/yellow
+    - interrupt_condition: izmerenie3/call/1/yellow
+    - interrupt_condition: izmerenie4/call/1/yellow
+    - interrupt_condition: izmerenie5/call/1/yellow
+    - interrupt_condition: izmerenie6/call/1/yellow
+    - interrupt_condition: izmerenie0/call/1/red
+    - interrupt_condition: izmerenie1/call/1/red
+    - interrupt_condition: izmerenie2/call/1/red
+    - interrupt_condition: izmerenie3/call/1/red
+    - interrupt_condition: izmerenie4/call/1/red
+    - interrupt_condition: izmerenie5/call/1/red
+    - interrupt_condition: izmerenie6/call/1/red
+    - call: NeNadoPlitka
+
+  
+
 
   
 
