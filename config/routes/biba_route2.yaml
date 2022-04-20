@@ -2,7 +2,7 @@
 tasks:
 
   obezd_govna:
-    - change_cost: 7
+    - change_cost: 10
     - score: 4                  # ставим статуэтку и витрину
     #- move: 1.7/0.61/0
     #- sleep: 0.5
@@ -33,8 +33,8 @@ tasks:
   get_flipped2:
     - change_cost: 70
     - move: 1.68/0.4/-1.047
-    - change_cost: 7
     - move: 1.68/0.61/-1.047
+    - change_cost: 10
     - call: ArmDown
     - move: 1.68/1.34/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown

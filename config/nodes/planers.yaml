@@ -53,7 +53,7 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
-  cost_threshhold: 45 #100 are walls, then there is inflation (Represents median of cost of points)
+  cost_threshhold: 50 #100 are walls, then there is inflation (Represents median of cost of points)
   skip_thresh: 2 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 1 #depends on resolution, allows to skip points behind
@@ -80,8 +80,8 @@ local_planer:
   #speed coeffs
   full_path_coeff_dist: 70 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  1
-  min_coeff: 0.35 #Final!!
-  path_speed_coeff: 1.45 #More = faster. В тугриках. Robot slows down at start and finish of the route
+  min_coeff: 0.4 #Final!!
+  path_speed_coeff: 1.5 #More = faster. В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 1.5 # More = slower
   max_cost_speed_coeff: 3 #more = more slowing 
   # Circles on which planer tries to find lowest cost position
