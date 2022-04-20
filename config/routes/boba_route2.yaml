@@ -5,7 +5,7 @@ tasks:
     - move : 1/0.56/1.7
     - move : 0.51/0.56/1.7
     - call : MicroArmHalf
-    - call: PumOn
+    - call: PumpOn
     - sleep: 0.2
     - move: 0.43/0.45/1.7
     - call: MicroArmUp
@@ -13,7 +13,7 @@ tasks:
   zamena:
     - move: 0.43/0.45/-2.15    ##поворачиваемся к реплике
     - move : 0.4/0.36/-2.15
-    - call : KubOtput
+    - call : KubOutput
     - sleep: 0.1
     - call: KubInput
 
