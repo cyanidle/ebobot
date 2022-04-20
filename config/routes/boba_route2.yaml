@@ -21,9 +21,13 @@ tasks:
     - call: KubInput
 
   sgruz:
-    - move: 1.83/0.23/-2.10   
+    - move: 1.6/0.23/-2.10  
+    - change_cost: 90
+    - move: 1.78/0.23/-2.10   
     - call: PumpOff
     - move: 1.7/0.23/-2.10
+    - change_cost: 7
+    - move: 1.6/0.23/-2.10
     - call: MicroArmDown
     
 

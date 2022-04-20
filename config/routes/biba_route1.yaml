@@ -43,6 +43,9 @@ tasks:
     - score: 1
     
   green_flipped2:
+    - change_cost: 70
+    - move: 1.68/2.55/-1.047
+    - change_cost: 7
     - move: 1.68/2.25/-1.047
     - move: 1.8/2.25/-1.047
     - call: ValveOn

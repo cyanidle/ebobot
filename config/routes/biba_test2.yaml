@@ -11,7 +11,7 @@ tasks: #move: x/y/th
     - call: ValveOn
     - sleep: 0.5
     - call: ValveOff
-    - change_cost: 60
+    - change_cost: 90
   top_right: 
     - move: 1.43/0.26/0.53
     - move: 1.62/0.44/0
