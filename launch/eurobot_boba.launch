@@ -32,7 +32,7 @@
     </include>
 
     <include file="$(find ebobot)/launch/new_task_manager.launch">
-        <arg name="debug" value="$(arg debug)"/>
+        <arg name="debug" value="true"/>
         <arg name="file1" value="$(find ebobot)/config/routes/$(arg file1).yaml"/>
         <arg name="file2" value="$(find ebobot)/config/routes/$(arg file2).yaml"/>
         <arg name="test_file1" value="$(arg test_file1)"/>
