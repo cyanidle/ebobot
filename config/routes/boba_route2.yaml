@@ -1,86 +1,28 @@
 ############################################ МАРШРУТ 1
 tasks:
 
-  obezd_govna:
-    - score: 4                  # ставим статуэтку и витрину
-    - move: 1.7/0.61/-1.047    # фишки больше не мешают 
-
-  get_flipped: 
-    - move: 1.68/1.34/-1.047
-    - call: ArmHalfDown
-    - call: PumpOn
-    - move: 1.78/1.34/-1.047
+  za_statuetkoi:
+    - move : 0.51/0.56/0
+    - call : MicroArmHalf
+    - call: PumOn
     - sleep: 0.2
-    - call: ArmUp
+    - move: 0.43/0.45/0
+    - call: MicroArmUp
+
+   zamena:
+    - move: 0.43/0.45/0    ##поворачиваемся к реплике
+    - move : 0.4/0.36/0
+    - call : KubOtput
     - sleep: 0.1
-    - move: 1.68/1.39/-1.047
-    - score: 1
-  deliver_blue_flipped:
-    - log: "W: Delivering blue"
-    - move: 1.68/0.61/-1.047
-    - move: 1.8/0.61/-1.047
-    #- call: ArmHalfUp
-    - call: ValveOn
-    - sleep: 0.3
-    - call: PumpOff
-    - call: ValveOff
-    - score: 3
-  get_flipped2:
-    - move: 1.68/0.61/-1.047
-    - call: ArmDown
-    - move: 1.68/1.34/-1.047             #ebashim do 2 fihki
-    - call: ArmHalfDown
-    - call: PumpOn
-    - move: 1.78/1.34/-1.047                #  вроде норм подьезд
-    - sleep: 0.2             
-    - call: ArmUp
-    - sleep: 0.1
-    - move: 1.68/1.34/-1.047
-    - score: 1
-    
-  green_flipped2:
-    - move: 1.68/0.79/-1.047
-    - move: 1.8/0.79/-1.047
-    - call: ValveOn
-    - sleep: 0.3
-    - call: PumpOff
-    - score: 3
-    - call: ValveOff
-    - move: 1.68/0.79/-1.047
-    - call: ArmDown
+    - call: KubInput
 
-  get_flipped3:
-    - move: 1.68/1.34/-1.047
-    - call: ArmHalfDown
-    - call: PumpOn
-    - move: 1.78/1.34/-1.047
-    - sleep: 0.2
-    - call: ArmUp
-    - sleep: 0.1
-    - move: 1.68/1.34/-1.047
-    - score: 1
+   sgruz:
+    - move: 1.83/0.23/0   
+    - move: 1.7/0.23/0
+    - call: MicroArmDown
 
-  red_flipped:
-    - move: 1.68/1.03/-1.047
-    - move: 1.8/1.03/-1.047
-    - call: ValveOn
-    - sleep: 0.3
-    - call: PumpOff
-    - score: 3
-    - call: ValveOff
-    - move: 1.68/1.03/-1.047
-    - call: ArmDown
-    - move: 1.25/1.03/-1.047
-
-  tolkaem_fishku:
-    - log: "W: Going home!"
-    - move: 1.4/0.25/1.57
-    - score: 1
-    - move: 1.4/0.4/1.57
-
-  bokovaia1:
-    - move: 0.77/0.35/-2.617
-    - call: ArmHalfDown
+  izmerenie1:
+   - move: 0.16/0.77/0
     
 
     
