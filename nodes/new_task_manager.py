@@ -25,8 +25,6 @@ rospy.sleep(1)
 def startCallback(start):
     rospy.logerr(f"MANAGER: Got new start command {start.data}")
     Flags._execute = 0
-    # while Flags._busy:
-    #    rospy.sleep(0.03)
     if start.data == 1:
         try:
             asyncio.run(showPrediction(7771))
@@ -50,23 +48,15 @@ def startCallback(start):
         Flags._test_routes = 1
         Flags._countdown = 1
         rospy.logwarn(f"MANAGER: Test Start!")
-        for n in range(3,0,-1):
-            try:
-                asyncio.run(showPrediction(n))
-                if not Flags._test_routes:
-                    break
-            except:
-                rospy.logwarn("No lcd found!")
-            rospy.sleep(1)
-        Flags._countdown = 0
         if Flags._test_routes:
-            asyncio.run(showPrediction(0))
             _run()    
     elif start.data == 3:
+        rospy.sleep(0.1)
         Flags._test_routes = 0
         if Flags._countdown:
             rospy.logwarn(f"MANAGER: Fast Start!")
             _parse(Flags._current_route_num)
+            Flags._countdown = 0
         else:
             rospy.logwarn(f"MANAGER: Route Start!")
         _run()
@@ -82,7 +72,17 @@ def _run():
     rospy.loginfo("MANAGER: Setting flag...")
     Flags._busy = 1
     Flags._execute = 1
-
+def _countdown():
+    for n in range(3,0,-1):
+        try:
+            asyncio.run(showPrediction(n))
+            if not Flags._countdown:
+                break
+        except:
+            rospy.logwarn("No lcd found!")
+        rospy.sleep(1)
+    asyncio.run(showPrediction(0))
+    Flags._countdown = 0
 ##################################################
 class Status:
     update_rate = rospy.get_param("~/status/update_rate", 1)
@@ -739,6 +739,9 @@ class Manager:
         _done = 0
         while not rospy.is_shutdown() and Flags._execute:
             await Task.checkForInterrupt()
+            if not "Task" in Manager.obj_dict.keys():
+                asyncio.sleep(0.1)
+                continue
             if Manager.current_task<len(Manager.obj_dict["Task"]):
                 task = Manager.obj_dict["Task"][Manager.current_task]
                 proc = asyncio.create_task(task.exec())
@@ -759,8 +762,6 @@ class Manager:
                         parse(Flags._current_route_num)
             await asyncio.sleep(0.05)
         Manager.current_task = 0
-        if Flags._test_routes:
-            parse(Flags._current_route_num)
         return 0
 ##############################
 class Flags:
@@ -805,6 +806,8 @@ def parse(route = 11):
 def main():
     _parse()
     while not rospy.is_shutdown():
+        if Flags._countdown:
+            _countdown()
         if Flags._execute:
             asyncio.run(Manager.exec())
         rospy.sleep(0.025)

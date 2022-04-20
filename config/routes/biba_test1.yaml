@@ -13,10 +13,12 @@ tasks: #move: x/y/th
     - call: ValveOff
     - change_cost: 60
   top_right: 
-    - move: 1.62/2.6/3.1415 
+    - move: 1.62/2.85/1.57
+    - move: 1.62/2.6/3.1415
+    - move: 1.62/2.85/1.57
   start:
-    - move: 1.4/2.79/0.52
+    - move: 1.44/2.85/1.57
     - score: 1000
-    - change_cost: 7
+    #- change_cost: 7
 
 
