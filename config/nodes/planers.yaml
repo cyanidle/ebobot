@@ -53,7 +53,7 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
-  cost_threshhold: 35 #100 are walls, then there is inflation (Represents median of cost of points)
+  cost_threshhold: 45 #100 are walls, then there is inflation (Represents median of cost of points)
   skip_thresh: 2 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 1 #depends on resolution, allows to skip points behind
