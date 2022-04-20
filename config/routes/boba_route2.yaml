@@ -9,20 +9,60 @@ tasks:
     - move: 0.43/0.45/0
     - call: MicroArmUp
 
-   zamena:
+  zamena:
     - move: 0.43/0.45/0    ##поворачиваемся к реплике
     - move : 0.4/0.36/0
     - call : KubOtput
     - sleep: 0.1
     - call: KubInput
 
-   sgruz:
+  sgruz:
     - move: 1.83/0.23/0   
     - move: 1.7/0.23/0
     - call: MicroArmDown
 
+  izmerenie0:
+    - move: 0.16/0.77/0
+    - call: Ohms
+    - sleep: 0.2
+
   izmerenie1:
-   - move: 0.16/0.77/0
+    - move : 0.16/0.87/0
+    - call: Ohms
+    - sleep: 0.2
+    
+
+  izmerenie2:
+   - move: 0.16/1.05/0
+   - call: Ohms
+   - sleep: 0.2
+
+  izmerenie3:
+   - move: 0.16/1.24/0
+   - call: Ohms
+   - sleep: 0.2
+
+  izmerenie4:
+   - move: 0.16/1.44/0
+   - call: Ohms
+   - sleep: 0.2
+
+  izmerenie5:
+   - move: 0.16/1.62/0
+   - call: Ohms
+   - sleep: 0.2
+
+  izmerenie6:
+   - move: 0.16/1.82/0
+   - call: Ohms
+   - sleep: 0.2
+
+  Parkovka:
+   - move: 0.45/1.12/0
+   - route_stop: epic
+
+
+
     
 
     

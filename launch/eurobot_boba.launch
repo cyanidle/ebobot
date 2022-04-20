@@ -15,15 +15,10 @@
 
     <arg name="arduino0" default="true"/>
 
-    <group if="$(arg port_switch)">
+
     <arg name="arduino_port0" default="/dev/ttyUSB1"/>
     <param name="/rplidarNode/serial_port" value="/dev/ttyUSB0"/>  
-    </group>
-    
-    <group unless="$(arg port_switch)">
-    <arg name="arduino_port0" default="/dev/ttyUSB0"/>
-    <param name="/rplidarNode/serial_port" value="/dev/ttyUSB1"/>  
-    </group>
+
 
     <include file="$(find ebobot)/launch/move_base.launch">
         <arg name="arduino_port0" value="$(arg arduino_port0)"/>
