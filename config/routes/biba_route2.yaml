@@ -4,8 +4,8 @@ tasks:
   obezd_govna:
     - change_cost: 7
     - score: 4                  # ставим статуэтку и витрину
-    - move: 1.7/0.61/0
-    - sleep: 0.5
+    #- move: 1.7/0.61/0
+    #- sleep: 0.5
     - move: 1.7/0.61/-1.047  # фишки больше не мешают 
 
   get_flipped: 
@@ -81,9 +81,9 @@ tasks:
 
   tolkaem_fishku:
     - log: "W: Going home!"
-    - move: 1.4/0.25/1.57
+    - move: 1.4/0.25/-2.56
     - score: 1
-    - move: 1.4/0.53/0
+    - move: 1.4/0.53/-2.56
     - sleep: 0.2
     - move: 1.4/0.53/-2.56
 
@@ -112,7 +112,7 @@ tasks:
 
   parkovka:
     - change_cost: 70
-    - move: 0.68/0.92/-3.43
+    - move: 0.74/0.78/-3.43
     - score: 20 
     - route_stop: epic
     

@@ -6,8 +6,8 @@
     <arg name="debug" default="false"/>
     <arg name="file1" default="biba_route1"/>
     <arg name="file2" default="biba_route2"/>
-    <arg name="test_file1" default="$(find ebobot)/config/routes/test_route1.yaml"/>
-    <arg name="test_file2" default="$(find ebobot)/config/routes/test_route2.yaml"/>
+    <arg name="test_file1" default="$(find ebobot)/config/routes/biba_test1.yaml"/>
+    <arg name="test_file2" default="$(find ebobot)/config/routes/biba_test2.yaml"/>
     <arg name="arduino0" default="true"/>
     <arg name="arduino1" default="true"/>
 

@@ -41,7 +41,7 @@
       - "state": -50
 #####
   - "MicroArmHalf":
-    - "servos_service":
+    - "servos_service": 
       - "num": 3
       - "state": 65
 #######################

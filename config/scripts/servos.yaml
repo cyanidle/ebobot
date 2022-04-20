@@ -11,8 +11,8 @@
 2:
   - 2 #channel
   - 100 #speed
-  - 320 #min value
-  - 100 #max value
+  - 420 #min value
+  - 290 #max value
 3:
   - 3 #channel
   - 50 #speed
