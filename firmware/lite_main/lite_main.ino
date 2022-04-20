@@ -9,7 +9,7 @@
 #include "servos.h"
 #include "start_trigger.h"
 ////////////////////////////ROS init
-ros::NodeHandle_<ArduinoHardware, 10, 10, 1224, 1224> nh; // recieve/publish
+ros::NodeHandle_<ArduinoHardware, 10, 10, 1324, 1324> nh; // recieve/publish
 
 //######################
 ebobot::MotorsInfo motors_msg;
