@@ -16,7 +16,7 @@
     <arg name="arduino0" default="true"/>
 
 
-    <arg name="arduino_port0" default="/dev/ttyUSB1"/>
+    <arg name="arduino_port0" default="/dev/ttyACM0"/>
     <param name="/rplidarNode/serial_port" value="/dev/ttyUSB0"/>  
 
 
