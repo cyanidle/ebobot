@@ -36,6 +36,7 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 ///////////////////////Loop settings
 const int loop_delay = 50;
 const int servo_loop_delay = 150;
+TimerMS spin_loop(40, 1 , 0);
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs start_loop(200, 1, 0);
 ///////////////////////// ENCODER
@@ -269,11 +270,12 @@ void loop()
       motors_msg.current_speed = curr_spd[mot];
       motors_msg.ddist = ddist[mot];
       motors_info.publish(&motors_msg);
-      nh.spinOnce();
     }
   }
   if (start_loop.tick()){
     startUpdate();
   }
-  nh.spinOnce();
+  if (spin_loop.tick()){
+    nh.spinOnce();
+  }
 }

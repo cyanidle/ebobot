@@ -36,6 +36,7 @@ ros::Publisher motors_info("motors_info", &motors_msg);
 ///////////////////////Loop settings
 const int loop_delay = 50;
 const int servo_loop_delay = 150;
+TimerMS spin_loop(40, 1 , 0);
 TimerMs main_loop(loop_delay, 1, 0);
 TimerMs servo_loop(servo_loop_delay, 1, 0);
 TimerMs start_loop(200, 1, 0);
@@ -311,5 +312,7 @@ void loop()
   if (start_loop.tick()){
     startUpdate();
   }
-  nh.spinOnce();
+  if (spin_loop.tick()){
+    nh.spinOnce();
+  }
 }
