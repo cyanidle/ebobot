@@ -736,6 +736,7 @@ class MoveServer:
         if status:
             self._success_flag = 1       
         else:
+            self._fail_flag  = 1
             Global.target_set = 0
             Global.goal_reached = 1
 #####################################################
