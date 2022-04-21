@@ -4,7 +4,7 @@ tasks:
   za_statuetkoi:
     - change_cost: 70
     - call: NeNadoPlitka
-    - call: AdjustOff
+    - call: AdjustOf193
     - move : 1/0.44/1.8
     - call: AdjustOn
     - change_cost: 10
@@ -46,13 +46,13 @@ tasks:
   izmerenie0:
     - move: 0.4/0.68/2.09
     - call: PumpOff
-    - move: 0.2/0.68/2.09
+    - move: 0.193/0.68/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.2/0.84/2.09
+    - move : 0.193/0.84/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
@@ -62,31 +62,31 @@ tasks:
     
 
   izmerenie2:
-   - move: 0.2/1.04/2.09
+   - move: 0.193/1.04/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 1
 
   izmerenie3:
-   - move: 0.2/1.22/2.09
+   - move: 0.193/1.22/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 1
 
   izmerenie4:
-   - move: 0.2/1.42/2.09
+   - move: 0.193/1.42/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 1
 
   izmerenie5:
-   - move: 0.2/1.62/2.09
+   - move: 0.193/1.62/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 1
 
   izmerenie6:
-   - move: 0.2/1.815/2.09
+   - move: 0.193/1.815/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 1
