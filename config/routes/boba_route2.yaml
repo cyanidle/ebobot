@@ -40,6 +40,7 @@ tasks:
 
   izmerenie0:
     - move: 0.4/0.67/2.09
+    - call: PumpOff
     - move: 0.17/0.67/2.09
     - call: Izmerenie
     - call: Ohms
