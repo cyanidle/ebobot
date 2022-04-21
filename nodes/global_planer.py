@@ -390,6 +390,7 @@ class Global(): ##Полная жопа
             Global.list.clear()
             Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
             Global.start_pos = Global.robot_pos - Global.robot_twist
+            Global.target_set = 1
             ####
             Global.error = 1
             Global.checkFail()
