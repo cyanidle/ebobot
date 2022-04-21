@@ -497,7 +497,8 @@ class Objects(Laser):
     #Topics
     point_pub_time = rospy.get_param('~obstacles/point_pub_time',10)
     rviz_point_topic = rospy.get_param('~obstacles/rviz_point_topic','/clicked_point')
-    list_topic = rospy.get_param('~obstacles/list_topic' ,'/laser/obstacles')
+    list_topic = rospy.get_param('~obstacles/list_topic' ,'laser/obstacles')
+    min_dist_from_each = rospy.get_param('~obstacles/min_dist_from_any' , 0.3)
     #
     rviz_point_sub = rospy.Subscriber(rviz_point_topic,PointStamped, rvizPointCB)
     list_pub = rospy.Publisher(list_topic,Obstacles,queue_size = 6)
@@ -522,7 +523,11 @@ class Objects(Laser):
             obstacle.y = obst.pose[0] 
             obstacle.x = obst.pose[1]
             obstacle.radius = obst.radius
-            msg.data.append(obstacle)
+            if num > 0:
+                if np.linalg.norm((obst.pose[0]- cls.list[num-1].pose[0], obst.pose[1]- cls.list[num-1].pose[1])) > cls.min_dist_from_each:
+                    msg.data.append(obstacle)
+            else:
+                msg.data.append(obstacle)
         cls.temp_time_left -= 1/cls.update_rate
         if cls.temp_time_left <= 0:
             cls.temp_points_list.clear()

@@ -19,7 +19,7 @@ laser_scan_callback:
   maximum_x: 2.3
   maximum_y: 3.3
   skip_scans: 0
-  range_min_custom: 0.3
+  range_min_custom: 0.22
   range_max_custom: 6 #meters
   #############
   min_dots: 1
@@ -40,6 +40,7 @@ laser_scan_callback:
     dots_thresh: 200
     min_dots: 2
     safe_footprint_radius: 0.4 #Minimal radius around obstacles (if not default)
+    min_dist_from_any: 0.3
   ################
   beacons:
     ## Features
