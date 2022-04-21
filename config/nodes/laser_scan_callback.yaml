@@ -56,7 +56,7 @@ laser_scan_callback:
     cycles_per_update: 3
     min_rad: 0.0005
     max_rad: 0.14
-    max_dist_from_expected: 0.35
+    max_dist_from_expected: 0.3
     adjust_time: 1
     #####################
     num_beacons: 3 #needed for proper auto-init
