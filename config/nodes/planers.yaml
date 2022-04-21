@@ -74,7 +74,7 @@ local_planer:
   cost_coeff_enable: 1
   path_coeff_enable:  1
   #Turn
-  pause_before_turn: 0.15 #seconds
+  pause_before_turn: 0.2 #seconds
   turn_threshhold: 0.06
   cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed, works with dynamic turn)
   turn_coeff: 0.9 #More = faster

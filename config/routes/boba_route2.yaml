@@ -87,6 +87,7 @@ tasks:
 
   Parkovka:
    - move: 0.45/1.12/2.09
+   - call: PumpOff
    - route_stop: epic
 interrupts:
   flip!:
@@ -116,3 +117,6 @@ interrupts:
     - interrupt_condition: izmerenie5/call/1/red
     - interrupt_condition: izmerenie6/call/1/red
     - call: NeNadoPlitka
+  end_inter:
+    - interrupt_condition: timers/main/99
+    - call: PumpOff
