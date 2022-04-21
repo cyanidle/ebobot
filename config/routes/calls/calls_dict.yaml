@@ -33,7 +33,7 @@
   - "MicroArmUp":
     - "servos_service":
       - "num": 3
-      - "state": 100
+      - "state": 120
     ##
   - "MicroArmDown":
     - "servos_service":
