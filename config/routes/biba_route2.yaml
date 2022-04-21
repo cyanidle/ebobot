@@ -9,6 +9,8 @@ tasks:
     - move: 1.7/0.61/-1.047  # фишки больше не мешают 
 
   get_flipped: 
+    - move: 1.68/1/-1.047
+    - change_cost: 30
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
     - sleep: 0.4
@@ -19,20 +21,23 @@ tasks:
     - sleep: 0.1
     - move: 1.68/1.39/-1.047
     - score: 1
+    - change_cost: 10
   
   deliver_blue_flipped:
-    - log: "W: Delivering blue"
-    - move: 1.68/0.61/-1.047
-    - move: 1.8/0.61/-1.047
-    #- call: ArmHalfUp
+    - move: 1.68/1.03/-1.047
+    - move: 1.8/1.03/-1.047
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
-    - call: ValveOff
     - score: 3
+    - call: ValveOff
+    - move: 1.68/1.03/-1.047
+    - call: ArmDown
+   
+
   get_flipped2:
     - change_cost: 70
-    - move: 1.68/0.4/-1.047
+    #- move: 1.68/0.4/-1.047
     - move: 1.68/0.61/-1.047
     - change_cost: 10
     - call: ArmDown
@@ -71,21 +76,18 @@ tasks:
     - score: 1
 
   red_flipped:
-    - move: 1.68/1.03/-1.047
-    - move: 1.8/1.03/-1.047
+    - log: "W: Delivering blue"
+    - move: 1.68/0.61/-1.047
+    - move: 1.8/0.61/-1.047
+    #- call: ArmHalfUp
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
-    - score: 3
     - call: ValveOff
-    - move: 1.68/1.03/-1.047
-    - call: ArmDown
+    - score: 3
     - move: 1.25/1.03/-1.047
 
-  tolkaem_fishku:
-    - log: "W: Going home!"
-    - move: 1.4/0.25/-3.14
-    - score: 1
+  Home:
     - move: 1.4/0.53/-3.14
     - sleep: 0.2
     - move: 1.4/0.53/-2.56
@@ -117,12 +119,7 @@ tasks:
     - change_cost: 70
     - move: 0.74/0.78/-3.43
     - score: 20 
-    - route_stop: epic
-    
-
-variables: #MUST BE INTS
-  default: 0
-  get_flipped_var: 1 
+    - route_stop: epics
 interrupts:              # едем домой (врубить после теста всего маршрута)
   end_inter:
     - interrupt_condition: timers/main/99

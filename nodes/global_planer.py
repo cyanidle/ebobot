@@ -256,7 +256,11 @@ class Global(): ##Полная жопа
             Global.lock_dir = Global.lock_dirs[Global.lock_dir_num]
     @staticmethod
     def reset(): #For reset service
-        Global.target = np.array([0,0,0])
+        Global.list.clear()
+        Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
+        Global.start_pos = Global.robot_pos - Global.robot_twist
+        Global.consecutive_jumps = 0
+        Global.target_set = 1
 
 
 
@@ -315,7 +319,7 @@ class Global(): ##Полная жопа
                     Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
                     Global.maximum_cost += Global.recovery_cost_step
                     Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                    Global.goal_reached = 1
+                    Global.reset()
                     Global.error = 1
                     Global.num_jumps = 0
                     Global._fail_count += Global.fail_count_threshhold/Global.num_of_tries_for_last
@@ -375,7 +379,7 @@ class Global(): ##Полная жопа
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             if Global.maximum_cost > Global.abs_max_cost:
                 Global._fail_count = Global.fail_count_threshhold
-            Global.goal_reached = 1
+            Global.reset()
             Global.error = 1
             Global.checkFail()
         else:
