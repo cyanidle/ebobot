@@ -248,6 +248,8 @@ class Global(): ##Полная жопа
   
     @staticmethod
     def checkIfStuck(num):
+        if len(Global.list) < Global.stuck_check_jumps+1:
+            return
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and num and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
                 #rospy.logwarn(f"Planer stuck, using recovery!")
