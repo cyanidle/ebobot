@@ -85,26 +85,23 @@ tasks:
     - call: ArmDown
 
   bokovaia1:
-    - move: 0.76/2.6/2.56
-    - move: 0.76/2.6/2.56
+    - move: 0.76/2.6/0.593
+    - move: 0.76/2.6/0.593
     - call: ArmHalfDown
     - sleep: 0.4
     - call: PumpOn
-    - move: 0.76/2.77/2.56
+    - move: 0.76/2.77/0.593
     - sleep: 0.3
     - call: ArmMegaUp
     - sleep: 0.3
     - score: 1
-    - move: 0.76/2.6/2.56
-   # - call: PumpOff
-   
-  get_flippedbok:
-    - move: 0.7/2.51/3
+    - move: 0.76/2.6/0.593
+    - move: 0.7/2.51/1.375
     - sleep: 0.3
-    - move: 0.5/2.51/0.593
+    - move: 0.5/2.51/1.375
     - sleep: 0.2
-    - move: 0.315/2.725/1.38
-    - move: 0.315/2.725/1.38
+    - move: 0.315/2.725/1.375
+    - move: 0.315/2.725/1.375
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
@@ -113,7 +110,7 @@ tasks:
 
   parkovka:
     - change_cost: 70
-    - move: 0.74/2.26/0.593
+    - move: 0.74/2.26/1.375
     - score: 20 
     - route_stop: epics
 interrupts:              
