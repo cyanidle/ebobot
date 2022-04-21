@@ -6,7 +6,7 @@ import rospy
 from math import radians, ceil, sin, cos, atan
 import tf
 import numpy as np
-from threading import Thread
+#from threading import Thread
 #Messages and actions
 from map_msgs.msg import OccupancyGridUpdate
 from geometry_msgs.msg import PoseStamped#, Quaternion, Twist, Vector3, Point
@@ -68,6 +68,7 @@ def targetCallback(target):
     Global.start_pos = Global.robot_pos - Global.robot_twist
     Global.consecutive_jumps = 0
     Global.target_set = 1
+    Global._fail_count = 0
     if Global.rviz_enable:
         #markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 0,frame_name='global_target',debug=Global.debug)
         markers.pubMarker((target.pose.position.y,target.pose.position.x),0,add = 1,frame_name='global_target',debug=0)
@@ -380,21 +381,19 @@ class Global(): ##Полная жопа
                     if Global.debug:
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:
-            rospy.logerr_once (f"All start points failed! Goal ignored| Current cost step {Global.recovery_cost_step}")
+            rospy.logerr(f"All start points failed! Goal ignored| Current cost step {Global.recovery_cost_step}")
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.maximum_cost += Global.recovery_cost_step
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             if Global.maximum_cost > Global.abs_max_cost:
+                rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
                 Global._fail_count = Global.fail_count_threshhold
-                #Global.reset()
-            #Global.goal_reached = 1
-            ###
             Global.list.clear()
             Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
             Global.start_pos = Global.robot_pos - Global.robot_twist
             Global.target_set = 1
             ####
-            Global.error = 1
+            Global.error = 1 
             Global.checkFail()
         else:
             Global.checkFail()
@@ -403,7 +402,7 @@ class Global(): ##Полная жопа
         cls._fail_count += 1
         #rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
         if cls._fail_count >= cls.fail_count_threshhold:
-            rospy.logerr(f"Global planer cancels current goal!!")
+            rospy.logerr(f"Global planer cancels current goal!! Thresh {cls.fail_count_threshhold}")
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             cls.maximum_cost = cls._default_max_cost
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))      
@@ -417,6 +416,9 @@ class Global(): ##Полная жопа
             move_server.done(0)
             cls._fail_count = 0
             cls.error = 1
+            if Global.maximum_cost != Global._default_max_cost:
+                Global._return_local_cost_flag = 1
+                Global.maximum_cost = Global._default_max_cost #For recovery
     @staticmethod 
     def cleanupDeadEnds():
         list_to_remove = []
@@ -568,7 +570,7 @@ def main():
         ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
-            while not Global.goal_reached:
+            while not Global.goal_reached and not rospy.is_shutdown():
                 Global.appendNextPos()
             #if len(Global.list):
                 #rospy.loginfo(f"Last point {Global.list[-1]}")
@@ -665,25 +667,6 @@ class MoveServer:
             self.active = 0
             self._success_flag = 0
             self._fail_flag = 0 
-        # def update(self,fb,local = 0):
-        #     self.feedback = fb
-        #     if local:
-        #         if self.feedback == "fail":
-        #             self.done(0)
-        #         elif self.feedback == "done":
-        #             self.done(1)
-        # def done(self,status:int):
-        #     "Status 1 = success, status 0 = fail"
-        #     self.active = 0
-        #     if status:
-        #         rospy.logwarn("GLOBAL: Goal reached!")
-        #         self._success_flag = 1
-        #         self._preempted = 0
-        #     else:
-        #         rospy.logerr("GLOBAL: Goal failed!")
-        #         self._fail_flag = 1
-        #         Global.target_set = 0
-        #         Global.goal_reached = 1
     else:
         feedback = MoveFeedback('good')
         def __init__(self):
@@ -718,6 +701,7 @@ class MoveServer:
             #else:
             #    self.server.set_preempted(MoveResult(4))
             self._fail_flag, self._success_flag = 0, 0#, 0
+            self.feedback = "init"
     def update(self, fb, local=0):
         self.feedback = fb
         if local:
