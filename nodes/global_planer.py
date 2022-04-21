@@ -701,7 +701,7 @@ class MoveServer:
             #else:
             #    self.server.set_preempted(MoveResult(4))
             self._fail_flag, self._success_flag = 0, 0#, 0
-            self.feedback = "init"
+            #self.feedback = "init"
     def update(self, fb, local=0):
         self.feedback = fb
         if local:

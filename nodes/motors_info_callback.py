@@ -20,7 +20,7 @@ def startCallback(start):
     if start.data == 1 or start.data == 2:
         rospy.logwarn(f"Side switched to side {start.data}! ")
         Motors.side = start.data
-    Motors.reset()
+        Motors.reset()
 ############
 def resetCB(req):
     Motors.reset()
