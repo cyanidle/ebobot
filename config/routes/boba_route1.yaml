@@ -44,7 +44,7 @@ tasks:
 
   izmerenie0:
     - move: 0.3/2.4/2.09
-    - move: 0.2/2.38/2.09
+    #- move: 0.2/2.38/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
