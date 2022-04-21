@@ -368,13 +368,19 @@ class ProxyClient:
     def get_state(self):
         return self.state
     def send_goal(self,goal,*, feedback_cb):
+        _failed = 0
         req = SetMoveTargetRequest(x = goal.x, y = goal.y, theta = goal.theta)
         self._done = False
-        resp = self.proxy(req)
+        try:
+            resp = self.proxy(req)
+        except:
+            rospy.logerr(f"EXECUTER: Global crashed! Goal canceled")
+            self.state = GoalStatus.ABORTED
+            _failed = 1
         rospy.logwarn(f"EXECUTER: Move server responce = {resp}")
         self._done = True
         #self.state = resp.status
-        rospy.logwarn(f"EXECUTER: Move done status = {self.state}")
+        #rospy.logwarn(f"EXECUTER: Move done status = {self.state}")
         if not resp.preempted:
             if resp.status == "done":
                 self.state = GoalStatus.SUCCEEDED
@@ -382,7 +388,7 @@ class ProxyClient:
                 self.state = GoalStatus.ABORTED
             else:
                 self.state = GoalStatus.ACTIVE
-        else:
+        elif not _failed:
             self.state =  GoalStatus.ACTIVE
         feedback_cb(MoveFeedback(self.state))
     def wait_for_result(self):

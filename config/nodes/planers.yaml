@@ -1,6 +1,6 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
   maximum_cost: 6 #Most important
-  absolute_max_cost: 60
+  absolute_max_cost: 65
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
@@ -16,7 +16,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
  
-  twist_amplify_coeff: -0.2
+  twist_amplify_coeff: 0.2
   consecutive_jumps_threshhold: 1 #Leave a target each 'n' straight hops
   
   
@@ -56,7 +56,7 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
-  cost_threshhold: 28 #100 are walls, then there is inflation (Represents median of cost of points)
+  cost_threshhold: 32 #100 are walls, then there is inflation (Represents median of cost of points)
   skip_thresh: 2 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 1 #depends on resolution, allows to skip points behind
@@ -83,7 +83,7 @@ local_planer:
   #speed coeffs
   full_path_coeff_dist: 50 #dist from target in cells at which robot goes full spd (the lower the faster)
   static_coeff:  0.9
-  min_coeff: 0.2 #Final!!
+  min_coeff: 0.24 #Final!!
   min_path_coeff: 0.4
   path_speed_coeff: 0.9 #More = faster. В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 1.45 # More = slower

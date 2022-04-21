@@ -19,7 +19,7 @@ laser_scan_callback:
   maximum_x: 2.3
   maximum_y: 3.3
   skip_scans: 0
-  range_min_custom: 0.22
+  range_min_custom: 0.2
   range_max_custom: 6 #meters
   #############
   min_dots: 1
