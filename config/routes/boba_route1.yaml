@@ -48,7 +48,7 @@ tasks:
     - move: 0.195/2.405/2.09
     - call: Izmerenie
     - call: Ohms
-    - sleep: 0.2
+    - sleep: 0.8
 
   izmerenie1:
     - move : 0.195/2.23/2.09
@@ -64,31 +64,31 @@ tasks:
    - move: 0.195/2.012/2.09
    - call: Izmerenie
    - call: Ohms
-   - sleep: 0.2
+   - sleep: 0.8
 
   izmerenie3:
    - move: 0.195/1.815/2.09
    - call: Izmerenie
    - call: Ohms
-   - sleep: 0.2
+   - sleep: 0.8
 
   izmerenie4:
    - move: 0.195/1.62/2.09
    - call: Izmerenie
    - call: Ohms
-   - sleep: 0.2
+   - sleep: 0.8
 
   izmerenie5:
    - move: 0.195/1.42/2.09
    - call: Izmerenie
    - call: Ohms
-   - sleep: 0.2
+   - sleep: 0.8
 
   izmerenie6:
    - move: 0.195/1.22/2.09
    - call: Izmerenie
    - call: Ohms
-   - sleep: 0.2
+   - sleep: 0.8
 
   Parkovka:
    - move: 0.45/1.82/2.09
@@ -104,7 +104,7 @@ interrupts:
     - interrupt_condition: izmerenie5/call/1/purple
     - interrupt_condition: izmerenie6/call/1/purple
     - call: NadoPlitka
-    - sleep: 1
+    - sleep: 0.4
     - call: NeNadoPlitka
   no_flip!:  
     - interrupt_condition: izmerenie0/call/1/yellow
