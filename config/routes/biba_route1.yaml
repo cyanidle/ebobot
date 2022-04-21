@@ -22,8 +22,6 @@ tasks:
     - move: 1.68/1.7/-1.047
     - score: 1
     - change_cost: 10
-  
-  deliver_blue_flipped:
     - move: 1.68/2.01/-1.047
     - move: 1.8/2.01/-1.047
     - call: ValveOn
@@ -48,8 +46,6 @@ tasks:
     - sleep: 0.1
     - move: 1.68/1.7/-1.047
     - score: 1
-    
-  green_flipped2:
     - move: 1.68/2.25/-1.047
     - move: 1.8/2.25/-1.047
     - call: ValveOn
@@ -71,8 +67,6 @@ tasks:
     - sleep: 0.1
     - move: 1.68/1.7/-1.047
     - score: 1
-
-  red_flipped:
     - move: 1.68/2.43/-1.047
     - move: 1.8/2.43/-1.047
     #- call: ArmHalfUp
@@ -85,23 +79,23 @@ tasks:
     - call: ArmDown
 
   bokovaia1:
-    - move: 0.76/2.6/0.593
-    - move: 0.76/2.6/0.593
+    - move: 0.76/2.6/0.59
+    - move: 0.76/2.6/0.59
     - call: ArmHalfDown
     - sleep: 0.4
     - call: PumpOn
-    - move: 0.76/2.77/0.593
+    - move: 0.76/2.77/0.59
     - sleep: 0.3
     - call: ArmMegaUp
     - sleep: 0.3
     - score: 1
-    - move: 0.76/2.6/0.593
-    - move: 0.7/2.51/1.375
+    - move: 0.76/2.6/0.59
+    - move: 0.7/2.51/1.365
     - sleep: 0.3
-    - move: 0.5/2.51/1.375
+    - move: 0.5/2.51/1.365
     - sleep: 0.2
-    - move: 0.315/2.725/1.375
-    - move: 0.315/2.725/1.375
+    - move: 0.315/2.725/1.365
+    - move: 0.315/2.725/1.365
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
