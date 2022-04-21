@@ -102,8 +102,8 @@ tasks:
     - sleep: 0.3
     - move: 0.5/2.51/0.593
     - sleep: 0.2
-    - move: 0.315/2.725/0.593
-    - move: 0.315/2.725/0.593
+    - move: 0.315/2.725/1.38
+    - move: 0.315/2.725/1.38
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
