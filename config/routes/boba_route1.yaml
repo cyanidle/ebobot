@@ -44,14 +44,14 @@ tasks:
     - call: PumpOff
 
   izmerenie0:
-    - move: 0.3/2.41/2.09
-    - move: 0.2/2.41/2.09
+    - move: 0.3/2.42/2.09
+    - move: 0.2/2.42/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.2/2.22/2.09
+    - move : 0.2/2.23/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
@@ -61,13 +61,13 @@ tasks:
     
 
   izmerenie2:
-   - move: 0.2/1.99/2.09
+   - move: 0.2/2/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie3:
-   - move: 0.2/1.8/2.09
+   - move: 0.2/1.815/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
