@@ -14,7 +14,7 @@ tasks: #move: x/y/th
     - change_cost: 90
   top_right: 
     - move: 1.43/0.26/0.53
-    - move: 1.62/0.44/0
+    - move: 1.62/0.44/0.53
     - move: 1.43/0.26/0.53
   start:
     - move: 1.44/0.26/0.53
