@@ -28,7 +28,7 @@
   - "ArmHalfDown":
     - "servos_service":
       - "num": 0
-      - "state": 37
+      - "state": 35
    ##
   - "MicroArmUp":
     - "servos_service":
