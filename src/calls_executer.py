@@ -390,6 +390,8 @@ class ProxyClient:
                 self.state = GoalStatus.ACTIVE
         elif not _failed:
             self.state =  GoalStatus.ACTIVE
+        else:
+            self.state = GoalStatus.ABORTED
         feedback_cb(MoveFeedback(self.state))
     def wait_for_result(self):
         while not rospy.is_shutdown() and not self._done():
