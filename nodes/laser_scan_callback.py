@@ -315,7 +315,7 @@ class Beacons(Laser):
     expected_list = []
     rel_list = []
     _pubbing_rot = 0
-    _adjust_flag = 1
+    _adjust_flag = int(not adjust_on_command)
     #/Globals
     if adjust_on_command:
         rospy.Service("adjust_pos_service", Empty, adjCB)

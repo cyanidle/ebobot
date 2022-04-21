@@ -248,6 +248,8 @@ class Global(): ##Полная жопа
   
     @staticmethod
     def checkIfStuck(num):
+        if len(Global.list) < Global.stuck_check_jumps+1:
+            return
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and num and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
                 #rospy.logwarn(f"Planer stuck, using recovery!")
@@ -396,8 +398,6 @@ class Global(): ##Полная жопа
             Global.checkFail()
         else:
             Global.checkFail()
-            if Global.debug:
-                rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
@@ -731,19 +731,16 @@ class MoveServer:
             self.server.publish_feedback(MoveFeedback(self.feedback))
     def done(self,status:int):
         "Status 1 = success, status 0 = fail"
+        Global._fail_count = 0
+        if Global._return_local_cost_flag:
+            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+            Global._return_local_cost_flag = 0
         if status:
-            self._success_flag = 1
-            if Global._return_local_cost_flag:
-                Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                Global._return_local_cost_flag = 0
+            self._success_flag = 1       
         else:
+            self._fail_flag  = 1
             Global.target_set = 0
             Global.goal_reached = 1
-            self._fail_flag = 1
-            if Global._return_local_cost_flag:
-                Global.maximum_cost = Global._default_max_cost
-                Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                Global._return_local_cost_flag = 0
 #####################################################
 if __name__=="__main__":
     move_server = MoveServer()
