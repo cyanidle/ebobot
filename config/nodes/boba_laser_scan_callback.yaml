@@ -40,7 +40,7 @@ laser_scan_callback:
     dots_thresh: 200
     min_dots: 2
     safe_footprint_radius: 0.4 #Minimal radius around obstacles (if not default)
-    min_dist_from_any: 0.25
+    min_dist_from_any: 0.32
   ################
   beacons:
     ## Features
