@@ -167,7 +167,7 @@ class Local():
 
     #cls values
     global_cost_coeff_rel = 2 # default, gets changed anyway
-    _innate_cost_coeff = 3
+    _innate_cost_coeff = 2
     shutdown_f = 0
     global_cost_relation = 0
     robot_twist = np.array([0,0,0])
@@ -343,7 +343,7 @@ class Local():
     @classmethod
     def fetchPoint(cls,current_pos):
         #current = cls.robot_pos 
-        if cls.skipped >= cls.skip_thresh:
+        if cls.skipped >= cls.skip_thresh or (cls.current_target+cls.skipped)>=len(cls.targets):
             rospy.logwarn(f"LOCAL: Goal failed! Sending Stop!")
             cls.status_publisher.publish(String('fail'))
             cls.goal_reached = 1
@@ -369,6 +369,7 @@ class Local():
         if point_cost > cls.cost_threshhold: 
             cls.status_publisher.publish(String('warn'))
             rospy.logwarn(f"LOCAL: Point failed cost check({point_cost})! Recursing...")
+            #rospy.sleep(0.1)
             cls.skipped += 1
             #cls.current_target += 1
             #cls.fetchPoint(current, target)

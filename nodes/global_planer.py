@@ -121,6 +121,7 @@ class Global(): ##Полная жопа
     costmap_resolution = rospy.get_param('~costmap_resolution',0.02)   #cm/cell (default)
     #
     maximum_cost = rospy.get_param('~maximum_cost',40) 
+    abs_max_cost = rospy.get_param("~absolute_max_cost", 90)
     _default_max_cost = maximum_cost
     recovery_cost_step = rospy.get_param('~recovery_cost_step',1)
     recovery_cost_step /= update_rate
@@ -372,6 +373,8 @@ class Global(): ##Полная жопа
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.maximum_cost += Global.recovery_cost_step
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+            if Global.maximum_cost > Global.abs_max_cost:
+                Global._fail_count = Global.fail_count_threshhold
             Global.goal_reached = 1
             Global.error = 1
             Global.checkFail()
