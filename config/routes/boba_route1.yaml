@@ -93,17 +93,6 @@ tasks:
    - route_stop: epic
 interrupts:
   flip!:
-    - interrupt_condition: izmerenie0/call/1/purple
-    - interrupt_condition: izmerenie1/call/1/purple
-    - interrupt_condition: izmerenie2/call/1/purple
-    - interrupt_condition: izmerenie3/call/1/purple
-    - interrupt_condition: izmerenie4/call/1/purple
-    - interrupt_condition: izmerenie5/call/1/purple
-    - interrupt_condition: izmerenie6/call/1/purple
-    - call: NadoPlitka
-    - sleep: 1
-    - call: NeNadoPlitka
-  no_flip!:  
     - interrupt_condition: izmerenie0/call/1/yellow
     - interrupt_condition: izmerenie1/call/1/yellow
     - interrupt_condition: izmerenie2/call/1/yellow
@@ -111,6 +100,17 @@ interrupts:
     - interrupt_condition: izmerenie4/call/1/yellow
     - interrupt_condition: izmerenie5/call/1/yellow
     - interrupt_condition: izmerenie6/call/1/yellow
+    - call: NadoPlitka
+    - sleep: 1
+    - call: NeNadoPlitka
+  no_flip!:  
+    - interrupt_condition: izmerenie0/call/1/purple
+    - interrupt_condition: izmerenie1/call/1/purple
+    - interrupt_condition: izmerenie2/call/1/purple
+    - interrupt_condition: izmerenie3/call/1/purple
+    - interrupt_condition: izmerenie4/call/1/purple
+    - interrupt_condition: izmerenie5/call/1/purple
+    - interrupt_condition: izmerenie6/call/1/purple
     - interrupt_condition: izmerenie0/call/1/red
     - interrupt_condition: izmerenie1/call/1/red
     - interrupt_condition: izmerenie2/call/1/red
