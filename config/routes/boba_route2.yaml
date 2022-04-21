@@ -25,14 +25,14 @@ tasks:
   sgruz:
     - move: 1.6/0.2/-2.10  
     - change_cost: 90
-    - move: 1.77/0.2/-2.10   
+    - move: 1.82/0.2/-2.10   
     - call : MicroArmHalf
+    - sleep: 0.5
+    - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
-    - sleep: 0.3
-    - call: PumpOff
+    - sleep: 0.1
     - call: ValveOff
-    - sleep: 0.2
     - move: 1.7/0.23/-2.10
     - change_cost: 7
     - move: 1.6/0.23/-2.10
