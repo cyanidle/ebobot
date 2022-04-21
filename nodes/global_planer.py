@@ -385,7 +385,7 @@ class Global(): ##Полная жопа
             if Global.maximum_cost > Global.abs_max_cost:
                 Global._fail_count = Global.fail_count_threshhold
                 #Global.reset()
-            Global.goal_reached = 1
+            #Global.goal_reached = 1
             Global.error = 1
             Global.checkFail()
         else:
