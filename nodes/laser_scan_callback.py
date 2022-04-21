@@ -396,7 +396,7 @@ class Beacons(Laser):
                     except:
                         rospy.logerr("Expected beacons not init!")
                     
-            if len(nums) <2:
+            if len(nums) <2 or len(rel_list)<2 or len(exp_list) < 2:
                 return
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
