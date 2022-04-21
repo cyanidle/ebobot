@@ -19,17 +19,19 @@ tasks:
     - move: 1.68/1.69/-1.047
     - score: 1
   deliver_blue_flipped:
-    - log: "W: Delivering blue"
-    - move: 1.68/2.43/-1.047
-    - move: 1.8/2.43/-1.047
-    #- call: ArmHalfUp
+    - move: 1.68/2.01/-1.047
+    - move: 1.8/2.01/-1.047
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
-    - call: ValveOff
     - score: 3
+    - call: ValveOff
+    - move: 1.68/2.01/-1.047
+    - call: ArmDown
+    
+
   get_flipped2:
-    - move: 1.68/2.43/-1.047
+    - move: 1.68/2.43/-1.047         ##************
     - call: ArmDown
     - move: 1.68/1.69/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
@@ -69,21 +71,19 @@ tasks:
     - score: 1
 
   red_flipped:
-    - move: 1.68/2.01/-1.047
-    - move: 1.8/2.01/-1.047
+    - log: "W: Delivering blue"
+    - move: 1.68/2.43/-1.047
+    - move: 1.8/2.43/-1.047
+    #- call: ArmHalfUp
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
-    - score: 3
     - call: ValveOff
-    - move: 1.68/2.01/-1.047
-    - call: ArmDown
-    - move: 1.25/2.01/-1.047
+    - score: 3
 
   tolkaem_fishku:
     - log: "W: Going home!"
     - move: 1.4/2.79/0
-    - score: 1
     - move: 1.4/2.51/0
     - sleep: 0.2
     - move: 1.4/2.51/0.3
