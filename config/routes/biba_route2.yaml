@@ -98,6 +98,8 @@ tasks:
    # - call: PumpOff
    
   get_flippedbok:
+    - move: 0.7/0.53/-3
+    - sleep: 0.3
     - move: 0.5/0.53/-3.44
     - sleep: 0.2
     - move: 0.315/0.315/-3.4
