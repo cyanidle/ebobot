@@ -5,25 +5,28 @@ tasks:
     - change_cost: 7
     - call: NeNadoPlitka
     - move : 1/0.44/1.8
-    - move : 0.49/0.43/1.75
-    - move : 0.49/0.43/1.75
+    - move : 0.49/0.42/1.8
+    - sleep: 0.5
+    - move : 0.49/0.42/1.8
     - call : MicroArmHalf
     - call: PumpOn
     - sleep: 0.2
-    - move: 0.38/0.39/1.8
+    - move: 0.37/0.34/1.8
     - call: MicroArmUp
 
   zamena:
-    - move: 0.43/0.45/-2.15    ##поворачиваемся к реплике
-    - move : 0.4/0.36/-2.15
+    - move: 0.43/0.44/-2.15    ##поворачиваемся к реплике
+    - move : 0.4/0.35/-2.15
+    - sleep: 0.2
     - call : KubOutput
     - sleep: 0.1
     - call: KubInput
 
   sgruz:
-    - move: 1.6/0.23/-2.10  
+    - move: 1.6/0.2/-2.10  
     - change_cost: 90
-    - move: 1.81/0.23/-2.10   
+    - move: 1.77/0.2/-2.10   
+    - call : MicroArmHalf
     - sleep: 0.2
     - call: ValveOn
     - sleep: 0.3
@@ -38,6 +41,7 @@ tasks:
 
   izmerenie0:
     - move: 0.4/0.67/2.09
+    - call: PumpOff
     - move: 0.17/0.67/2.09
     - call: Izmerenie
     - call: Ohms
@@ -118,18 +122,3 @@ interrupts:
   end_inter:
     - interrupt_condition: timers/main/99
     - call: PumpOff
-
-  
-
-
-  
-
-    
-
-variables: #MUST BE INTS
-  default: 0
-  get_flipped_var: 1 
-#interrupts: 
-  # return_to_base:
-  #   - interrupt_condition: "timers/main/40"
-  #   - move: 1/0.4/1.5 
