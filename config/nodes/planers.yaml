@@ -1,8 +1,8 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  maximum_cost: 10 #Most important
+  maximum_cost: 20 #Most important
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
-  num_of_tries_for_last: 2  # Times planer can fail by max jumps         | ^
+  num_of_tries_for_last: 6  # Times planer can fail by max jumps         | ^
   update_rate: 8
   step: 3.3
   # (DIVIDED BY UPDATE RATE)

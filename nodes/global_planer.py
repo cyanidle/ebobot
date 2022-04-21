@@ -311,6 +311,9 @@ class Global(): ##Полная жопа
                 ######################################################
                 if Global.num_jumps > Global.maximum_jumps:                       #check for jumps overflow
                     rospy.logerr(f"Jumps > maximum({Global.maximum_jumps}), fail score {Global._fail_count}")
+                    Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+                    Global.maximum_cost += Global.recovery_cost_step
+                    Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
                     Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
@@ -370,6 +373,7 @@ class Global(): ##Полная жопа
             Global.maximum_cost += Global.recovery_cost_step
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.goal_reached = 1
+            Global.error = 1
             Global.checkFail()
         else:
             Global.checkFail()
