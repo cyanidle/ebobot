@@ -205,12 +205,6 @@ class Laser:
                         pos = cls.getPosition(curr_obst,radius)
                     else:
                         pos = cls.getPosition(curr_obst)
-                    for _num in range(round((len(cls.exclusion_xs)+1)/2)):
-                        _curr_index = _num * 2
-                        if (cls.exclusion_ys[_curr_index] < pos[0] < cls.exclusion_ys[_curr_index+1] and
-                        cls.exclusion_xs[_curr_index] < pos[1] < cls.exclusion_xs[_curr_index+1]):
-                            curr_obst.clear()
-                            continue
                     ###################################################
                     if Beacons.min_rad < radius < Beacons.max_rad:
                         for exp in Beacons.expected_list:
@@ -220,7 +214,7 @@ class Laser:
                     ####################################################
                     if  (Objects.minimal_x < pos[1] < Objects.maximum_x and
                         Objects.minimal_y < pos[0] < Objects.maximum_y
-                        and Objects.min_dots <= len(curr_obst) < Objects.dots_thresh):
+                        and Objects.min_dots <= len(curr_obst) < Objects.dots_thresh and not cls.checkExclusion(pos)):
                         if radius < Objects.safe_footprint_radius:
                             Objects(pos, Objects.safe_footprint_radius)
                         else:
@@ -230,6 +224,18 @@ class Laser:
                 curr_obst.clear()
             else:
                 curr_obst.clear()
+    @classmethod
+    def checkExclusion(cls,pos):
+        _flag = 0
+        for _num in range(round((len(cls.exclusion_xs)+1)/2)):
+            _curr_index = _num * 2
+            if (cls.exclusion_ys[_curr_index] < pos[0] < cls.exclusion_ys[_curr_index+1] and
+            cls.exclusion_xs[_curr_index] < pos[1] < cls.exclusion_xs[_curr_index+1]):
+                _flag = 1
+        if _flag:
+            return True
+        else:
+            return False
     @classmethod
     def getPosition(cls,poses: list,radius = 0)-> tuple:
         """(From class Laser) If radius is given, 
@@ -565,6 +571,7 @@ def main():
     rate = rospy.Rate(Laser.update_rate)
     rospy.on_shutdown(shutdownHook)
     Beacons.initExpected()
+    rospy.logwarn(f"Exclusion check for pos (0.3, 1.2) = {Laser.checkExclusion((0.3,1.2))}")
     while not rospy.is_shutdown():
         if Laser.allow_time_test and not Laser.time_test_done:
             _start = rospy.Time.now()
