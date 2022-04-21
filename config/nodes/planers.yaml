@@ -1,6 +1,6 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
   maximum_cost: 6 #Most important
-  absolute_max_cost: 65
+  absolute_max_cost: 40
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
@@ -86,7 +86,7 @@ local_planer:
   min_coeff: 0.2 #Final!!
   path_speed_coeff: 1.6 #More = faster. В тугриках. Robot slows down at start and finish of the route
   cost_speed_coeff: 1.5 # More = slower
-  max_cost_speed_coeff: 3.5 #more = more slowing 
+  max_cost_speed_coeff: 4 #more = more slowing 
   # Circles on which planer tries to find lowest cost position
   num_of_circles: 2
   circles_dist: 1 #in cells

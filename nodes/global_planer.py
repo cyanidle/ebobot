@@ -95,6 +95,7 @@ def changeCostCB(req):
     Global.change_cost_publisher.publish(Float32(req.cost))
     Global.maximum_cost = req.cost
     Global._default_max_cost = req.cost
+    Global.abs_max_cost += (req.cost - Global._last_change)
     rospy.logwarn(f"GLOBAL PLANER: Cost changed to {req.cost}")
     return ChangeCostResponse(_was)
 class Global(): ##Полная жопа
@@ -122,6 +123,7 @@ class Global(): ##Полная жопа
     #
     maximum_cost = rospy.get_param('~maximum_cost',40) 
     abs_max_cost = rospy.get_param("~absolute_max_cost", 90)
+    _default_abs_max = abs_max_cost
     _default_max_cost = maximum_cost
     recovery_cost_step = rospy.get_param('~recovery_cost_step',1)
     recovery_cost_step /= update_rate
@@ -175,6 +177,7 @@ class Global(): ##Полная жопа
     #/Topics
 
     ################################################ global values
+    _last_change = 0
     _return_local_cost_flag = 0
     _fail_count = 0
     robot_twist = np.array([0,0,0])
