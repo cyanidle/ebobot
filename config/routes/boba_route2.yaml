@@ -40,15 +40,15 @@ tasks:
     
 
   izmerenie0:
-    - move: 0.4/0.65/2.09
+    - move: 0.4/0.68/2.09
     - call: PumpOff
-    - move: 0.18/0.67/2.09
+    - move: 0.195/0.68/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.18/0.84/2.09
+    - move : 0.195/0.84/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
@@ -58,37 +58,37 @@ tasks:
     
 
   izmerenie2:
-   - move: 0.18/1.04/2.09
+   - move: 0.195/1.04/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie3:
-   - move: 0.18/1.23/2.09
+   - move: 0.195/1.22/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie4:
-   - move: 0.18/1.43/2.09
+   - move: 0.195/1.42/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie5:
-   - move: 0.18/1.61/2.09
+   - move: 0.195/1.62/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie6:
-   - move: 0.18/1.8/2.09
+   - move: 0.195/1.815/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   Parkovka:
-   - move: 0.45/1.12/2.09
+   - move: 0.45/1.07/2.09
    - call: PumpOff
    - route_stop: epic
 interrupts:
@@ -122,3 +122,4 @@ interrupts:
   end_inter:
     - interrupt_condition: timers/main/99
     - call: PumpOff
+    - route_stop: epic
