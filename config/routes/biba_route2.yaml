@@ -84,9 +84,9 @@ tasks:
 
   tolkaem_fishku:
     - log: "W: Going home!"
-    - move: 1.4/0.25/-2.56
+    - move: 1.4/0.25/-3.14
     - score: 1
-    - move: 1.4/0.53/-2.56
+    - move: 1.4/0.53/-3.14
     - sleep: 0.2
     - move: 1.4/0.53/-2.56
 
