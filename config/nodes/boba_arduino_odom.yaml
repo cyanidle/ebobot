@@ -3,11 +3,11 @@ motors_info_callback:
   side_topic: ebobot/begin
   #
   2/start_x: 1.2
-  2/start_y: 0.15
+  2/start_y: 0.14
   2/start_theta: 1.57
   ########
   1/start_x: 1.2
-  1/start_y: 2.88
+  1/start_y: 2.9
   1/start_theta: -1.57
   ########
   footprint_radius: 0.09
