@@ -100,10 +100,10 @@ tasks:
   get_flippedbok:
     - move: 0.7/2.51/3
     - sleep: 0.3
-    - move: 0.5/2.51/3.44
+    - move: 0.5/2.51/0.593
     - sleep: 0.2
-    - move: 0.315/2.725/3.4
-    - move: 0.315/2.725/3.4
+    - move: 0.315/2.725/0.593
+    - move: 0.315/2.725/0.593
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
@@ -112,7 +112,7 @@ tasks:
 
   parkovka:
     - change_cost: 70
-    - move: 0.74/2.26/3.43
+    - move: 0.74/2.26/0.593
     - score: 20 
     - route_stop: epics
 interrupts:              
