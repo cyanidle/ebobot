@@ -378,8 +378,8 @@ class Global(): ##Полная жопа
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.maximum_cost += Global.recovery_cost_step
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-            #if Global.maximum_cost > Global.abs_max_cost:
-            #    Global._fail_count = Global.fail_count_threshhold
+            if Global.maximum_cost > Global.abs_max_cost:
+                Global._fail_count = Global.fail_count_threshhold
             Global.reset()
             Global.error = 1
             Global.checkFail()
@@ -729,6 +729,10 @@ class MoveServer:
             Global.target_set = 0
             Global.goal_reached = 1
             self._fail_flag = 1
+            if Global._return_local_cost_flag:
+                Global.maximum_cost = Global._default_max_cost
+                Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+                Global._return_local_cost_flag = 0
 #####################################################
 if __name__=="__main__":
     move_server = MoveServer()
