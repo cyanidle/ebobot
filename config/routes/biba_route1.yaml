@@ -30,8 +30,7 @@ tasks:
     - call: ArmDown
     
 
-  get_flipped2:
-    - move: 1.68/2.43/-1.047         ##************
+  get_flipped2:       
     - call: ArmDown
     - move: 1.68/1.69/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown

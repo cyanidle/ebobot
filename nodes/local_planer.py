@@ -111,6 +111,7 @@ class Local():
     static_coeff = rospy.get_param('~static_coeff', 0.4)
     min_coeff = rospy.get_param('~min_coeff', 0.2) #Final!!
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
+    min_path_coeff = rospy.get_param('~min_path_coeff', 0.5) 
     #planer
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
     
@@ -289,8 +290,8 @@ class Local():
         else:
             final_coeff = 0
         #rospy.loginfo(f"{final_coeff = }, {cls.full_path_coeff_dist = },{np.linalg.norm(cls.targets[-1][:2] - cls.robot_pos[:2]) = }")
-        if final_coeff < cls.min_coeff:
-            final_coeff = cls.min_coeff
+        if final_coeff < cls.min_path_coeff:
+            final_coeff = cls.min_path_coeff
         if final_coeff > 1:
             final_coeff = 1
         #rospy.loginfo_once(f"Fetched speed coeff from dist to goal = {final_coeff}")
