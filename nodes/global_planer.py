@@ -386,6 +386,11 @@ class Global(): ##Полная жопа
                 Global._fail_count = Global.fail_count_threshhold
                 #Global.reset()
             #Global.goal_reached = 1
+            ###
+            Global.list.clear()
+            Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
+            Global.start_pos = Global.robot_pos - Global.robot_twist
+            ####
             Global.error = 1
             Global.checkFail()
         else:
