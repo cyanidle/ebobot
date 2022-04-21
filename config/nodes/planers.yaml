@@ -1,6 +1,6 @@
 global_planer: #almost everything is in cells, which depends on costmap resolution
   maximum_cost: 6 #Most important
-  absolute_max_cost: 40
+  absolute_max_cost: 60
   maximum_jumps: 1300
   fail_count_threshhold: 200 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^

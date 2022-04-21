@@ -323,7 +323,8 @@ class Global(): ##Полная жопа
                     Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
                     Global.maximum_cost += Global.recovery_cost_step
                     Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                    Global.reset()
+                    #Global.reset()
+                    Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
                     Global._fail_count += Global.fail_count_threshhold/Global.num_of_tries_for_last
@@ -383,7 +384,8 @@ class Global(): ##Полная жопа
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             if Global.maximum_cost > Global.abs_max_cost:
                 Global._fail_count = Global.fail_count_threshhold
-            Global.reset()
+                #Global.reset()
+            Global.goal_reached = 1
             Global.error = 1
             Global.checkFail()
         else:
