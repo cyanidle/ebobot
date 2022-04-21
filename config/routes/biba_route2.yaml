@@ -2,6 +2,7 @@
 tasks:
 
   obezd_govna:
+    - call: Adjust
     - change_cost: 10
     - score: 4                  # ставим статуэтку и витрину
     #- move: 1.7/0.61/0
@@ -80,7 +81,8 @@ tasks:
     - call: PumpOff
     - call: ValveOff
     - score: 3
-    - move: 1.25/1.03/-1.047
+    - move: 1.68/0.61/-1.047
+    - call: ArmDown
 
   Home:
     - move: 1.4/0.53/-3.14
@@ -115,7 +117,7 @@ tasks:
     - move: 0.74/0.78/-3.43
     - score: 20 
     - route_stop: epics
-interrupts:              # едем домой (врубить после теста всего маршрута)
+interrupts:              
   end_inter:
     - interrupt_condition: timers/main/99
     - call: PumpOff

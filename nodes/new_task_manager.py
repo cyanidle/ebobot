@@ -761,6 +761,7 @@ class Manager:
         Manager.current_task = 0
         if Flags._test_routes:
             parse(Flags._current_route_num)
+            Flags._test_routes = 0
         return 0
 ##############################
 class Flags:
