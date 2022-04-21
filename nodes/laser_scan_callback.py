@@ -79,6 +79,9 @@ class Laser:
     minimal_y = rospy.get_param('~minimal_y ', -0.2)
     maximum_y = rospy.get_param('~maximum_y', 3.4)
     dist_between_dots_max = rospy.get_param('~dist_between_dots_max', 0.05) #in meters
+    ###############
+    exclusion_xs = rospy.get_param('~exclusion_xs', [1,1.6,1,1.6])
+    exclusion_ys = rospy.get_param('~exclusion_ys', [0,0.44,2.6,3])
     #
     default_side = rospy.get_param('~default_side',2)
     update_rate = rospy.get_param("~update_rate",2) #updates/sec
@@ -199,6 +202,12 @@ class Laser:
                         pos = cls.getPosition(curr_obst,radius)
                     else:
                         pos = cls.getPosition(curr_obst)
+                    for _num in range(len(cls.exclusion_xs)/2):
+                        _curr_index = _num * 2
+                        if (cls.exclusion_ys[_curr_index] < pos[0] < cls.exclusion_ys[_curr_index+1] and
+                        cls.exclusion_xs[_curr_index] < pos[1] < cls.exclusion_xs[_curr_index+1]):
+                            curr_obst.clear()
+                            continue
                     ###################################################
                     if Beacons.min_rad < radius < Beacons.max_rad:
                         for exp in Beacons.expected_list:
