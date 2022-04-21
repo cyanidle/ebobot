@@ -315,7 +315,7 @@ class Beacons(Laser):
     expected_list = []
     rel_list = []
     _pubbing_rot = 0
-    _adjust_flag = 1
+    _adjust_flag = int(not adjust_on_command)
     #/Globals
     if adjust_on_command:
         rospy.Service("adjust_pos_service", Empty, adjCB)
@@ -396,7 +396,7 @@ class Beacons(Laser):
                     except:
                         rospy.logerr("Expected beacons not init!")
                     
-            if len(nums) <2 or len(rel_list)<2 or len(exp_list) < 2:
+            if len(nums) <2:
                 return
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
