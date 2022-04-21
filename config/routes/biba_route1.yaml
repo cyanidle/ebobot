@@ -1,6 +1,6 @@
 ############################################ МАРШРУТ 1
 tasks:
-   obezd_govna:
+  obezd_govna:
     - call: AdjustOn
     - change_cost: 10
     - score: 4                  # ставим статуэтку и витрину
