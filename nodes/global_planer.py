@@ -396,7 +396,6 @@ class Global(): ##Полная жопа
             Global.checkFail()
         else:
             Global.checkFail()
-            rospy.logerr (f"All points failed! Planer is stuck at {Global.list[-1]}")
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
