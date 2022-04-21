@@ -1,12 +1,13 @@
 ############################################ МАРШРУТ 1
 tasks:
   obezd_govna:
-    - call: AdjustOn
+    - call: AdjustOff
     - change_cost: 70
     - score: 4                  # ставим статуэтку и витрину
     #- move: 1.7/0.61/0
     #- sleep: 0.5
     - move: 1.7/2.43/-1.047  # фишки больше не мешают 
+    - call: AdjustOn
     #- change_cost: 10
 
   get_flipped: 
