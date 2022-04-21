@@ -43,13 +43,14 @@ tasks:
     - call: PumpOff
 
   izmerenie0:
-    - move: 0.17/2.34/2.09
+    - move: 0.3/2.34/2.09
+    - move: 0.18/2.34/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
 
   izmerenie1:
-    - move : 0.17/2.18/2.09
+    - move : 0.18/2.18/2.09
     - call: Izmerenie
     - call: Ohms
     - sleep: 0.2
@@ -59,31 +60,31 @@ tasks:
     
 
   izmerenie2:
-   - move: 0.17/2/2.09
+   - move: 0.18/2/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie3:
-   - move: 0.17/1.81/2.09
+   - move: 0.18/1.81/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie4:
-   - move: 0.17/1.61/2.09
+   - move: 0.18/1.61/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie5:
-   - move: 0.17/1.43/2.09
+   - move: 0.18/1.43/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
 
   izmerenie6:
-   - move: 0.17/1.24/2.09
+   - move: 0.18/1.24/2.09
    - call: Izmerenie
    - call: Ohms
    - sleep: 0.2
@@ -123,3 +124,4 @@ interrupts:
   end_inter:
     - interrupt_condition: timers/main/99
     - call: PumpOff
+    - route_stop: epic
