@@ -413,7 +413,6 @@ class Beacons(Laser):
                                 rel_list[_rel_list_meta.index(rel.num)] = rel
                     except:
                         rospy.logerr("Expected beacons not init!")
-                    
             if len(nums) <2:
                 return
             for num in nums:
