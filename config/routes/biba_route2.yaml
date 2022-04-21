@@ -83,12 +83,6 @@ tasks:
     - score: 3
     - move: 1.68/0.61/-1.047
     - call: ArmDown
-
-  Home:
-    - move: 1.4/0.53/-3.14
-    - sleep: 0.2
-    - move: 1.4/0.53/-2.56
-
   bokovaia1:
     - move: 0.76/0.44/-2.56
     - move: 0.76/0.44/-2.56
@@ -106,8 +100,8 @@ tasks:
   get_flippedbok:
     - move: 0.5/0.53/-3.44
     - sleep: 0.2
-    - move: 0.31/0.31/-3.43
-    - move: 0.31/0.31/-3.43
+    - move: 0.31/0.31/-3.39
+    - move: 0.31/0.31/-3.39
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
