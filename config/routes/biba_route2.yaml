@@ -3,7 +3,7 @@ tasks:
 
   obezd_govna:
     - call: AdjustOn
-    - change_cost: 10
+    - change_cost: 70
     - score: 4                  # ставим статуэтку и витрину
     #- move: 1.7/0.61/0
     #- sleep: 0.5
@@ -11,7 +11,7 @@ tasks:
 
   get_flipped: 
     - move: 1.68/1/-1.047
-    - change_cost: 70
+    #- change_cost: 70
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
     - sleep: 0.4

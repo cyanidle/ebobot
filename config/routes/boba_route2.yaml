@@ -2,9 +2,10 @@
 tasks:
 
   za_statuetkoi:
-    - change_cost: 7
+    - change_cost: 70
     - call: NeNadoPlitka
     - move : 1/0.44/1.8
+    - change_cost: 10
     - move : 0.49/0.42/1.812
     - sleep: 0.5
     - move : 0.49/0.42/1.812
