@@ -33,6 +33,7 @@ tasks:
     - call: ValveOff
     - move: 1.68/2.01/-1.047
     - call: ArmDown
+    - sleep: 0.3
    
 
   get_flipped2:
