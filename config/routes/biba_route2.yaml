@@ -10,7 +10,7 @@ tasks:
 
   get_flipped: 
     - move: 1.68/1/-1.047
-    - change_cost: 30
+    - change_cost: 70
     - move: 1.68/1.34/-1.047
     - call: ArmHalfDown
     - sleep: 0.4
@@ -36,11 +36,7 @@ tasks:
    
 
   get_flipped2:
-    - change_cost: 70
-    #- move: 1.68/0.4/-1.047
-    - move: 1.68/0.61/-1.047
-    - change_cost: 10
-    - call: ArmDown
+    - move: 1.78/1.34/-1.047  
     - move: 1.68/1.34/-1.047             #ebashim do 2 fihki
     - call: ArmHalfDown
     - sleep: 0.4
@@ -76,7 +72,6 @@ tasks:
     - score: 1
 
   red_flipped:
-    - log: "W: Delivering blue"
     - move: 1.68/0.61/-1.047
     - move: 1.8/0.61/-1.047
     #- call: ArmHalfUp
