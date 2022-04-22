@@ -2,9 +2,11 @@
 tasks:
 
   obezd_govna:
-    - call: AdjustOff
+    - call: AdjustOn
+    - change_cost: 50
     - score: 4                  # ставим статуэтку и витрину
     - move: 1.7/0.61/-1.047  # фишки больше не мешают 
+    - change_cost: 8
     - call: AdjustOn
 
   get_flipped: 
@@ -19,7 +21,6 @@ tasks:
     - sleep: 0.1
     - move: 1.68/1.39/-1.047
     - score: 1
-    - change_cost: 10
     - move: 1.68/1.03/-1.047
     - move: 1.8/1.03/-1.047
     - call: ValveOn
@@ -108,7 +109,8 @@ interrupts:
   park_inter:
     - interrupt_condition: timers/main/96
     - change_cost: 70
-    - move: 0.74/0.78/-3.43    
+    - move: 0.74/0.78/-3.43   
+    #- score: 20  
     - condition:
       - if: parkovka/move/0/done
       - do: 

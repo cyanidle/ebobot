@@ -1,9 +1,11 @@
 ############################################ МАРШРУТ 1
 tasks:
   obezd_govna:
-    - call: AdjustOff
+    - call: AdjustOn
     - score: 4                  # ставим статуэтку и витрину
+    - change_cost: 50
     - move: 1.7/2.43/-1.047  # фишки больше не мешают 
+    - change_cost: 8
     - call: AdjustOn
   get_flipped: 
     - move: 1.68/2.04/-1.047
@@ -100,7 +102,8 @@ interrupts:
   park_inter:
     - interrupt_condition: timers/main/96
     - change_cost: 70
-    - move: 0.74/2.26/1.375       
+    - move: 0.74/2.26/1.375   
+    #- score: 20     
     - condition:
       - if: parkovka/move/0/done
       - do: 

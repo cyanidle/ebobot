@@ -3,8 +3,10 @@ tasks:
 
   za_statuetkoi:
     - call: NeNadoPlitka
-    - call: AdjustOff
+    - call: AdjustOn
+    - change_cost: 50
     - move : 1/0.44/1.8
+    - change_cost: 8
     - call: AdjustOn
     - move : 0.49/0.42/1.812
     - sleep: 0.5
