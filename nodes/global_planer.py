@@ -385,9 +385,6 @@ class Global(): ##Полная жопа
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             Global.maximum_cost += Global.recovery_cost_step
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-            if Global.maximum_cost > Global.abs_max_cost:
-                rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
-                Global._fail_count = Global.fail_count_threshhold
             Global.list.clear()
             Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
             Global.start_pos = Global.robot_pos - Global.robot_twist
@@ -576,17 +573,15 @@ def main():
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached and not rospy.is_shutdown():
                 Global.appendNextPos()
-            #if len(Global.list):
-                #rospy.loginfo(f"Last point {Global.list[-1]}")
-            Global.num_jumps = 0 
-            #Global._fail_count = 0 ##!!!!!!!
+            if Global.maximum_cost > Global.abs_max_cost:
+                rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
+                Global._fail_count = Global.fail_count_threshhold
             ######
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
                     Global.cleanupDeadEnds()
                     if Global.experimental_cleanup_enable:
                         Global.cleanupRepeats()
-                #rospy.loginfo("Dead Ends cleaned up!")
             #######
             if len(Global.list) and not Global.error:
                 Global.publish()
