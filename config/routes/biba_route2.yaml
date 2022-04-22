@@ -103,21 +103,21 @@ tasks:
   parkovka:
     - change_cost: 70
     - move: 0.74/0.78/-3.43
-    - score: 20 
+    #- score: 20 
     - route_stop: epics
 interrupts:              
   park_inter:
     - interrupt_condition: timers/main/96
     - change_cost: 70
     - move: 0.74/0.78/-3.43   
-    #- score: 20  
-    - condition:
-      - if: parkovka/move/0/done
-      - do: 
-        - log: E:Already in base!
-      - else:
-        - score: 20  
-  end_inter:
+    - score: 20  
+  #   - condition:
+  #     - if: parkovka/move/0/done
+  #     - do: 
+  #       - log: E:Already in base!
+  #     - else:
+  #       - score: 20  
+  # end_inter:
     - interrupt_condition: timers/main/99
     - change_cost: 0
     - call: PumpOff
