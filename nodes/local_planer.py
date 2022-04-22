@@ -53,6 +53,8 @@ def changeCostCallback(fl):
     else:
         Local._innate_cost_coeff = cost * Local.global_cost_coeff_rel
         Local.cost_threshhold = cost * Local.global_cost_relation
+        if Local.cost_threshhold > Local._abs_max_cost:
+            Local.cost_threshhold = Local._abs_max_cost
         rospy.logwarn(f"LOCAL: New global cost {cost}, threshhold {Local.cost_threshhold}")
 def pathCallback(path):################Доделать
     #Local.targets.clear()
@@ -113,13 +115,19 @@ class Local():
     path_speed_coeff = rospy.get_param('~path_speed_coeff', 0.3) #В тугриках
     min_path_coeff = rospy.get_param('~min_path_coeff', 0.5) 
     #planer
+    #### Params for footprint cost calc
+    base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
+    safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
+    footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
+    #### /Params for footprint cost calc
     cost_threshhold = rospy.get_param('~cost_threshhold', 10000) #100 are walls, then there is inflation
-    
+    cost_threshhold *= footprint_calc_step_radians_resolution #!!!!!!!!!!!!!!!!!!!!!!!
     update_rate = rospy.get_param('~update_rate', 20) # in Hz
     cost_speed_coeff = rospy.get_param('~cost_speed_coeff', 2)
     max_cost_speed_coeff = rospy.get_param('~max_cost_speed_coeff', 2)
     threshhold = rospy.get_param('~threshhold', 2) #in cells
-    
+    max_cost_increase = rospy.get_param('~max_cost_increase', 2)
+    _abs_max_cost = cost_threshhold * max_cost_increase
     skip_thresh=rospy.get_param('~skip_thresh', 4) #max skipped targets (from cost) before fail
     
     
@@ -127,12 +135,8 @@ class Local():
     circles_dist = rospy.get_param('~circles_dist', 1) #in cells
     circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
     
-    #### Params for footprint cost calc
-    base_footprint_radius = rospy.get_param('~base_footprint_radius', 0.20) #optional
-    safe_footprint_radius = rospy.get_param('~safe_footprint_radius', 0.30)
-    footprint_calc_step_radians_resolution = rospy.get_param('~footprint_calc_step_radians_resolution', int(safe_footprint_radius*50*6)) #number of points on circle to check cost
-    #### /Params for footprint cost calc
-    cost_threshhold *= footprint_calc_step_radians_resolution #!!!!!!!!!!!!!!!!!!!!!!!
+   
+    
     twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 1)
     inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params

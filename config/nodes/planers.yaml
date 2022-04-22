@@ -1,8 +1,15 @@
 
-global_planer/maximum_cost: 1 #Most important
-local_planer/cost_threshhold: 18 #100 are walls, then there is inflation (Represents median of cost of points)
-
-
+global_planer/maximum_cost: 8 #Most important
+local_planer/cost_threshhold: 15 #100 are walls, then there is inflation (Represents median of cost of points)
+local_planer/max_cost_increase: 2.5 # x times
+#speed coeffs
+local_planer/full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
+local_planer/static_coeff:  0.6
+local_planer/min_coeff: 0.2 #Final!!
+local_planer/min_path_coeff: 0.4
+local_planer/path_speed_coeff: 0.9 #More = faster. В тугриках. Robot slows down at start and finish of the route
+local_planer/cost_speed_coeff: 1.45 # More = slower
+local_planer/max_cost_speed_coeff: 3.5 #more = more slowing 
 ##################
 global_planer: #almost everything is in cells, which depends on costmap resolution
   absolute_max_cost: 65
@@ -81,14 +88,7 @@ local_planer:
   cells_per_radian: 10 #in how many cells should robot turn by one radian (max turn speed, works with dynamic turn)
   turn_coeff: 0.9 #More = faster
   min_turn_coeff: 0.4 #final!
-  #speed coeffs
-  full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
-  static_coeff:  0.6
-  min_coeff: 0.2 #Final!!
-  min_path_coeff: 0.4
-  path_speed_coeff: 0.9 #More = faster. В тугриках. Robot slows down at start and finish of the route
-  cost_speed_coeff: 1.45 # More = slower
-  max_cost_speed_coeff: 4 #more = more slowing 
+  
   # Circles on which planer tries to find lowest cost position
   num_of_circles: 2
   circles_dist: 1 #in cells
