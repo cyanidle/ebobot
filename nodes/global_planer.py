@@ -249,7 +249,7 @@ class Global(): ##Полная жопа
   
     @staticmethod
     def checkIfStuck(num):
-        if len(Global.list) < Global.stuck_check_jumps+1:
+        if len(Global.list) < 3:
             return
         if not (num-Global.stuck_check_jumps)%Global.stuck_check_jumps:
             if Global.last_stuck.any() and num and np.linalg.norm(Global.last_stuck - Global.list[-1][0][:2]) < Global.stuck_dist_threshhold:
@@ -395,8 +395,12 @@ class Global(): ##Полная жопа
             ####
             Global.error = 1 
             Global.checkFail()
+            if not Global._fail_count%200:
+                rospy.logwarn("GLOBAL: failing cost checks (stuck at beginning)!")
         else:
             Global.checkFail()
+            if not Global._fail_count%200:
+                rospy.logwarn("GLOBAL: failing cost checks!")
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
@@ -575,7 +579,7 @@ def main():
             #if len(Global.list):
                 #rospy.loginfo(f"Last point {Global.list[-1]}")
             Global.num_jumps = 0 
-            
+            #Global._fail_count = 0 ##!!!!!!!
             ######
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
