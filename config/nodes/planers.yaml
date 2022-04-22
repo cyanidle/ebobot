@@ -28,7 +28,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   resend: 1
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
-  twist_amplify_coeff: 0.4
+  twist_amplify_coeff: 0.1
   consecutive_jumps_threshhold: 0 #Leave a target each 'n' straight hops
   step_radians_resolution: 12
   #!!! DANGEROUS
