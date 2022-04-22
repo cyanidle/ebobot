@@ -11,6 +11,7 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
   update_rate: 12
   step: 4
+  sleep_on_fail_time: 0.2
   update_stop_thresh: 3 # Dist from target IN STEPS, when stops updating route
   # (DIVIDED BY UPDATE RATE)
   recovery_cost_step: 130 #if stuck in begining increases allowed cost 

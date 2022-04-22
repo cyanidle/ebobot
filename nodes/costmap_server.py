@@ -254,7 +254,7 @@ class Objects:
             self.inflation = []
             self.inflation.append(100)
             for y,x in self.delta_coords[1:]:
-                infl = Objects.base_inflation_coeff/(np.linalg.norm((y,x)))
+                infl = int(round(Objects.base_inflation_coeff/(np.linalg.norm((y,x)))))
                 if infl > 100:
                     infl = 100
                 self.inflation.append(infl)

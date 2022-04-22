@@ -113,6 +113,7 @@ class Global(): ##Полная жопа
     update_stop_thresh = rospy.get_param('~update_stop_thresh', 4) #in steps
     update_stop_thresh *= step
     update_rate = rospy.get_param('~update_rate',1) #per second
+    sleep_on_fail_time = rospy.get_param('~sleep_on_fail_time',0.3)
     #
     accelerate_coeff = rospy.get_param('~accelerate_coeff',0.00022) #DO NOT TOUCH, shit goes haywire
     if experimental_cleanup_enable:
@@ -303,6 +304,7 @@ class Global(): ##Полная жопа
                     Global.error = 1
                     Global.num_jumps = 0
                     Global._fail_count += Global.fail_count_threshhold/Global.num_of_tries_for_last
+                    rospy.sleep(Global.sleep_on_fail_time)
                     Global.checkFail()
                     return
                 ##################################################
