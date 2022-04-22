@@ -124,6 +124,7 @@ interrupts:
     - interrupt_condition: izmerenie6/call/1/red
     - call: NeNadoPlitka
   end_inter:
-    - interrupt_condition: timers/main/99
+    - interrupt_condition: timers/main/96
+    - change_cost: 0
     - call: PumpOff
     - route_stop: epic
