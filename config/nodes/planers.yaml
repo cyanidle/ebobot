@@ -1,6 +1,6 @@
 
-global_planer/maximum_cost: 6 #Most important
-local_planer/cost_threshhold: 22 #100 are walls, then there is inflation (Represents median of cost of points)
+global_planer/maximum_cost: 1 #Most important
+local_planer/cost_threshhold: 18 #100 are walls, then there is inflation (Represents median of cost of points)
 
 
 ##################
@@ -21,13 +21,9 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   resend: 1
   stuck_check_feature: 1
   experimental_cleanup_enable: 1
- 
-  twist_amplify_coeff: 0.2
+  twist_amplify_coeff: 0.4
   consecutive_jumps_threshhold: 0 #Leave a target each 'n' straight hops
-  
-  
   step_radians_resolution: 12
-  
   #!!! DANGEROUS
   accelerate_coeff: 0.00015 #works only when experimental cleanup is switched off, which is not adviced
   #!!!
@@ -53,7 +49,6 @@ global_planer: #almost everything is in cells, which depends on costmap resoluti
   cleanup_repeats_threshhold: 0.85   # If planer hasnt moved in (cl_repeats_len) jumps from each
   stuck_dist_threshhold: 0.3 #dist which should be reached in (stuck_check_jumps)
   dead_end_dist_diff_threshhold: 0.95 #if doesnt grow quick enough (this_thresh*step), the point is removed (considered a sharp turn)
- 
   # Step is added:
   dist_to_target_threshhold: 1  # in cells, when to draw straight line = step + n
 ##################################

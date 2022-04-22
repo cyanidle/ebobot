@@ -362,7 +362,7 @@ class Global(): ##Полная жопа
             Global.start_pos = Global.robot_pos - Global.robot_twist
             Global.target_set = 1
             ####
-            Global.error = 1 
+            #Global.error = 1 
             Global.checkFail()
             if not Global._fail_count%200:
                 rospy.logwarn("GLOBAL: failing cost checks (stuck at beginning)!")
