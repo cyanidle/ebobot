@@ -15,6 +15,5 @@ tasks: #move: x/y/th
   top_left:
     - move: 1.02/2.68/-1.57
   start:
-    - move: 1.2/2.89/-1.57
+    - move: 1.2/2.85/-1.57
     - score: 1000
-    #- change_cost: 7

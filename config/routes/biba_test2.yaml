@@ -5,13 +5,12 @@ tasks: #move: x/y/th
     - sleep: 0.5
     - call: PumpOff
     - call: ArmUp
-    - sleep: 1
+    - sleep: 0.5
     - call: ArmDown
-    - sleep: 1
+    - sleep: 0.5
     - call: ValveOn
     - sleep: 0.5
     - call: ValveOff
-    - change_cost: 90
   top_right: 
     - move: 1.43/0.26/0.53
   kek:  

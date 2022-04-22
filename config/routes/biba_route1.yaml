@@ -2,17 +2,11 @@
 tasks:
   obezd_govna:
     - call: AdjustOff
-    - change_cost: 70
     - score: 4                  # ставим статуэтку и витрину
-    #- move: 1.7/0.61/0
-    #- sleep: 0.5
     - move: 1.7/2.43/-1.047  # фишки больше не мешают 
     - call: AdjustOn
-    #- change_cost: 10
-
   get_flipped: 
     - move: 1.68/2.04/-1.047
-    #- change_cost: 70
     - move: 1.68/1.7/-1.047
     - call: ArmHalfDown
     - sleep: 0.4
@@ -23,7 +17,6 @@ tasks:
     - sleep: 0.1
     - move: 1.68/1.7/-1.047
     - score: 1
-    - change_cost: 10
     - move: 1.68/2.01/-1.047
     - move: 1.8/2.01/-1.047
     - call: ValveOn
@@ -34,8 +27,6 @@ tasks:
     - move: 1.68/2.01/-1.047
     - call: ArmDown
     - sleep: 0.3
-   
-
   get_flipped2:
     - move: 1.78/1.7/-1.047  
     - move: 1.68/1.7/-1.047             #ebashim do 2 fihki
@@ -57,7 +48,6 @@ tasks:
     - call: ValveOff
     - move: 1.68/2.25/-1.047
     - call: ArmDown
-
   get_flipped3:
     - move: 1.68/1.7/-1.047
     - call: ArmHalfDown
@@ -71,7 +61,6 @@ tasks:
     - score: 1
     - move: 1.68/2.43/-1.047
     - move: 1.8/2.43/-1.047
-    #- call: ArmHalfUp
     - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
@@ -79,7 +68,6 @@ tasks:
     - score: 3
     - move: 1.68/2.43/-1.047
     - call: ArmDown
-
   bokovaia1:
     - move: 0.77/2.6/0.586
     - move: 0.77/2.6/0.586
@@ -103,15 +91,18 @@ tasks:
     - call: ValveOn
     - score: 5
     - call: ValveOff
-
   parkovka:
     - change_cost: 70
     - move: 0.74/2.26/1.375
     - score: 20 
     - route_stop: epics
-interrupts:              
-  end_inter:
+interrupts:    
+  park_inter:
     - interrupt_condition: timers/main/96
+    - change_cost: 70
+    - move: 0.74/2.26/1.375         
+  end_inter:
+    - interrupt_condition: timers/main/99
     - change_cost: 0
     - call: PumpOff
     - route_stop: epics

@@ -123,8 +123,12 @@ interrupts:
     - interrupt_condition: izmerenie5/call/1/red
     - interrupt_condition: izmerenie6/call/1/red
     - call: NeNadoPlitka
-  end_inter:
+  park_inter:
     - interrupt_condition: timers/main/96
+    - change_cost: 70
+    - move: 0.45/1.07/2.09
+  end_inter:
+    - interrupt_condition: timers/main/99
     - change_cost: 0
     - call: PumpOff
     - route_stop: epic
