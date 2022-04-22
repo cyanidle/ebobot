@@ -113,6 +113,12 @@ interrupts:
     - interrupt_condition: timers/main/96
     - change_cost: 70
     - move: 0.74/0.78/-3.43    
+    - condition:
+      - if: parkovka/move/0/done
+      - do: 
+        - log: E:Already in base!
+      - else:
+        - score: 20  
   end_inter:
     - interrupt_condition: timers/main/99
     - change_cost: 0

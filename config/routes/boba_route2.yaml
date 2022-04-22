@@ -4,7 +4,7 @@ tasks:
   za_statuetkoi:
     - change_cost: 70
     - call: NeNadoPlitka
-    - call: AdjustOf193
+    - call: AdjustOff
     - move : 1/0.44/1.8
     - call: AdjustOn
     - change_cost: 10
@@ -91,7 +91,7 @@ tasks:
    - call: Ohms
    - sleep: 1
 
-  Parkovka:
+  parkovka:
    - move: 0.45/1.07/2.09
    - call: PumpOff
    - route_stop: epic
@@ -127,6 +127,12 @@ interrupts:
     - interrupt_condition: timers/main/96
     - change_cost: 70
     - move: 0.45/1.07/2.09
+    - condition:
+      - if: parkovka/move/0/done
+      - do: 
+        - log: E:Already in base!
+      - else:
+        - score: 20  
   end_inter:
     - interrupt_condition: timers/main/99
     - change_cost: 0
