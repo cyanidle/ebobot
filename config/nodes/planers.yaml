@@ -82,7 +82,7 @@ local_planer:
   min_turn_coeff: 0.4 #final!
   #speed coeffs
   full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
-  static_coeff:  0.9
+  static_coeff:  0.6
   min_coeff: 0.24 #Final!!
   min_path_coeff: 0.4
   path_speed_coeff: 0.9 #More = faster. В тугриках. Robot slows down at start and finish of the route
