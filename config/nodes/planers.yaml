@@ -1,11 +1,11 @@
 
 global_planer/maximum_cost: 8 #Most important
-local_planer/cost_threshhold: 15 #100 are walls, then there is inflation (Represents median of cost of points)
+local_planer/cost_threshhold: 26 #100 are walls, then there is inflation (Represents median of cost of points)
 local_planer/max_cost_increase: 2.5 # x times
 #speed coeffs
-local_planer/full_path_coeff_dist: 60 #dist from target in cells at which robot goes full spd (the lower the faster)
+local_planer/full_path_coeff_dist: 40 #dist from target in cells at which robot goes full spd (the lower the faster)
 local_planer/static_coeff:  0.6
-local_planer/min_coeff: 0.2 #Final!!
+local_planer/min_coeff: 0.3 #Final!!
 local_planer/min_path_coeff: 0.4
 local_planer/path_speed_coeff: 0.9 #More = faster. В тугриках. Robot slows down at start and finish of the route
 local_planer/cost_speed_coeff: 1.45 # More = slower
