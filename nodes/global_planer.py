@@ -96,12 +96,9 @@ def changeCostCB(req):
     Global.change_cost_publisher.publish(Float32(req.cost))
     Global.maximum_cost = req.cost
     Global._default_max_cost = req.cost
-    Global.abs_max_cost += (req.cost - Global._last_change)
     rospy.logwarn(f"GLOBAL PLANER: Cost changed to {req.cost}")
     return ChangeCostResponse(_was)
 class Global(): ##Полная жопа
-    
-    #__slots__ = ()##PLS TEST IF FAILS - DELETE THIS LINE
     step = rospy.get_param('~step',2) #in сells (with resolution 2x2 step of 1 = 2cm)
     #Params
     #Features
@@ -176,7 +173,6 @@ class Global(): ##Полная жопа
     ###
     rospy.loginfo("Topics init")
     #/Topics
-
     ################################################ global values
     _last_change = 0
     _return_local_cost_flag = 0
@@ -203,14 +199,11 @@ class Global(): ##Полная жопа
     lock_dirs = rospy.get_param( "~lock_dirs", 
     [0,  'left','left', 'right',  'right', 'top', 'bot']) #these directions decide in which order robot tries different lock directions
     lock_dir_num = 0
-    
-
     #Debug
     if debug:
         rospy.loginfo(f"costmap = {costmap}")
     #/Debug
     #################### Rotors list
-    
     rotors_list = []
     @staticmethod
     def initRotors():
@@ -223,9 +216,6 @@ class Global(): ##Полная жопа
             num = num//2 
             rotor = cos(dir * step * num) + 1j * sin(dir * step * num)
             Global.rotors_list.append(rotor)
-            #print(f"Appending rotor {rotor} with atan = {atan(rotor.imag/rotor.real)}")
-    
-    ####################
     @classmethod
     def appendToList(cls,pos,dist):
         cls.list.append((pos,dist))
@@ -246,8 +236,6 @@ class Global(): ##Полная жопа
         if cls.debug:
             rospy.loginfo(f"Yielding x {next_pos.real}, y {next_pos.imag}")
         yield (next_pos.real,next_pos.imag) #needs testing
-  
-    @staticmethod
     def checkIfStuck(num):
         if len(Global.list) < 3:
             return
@@ -268,9 +256,6 @@ class Global(): ##Полная жопа
         Global.consecutive_jumps = 0
         Global.target_set = 1
         Global.num_jumps = 0
-
-
-
     #################################################Main bullshit
     @staticmethod
     def appendNextPos(): #uses only x and y, the needed orientations should be set after the goal list is complete
@@ -288,30 +273,22 @@ class Global(): ##Полная жопа
         if Global.debug:
             rospy.loginfo(f"\nnext_pos = {next_pos}\ncurrent_pos = {current_pos}\ntarget_vect = {target_vect}\ndelta_vect = {delta_vect}")
             rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
-            #rospy.loginfo(f"next_pos = {next_pos[0]}")
         
         for num in range(len(Global.rotors_list)):
             
             for coords in Global.dirGenerator(delta_vect,num):
                 y,x = coords
                 next_pos_y,next_pos_x = round(float(next_pos[0])),round(float(next_pos[1])) #updated later
-
                 ##################################
                 if Global.lock_dir:
                     if Global.lock_dir == 'top':
                         y = abs(y)
-                        #y = abs(y)
                     elif Global.lock_dir == 'right':
-                        #x = -abs(x)
                         x = abs(x)
                     elif Global.lock_dir == 'left':
-                        #x = abs(x)
                         x = -abs(x)
                     elif Global.lock_dir == 'bot':
                         y = -abs(y)
-                        #y = abs(y)
-                ####################################
-                
                 ####################################################
                 if Global.debug:
                     #rospy.loginfo(f"next_pos_x = {next_pos_x},next_pos_y = {next_pos_y}")
@@ -401,7 +378,6 @@ class Global(): ##Полная жопа
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
-        #rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
         if cls._fail_count >= cls.fail_count_threshhold:
             rospy.logerr(f"Global planer cancels current goal!! Thresh {cls.fail_count_threshhold}| current {cls._fail_count}")
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
@@ -433,7 +409,6 @@ class Global(): ##Полная жопа
             curr_dist = dist-Global.list[num-2][1]
             if max_dist_num:
                 if num != max_dist_num:
-                    #dist = np.linalg.norm(pos[:2]-Global.list[max_dist_num][0][:2])
                     curr_dist = np.linalg.norm(pos[:2]-Global.list[num-2][0][:2]) 
                 else:
                     curr_dist = 100
@@ -442,13 +417,8 @@ class Global(): ##Полная жопа
             else:
                 if 3 < num < (len(Global.list)-_jumps):
                     list_to_remove.append(num-2)
-                    #if not max_dist_num and Global.list[num+2][1]-dist > Global.dead_end_dist_diff_threshhold:
-                    #    max_dist_num = num + 2  and 
-                    #    Global.list[num+2][1]-dist > Global.dead_end_dist_diff_threshhold
                     if np.linalg.norm(Global.list[num+2][0][:2] -  pos[:2])> Global.dead_end_dist_diff_threshhold:
                         max_dist_num = num+2
-                        #rospy.loginfo(f"max_dist_num{max_dist_num}")
-        #rospy.loginfo(f"Removing {len(list_to_remove)} points...")
         for done,num in enumerate(list_to_remove):
             if (num-done) in range(len(Global.list)):
                 popped = Global.list.pop(num-done)
@@ -463,11 +433,9 @@ class Global(): ##Полная жопа
         check_for = Global.cleanup_repeats_len
         for num in range(len(Global.list)):
             if num > check_for and (max_num-num) > check_for:
-                #rospy.loginfo(f"{num =}")
                 if not num-check_for in range(len(Global.list)):
                     continue
                 if np.linalg.norm(Global.list[num][0][:2] - Global.list[num - check_for][0][:2]) < Global.cleanup_repeats_threshhold:
-                    #rospy.loginfo(f"added for remove, len is {max_num}")
                     for i in range(num - check_for,num):
                         if not i in list_to_remove:
                             list_to_remove.append(i)
@@ -477,7 +445,6 @@ class Global(): ##Полная жопа
                 popped = Global.list.pop(num-done)
                 if Global.debug:
                     rospy.loginfo(f"Removing repeats {popped}")
-        #rospy.loginfo(f"Removed repeats {len(list_to_remove)}")
     ###########################################3
     @staticmethod
     def sendTransfrom(y , x, th):      
@@ -505,7 +472,6 @@ class Global(): ##Полная жопа
                     pose = PoseStamped()
                     pose.pose.position.y = goal[0]
                     pose.pose.position.x = goal[1]
-                    #Global.sendTransfrom(goal[0],goal[1],0)
                     if Global.debug:
                         rospy.loginfo(f"New point {goal}") 
                     msg.poses.append(pose)
@@ -513,7 +479,6 @@ class Global(): ##Полная жопа
                         r = PoseStamped()
                         r.pose.position.y = goal[0] / rviz_coeff
                         r.pose.position.x = goal[1] / rviz_coeff
-                        #Global.sendTransfrom(goal[0]/ rviz_coeff,goal[1]/ rviz_coeff,0)
                         rviz.poses.append(r)
             target_pos = PoseStamped()
             if Global.debug:
@@ -541,7 +506,6 @@ class Global(): ##Полная жопа
             target_pos.pose.orientation.w = quaternion[3]
             target_pos.pose.position.y = target[0]
             target_pos.pose.position.x = target[1]
-            #Global.sendTransfrom(target[0],target[1],target[2])
             if Global.debug:
                 rospy.loginfo(f"Last point {target}") 
             msg.poses.append(target_pos)
@@ -549,10 +513,6 @@ class Global(): ##Полная жопа
                 Global.path_publisher.publish(Path())
             else:
                 Global.path_publisher.publish(msg)    
-            #rospy.loginfo(f"Published new route with {len(Global.list)+1} points") 
-
-
-
 def shutdownHook():
     Global.list = [(Global.robot_pos,0)]
     Global.publish()
@@ -560,15 +520,12 @@ def main():
     Global.initRotors()
     rospy.on_shutdown(shutdownHook)
     while not rospy.is_shutdown():
-        ####
         if Global.resend:
             Global.goal_reached = 0
             Global.list.clear()
-            #Global.list.append(Global.target)
             Global.list.append((np.array(Global.robot_pos[:2]),0))
             Global.start_pos = Global.robot_pos+Global.robot_twist #Здесь нужно получить по ебалу от негров!s
             Global.consecutive_jumps = 0
-        ####
         if Global.target_set:
             start_time = rospy.Time.now() ### start time
             while not Global.goal_reached and not rospy.is_shutdown():
@@ -576,33 +533,23 @@ def main():
             if Global.maximum_cost > Global.abs_max_cost:
                 rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
                 Global._fail_count = Global.fail_count_threshhold
-            ######
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
                     Global.cleanupDeadEnds()
                     if Global.experimental_cleanup_enable:
                         Global.cleanupRepeats()
-            #######
             if len(Global.list) and not Global.error:
                 Global.publish()
-            #######
             Global.error = 0
-            
-            #
             end_time = rospy.Time.now() ### end time
-            #rospy.loginfo(f"Route made in {(end_time - start_time).to_sec()} seconds")
             if Global.resend:
                 if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
                     Global.target_set = 0
-                    Global._fail_count = 0
-                    
+                    Global._fail_count = 0         
             else:
                 Global._fail_count = 0
-                #Global.goal_reached = 1
 
         rate.sleep()
-
-
 ###########################################################
 from ebobot.srv import SetMoveTarget, SetMoveTargetResponse 
 def SetMoveCB(goal):
