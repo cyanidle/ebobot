@@ -1,5 +1,10 @@
+
+global_planer/maximum_cost: 6 #Most important
+local_planer/cost_threshhold: 22 #100 are walls, then there is inflation (Represents median of cost of points)
+
+
+##################
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  maximum_cost: 6 #Most important
   absolute_max_cost: 65
   maximum_jumps: 1300
   fail_count_threshhold: 600 # Should be a big number (max fails mid-way) | These two share same fail counter
@@ -56,7 +61,7 @@ local_planer:
   #Topics:
   disable_adjust_sec_topic: disable_adjust_sec
   ###############
-  cost_threshhold: 22#32 #100 are walls, then there is inflation (Represents median of cost of points)
+  
   skip_thresh: 2 #max points to skip if fails by cost
   threshhold: 1.8 #in cells, how close to target should robot ride
   twist_amplify_coeff: 1.4 #depends on resolution, allows to skip points behind

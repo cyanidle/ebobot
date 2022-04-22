@@ -74,9 +74,6 @@ class Costmap():
     gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)       
     pixels = np.around(np.divide(gray_image, 255.0/100), decimals=1)#np.rot90(np.around(np.divide(gray_image, 255.0/100), decimals=1))
     del gray_image
-    # cv2.imwrite("map_read.png", pixels)
-    # print(f"pixels = {pixels[0][0], pixels[0][1],pixels[1][0],pixels[1][1]}")
-    # rospy.sleep(1)
     #Global
     inflation_radius_in_cells = inflation_radius/resolution
     #height = 151

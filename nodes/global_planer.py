@@ -273,9 +273,7 @@ class Global(): ##Полная жопа
         if Global.debug:
             rospy.loginfo(f"\nnext_pos = {next_pos}\ncurrent_pos = {current_pos}\ntarget_vect = {target_vect}\ndelta_vect = {delta_vect}")
             rospy.loginfo(f"Append called, num of jumps = {Global.num_jumps}")
-        
         for num in range(len(Global.rotors_list)):
-            
             for coords in Global.dirGenerator(delta_vect,num):
                 y,x = coords
                 next_pos_y,next_pos_x = round(float(next_pos[0])),round(float(next_pos[1])) #updated later
@@ -300,10 +298,7 @@ class Global(): ##Полная жопа
                 ######################################################
                 if Global.num_jumps > Global.maximum_jumps:                       #check for jumps overflow
                     rospy.logerr(f"Jumps > maximum({Global.maximum_jumps}), fail score {Global._fail_count}")
-                    Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                    Global.maximum_cost += Global.recovery_cost_step
-                    Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-                    #Global.reset()
+                    Global.costRecover()
                     Global.goal_reached = 1
                     Global.error = 1
                     Global.num_jumps = 0
@@ -359,9 +354,7 @@ class Global(): ##Полная жопа
                         rospy.logwarn(f"Position failed (cost)!")
         if len(Global.list) == 0:
             rospy.logerr(f"All start points failed! Goal ignored| Current cost step {Global.recovery_cost_step}")
-            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-            Global.maximum_cost += Global.recovery_cost_step
-            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+            Global.costRecover()
             Global.list.clear()
             Global.list.append((np.array(Global.robot_pos[:2]),0)) #Здесь нужно получить по ебалу от негров!
             Global.start_pos = Global.robot_pos - Global.robot_twist
@@ -375,6 +368,11 @@ class Global(): ##Полная жопа
             Global.checkFail()
             if not Global._fail_count%200:
                 rospy.logwarn("GLOBAL: failing cost checks!")
+    @classmethod
+    def costRecover():
+        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+        Global.maximum_cost += Global.recovery_cost_step
+        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
@@ -422,9 +420,6 @@ class Global(): ##Полная жопа
         for done,num in enumerate(list_to_remove):
             if (num-done) in range(len(Global.list)):
                 popped = Global.list.pop(num-done)
-            #if Global.debug:
-        
-        # list_to_remove = []
     @staticmethod
     def cleanupRepeats():
         list_to_remove = []
@@ -516,6 +511,10 @@ class Global(): ##Полная жопа
 def shutdownHook():
     Global.list = [(Global.robot_pos,0)]
     Global.publish()
+
+
+
+
 def main():
     Global.initRotors()
     rospy.on_shutdown(shutdownHook)
@@ -527,7 +526,6 @@ def main():
             Global.start_pos = Global.robot_pos+Global.robot_twist #Здесь нужно получить по ебалу от негров!s
             Global.consecutive_jumps = 0
         if Global.target_set:
-            start_time = rospy.Time.now() ### start time
             while not Global.goal_reached and not rospy.is_shutdown():
                 Global.appendNextPos()
             if Global.maximum_cost > Global.abs_max_cost:
@@ -541,15 +539,15 @@ def main():
             if len(Global.list) and not Global.error:
                 Global.publish()
             Global.error = 0
-            end_time = rospy.Time.now() ### end time
             if Global.resend:
                 if np.linalg.norm(Global.robot_pos[:2] - Global.target[:2]) < Global.update_stop_thresh:
                     Global.target_set = 0
                     Global._fail_count = 0         
-            else:
-                Global._fail_count = 0
-
         rate.sleep()
+
+
+
+
 ###########################################################
 from ebobot.srv import SetMoveTarget, SetMoveTargetResponse 
 def SetMoveCB(goal):
