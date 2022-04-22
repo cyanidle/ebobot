@@ -402,7 +402,7 @@ class Global(): ##Полная жопа
         cls._fail_count += 1
         #rospy.logerr(f"Global planer failed! Current fail count = {cls._fail_count}")
         if cls._fail_count >= cls.fail_count_threshhold:
-            rospy.logerr(f"Global planer cancels current goal!! Thresh {cls.fail_count_threshhold}")
+            rospy.logerr(f"Global planer cancels current goal!! Thresh {cls.fail_count_threshhold}| current {cls._fail_count}")
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
             cls.maximum_cost = cls._default_max_cost
             Global.change_cost_publisher.publish(Float32(Global.maximum_cost))      
