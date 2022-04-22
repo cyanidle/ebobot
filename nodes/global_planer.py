@@ -371,10 +371,10 @@ class Global(): ##Полная жопа
             if not Global._fail_count%200:
                 rospy.logwarn("GLOBAL: failing cost checks!")
     @classmethod
-    def costRecover():
-        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-        Global.maximum_cost += Global.recovery_cost_step
-        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+    def costRecover(cls):
+        cls.change_cost_publisher.publish(Float32(cls.maximum_cost))
+        cls.maximum_cost += cls.recovery_cost_step
+        cls.change_cost_publisher.publish(Float32(cls.maximum_cost))
     @classmethod
     def checkFail(cls):
         cls._fail_count += 1
