@@ -2,12 +2,10 @@
 tasks:
 
   za_statuetkoi:
-    - change_cost: 70
     - call: NeNadoPlitka
     - call: AdjustOff
     - move : 1/0.44/1.8
     - call: AdjustOn
-    - change_cost: 10
     - move : 0.49/0.42/1.812
     - sleep: 0.5
     - move : 0.49/0.42/1.812
@@ -28,7 +26,6 @@ tasks:
 
   sgruz:
     - move: 1.6/0.2/-2.10  
-    - change_cost: 90
     - move: 1.82/0.2/-2.10   
     - call : MicroArmHalf
     - sleep: 0.5
@@ -38,7 +35,6 @@ tasks:
     - sleep: 0.1
     - call: ValveOff
     - move: 1.7/0.23/-2.10
-    - change_cost: 7
     - move: 1.6/0.23/-2.10
     - call: MicroArmDown
     
