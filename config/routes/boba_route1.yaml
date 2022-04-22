@@ -43,12 +43,12 @@ tasks:
     - move: 0.4/2.39/2.09
     - call: PumpOff
 
-  izmerenie0:
-    - move: 0.3/2.405/2.09
-    - move: 0.193/2.405/2.09
-    - call: Izmerenie
-    - call: Ohms
-    - sleep: 0.8
+  # izmerenie0:
+  #   - move: 0.3/2.405/2.09
+  #   - move: 0.193/2.405/2.09
+  #   - call: Izmerenie
+  #   - call: Ohms
+  #   - sleep: 0.8
 
   izmerenie1:
     - move : 0.193/2.23/2.09
@@ -60,40 +60,41 @@ tasks:
     - call: NeNadoPlitka
     
 
-  izmerenie2:
-   - move: 0.193/2.012/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 0.8
+  # izmerenie2:
+  #  - move: 0.193/2.012/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 0.8
 
-  izmerenie3:
-   - move: 0.193/1.815/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 0.8
+  # izmerenie3:
+  #  - move: 0.193/1.815/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 0.8
 
-  izmerenie4:
-   - move: 0.193/1.62/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 0.8
+  # izmerenie4:
+  #  - move: 0.193/1.62/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 0.8
 
-  izmerenie5:
-   - move: 0.193/1.42/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 0.8
+  # izmerenie5:
+  #  - move: 0.193/1.42/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 0.8
 
-  izmerenie6:
-   - move: 0.193/1.22/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 0.8
+  # izmerenie6:
+  #  - move: 0.193/1.22/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 0.8
 
   parkovka:
    - move: 0.45/1.82/2.09
    - call: PumpOff
    - route_stop: epic
+   
 interrupts:
   flip!:
     - interrupt_condition: izmerenie0/call/1/purple

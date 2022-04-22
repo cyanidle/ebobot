@@ -43,53 +43,54 @@ tasks:
     - call: MicroArmDown
     
 
-  izmerenie0:
-    - move: 0.4/0.68/2.09
-    - call: PumpOff
-    - move: 0.193/0.68/2.09
-    - call: Izmerenie
-    - call: Ohms
-    - sleep: 0.2
+  # izmerenie0:
+  #   - move: 0.4/0.68/2.09
+  #   - call: PumpOff
+  #   - move: 0.193/0.68/2.09
+  #   - call: Izmerenie
+  #   - call: Ohms
+  #   - sleep: 0.2
 
   izmerenie1:
     - move : 0.193/0.84/2.09
-    - call: Izmerenie
-    - call: Ohms
+    # - call: Izmerenie
+    # - call: Ohms
     - sleep: 0.2
     - call: NadoPlitka
-    - sleep: 0.1
+    - sleep: 0.4
     - call: NeNadoPlitka
+    - sleep: 0.5
     
 
-  izmerenie2:
-   - move: 0.193/1.04/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 1
+  # izmerenie2:
+  #  - move: 0.193/1.04/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 1
 
-  izmerenie3:
-   - move: 0.193/1.22/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 1
+  # izmerenie3:
+  #  - move: 0.193/1.22/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 1
 
-  izmerenie4:
-   - move: 0.193/1.42/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 1
+  # izmerenie4:
+  #  - move: 0.193/1.42/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 1
 
-  izmerenie5:
-   - move: 0.193/1.62/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 1
+  # izmerenie5:
+  #  - move: 0.193/1.62/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 1
 
-  izmerenie6:
-   - move: 0.193/1.815/2.09
-   - call: Izmerenie
-   - call: Ohms
-   - sleep: 1
+  # izmerenie6:
+  #  - move: 0.193/1.815/2.09
+  #  - call: Izmerenie
+  #  - call: Ohms
+  #  - sleep: 1
 
   parkovka:
    - move: 0.45/1.07/2.09

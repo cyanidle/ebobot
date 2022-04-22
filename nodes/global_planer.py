@@ -376,13 +376,16 @@ class Global(): ##Полная жопа
         cls.maximum_cost += cls.recovery_cost_step
         cls.change_cost_publisher.publish(Float32(cls.maximum_cost))
     @classmethod
+    def costDefault(cls):
+        Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
+        cls.maximum_cost = cls._default_max_cost
+        Global.change_cost_publisher.publish(Float32(Global.maximum_cost)) 
+    @classmethod
     def checkFail(cls):
         cls._fail_count += 1
         if cls._fail_count >= cls.fail_count_threshhold:
             rospy.logerr(f"Global planer cancels current goal!! Thresh {cls.fail_count_threshhold}| current {cls._fail_count}")
-            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))
-            cls.maximum_cost = cls._default_max_cost
-            Global.change_cost_publisher.publish(Float32(Global.maximum_cost))      
+            cls.costDefault()
             if cls.resend:
                 cls.target_set = 0
                 cls.goal_reached = 1
@@ -533,6 +536,7 @@ def main():
             if Global.maximum_cost > Global.abs_max_cost:
                 rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
                 Global._fail_count = Global.fail_count_threshhold
+                Global.costDefault()
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
                     Global.cleanupDeadEnds()
