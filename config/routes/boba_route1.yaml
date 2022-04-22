@@ -42,7 +42,7 @@ tasks:
     - call: MicroArmDown
 
   damn:
-    - move: 0.4/2.39/2.09
+    - move: 0.4/2.39/0
     - call: PumpOff
 
   # izmerenie0:
