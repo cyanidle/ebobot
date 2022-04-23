@@ -29,6 +29,7 @@ def shutdownHook():
     twist.linear.y = 0
     twist.angular.z = 0 #make slower at last point
     Local.cmd_vel_publisher.publish(twist)
+    rospy.sleep(Local.timeout_on_fail)
 def robotPosCallback(robot):
     quat = [robot.pose.pose.orientation.x,robot.pose.pose.orientation.y,
     robot.pose.pose.orientation.z,robot.pose.pose.orientation.w]
@@ -136,7 +137,7 @@ class Local():
     circles_step_radians_resolution = rospy.get_param('~circles_step_radians_resolution', 6) #number of points on each circle
     
    
-    
+    timeout_on_fail = rospy.get_param('~timeout_on_fail', 1)
     twist_amplify_coeff = rospy.get_param('~twist_amplify_coeff', 1)
     inertia_compensation_coeff = rospy.get_param('~inertia_compensation_coeff', 0.8)
     #/Params
