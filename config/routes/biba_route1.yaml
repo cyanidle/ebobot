@@ -8,7 +8,7 @@ tasks:
     - change_cost: 8
     - call: AdjustOn
   get_flipped: 
-    - move: 1.68/2.04/-1.047
+    #- move: 1.68/2.04/-1.047
     - move: 1.68/1.7/-1.047
     - call: ArmHalfDown
     - sleep: 0.4
@@ -79,14 +79,14 @@ tasks:
     - move: 0.77/2.77/0.586
     - call: ArmHalfUp
     - sleep: 0.3
-    - call: ArmUp
-    - sleep: 0.3
     - score: 1
     - move: 0.77/2.6/0.586
     - move: 0.7/2.51/1.365
-    - call: ArmMegaUp
     - sleep: 0.3
     - move: 0.5/2.51/1.365
+    - call: ArmUp
+    - sleep: 0.6
+    - call: ArmMegaUp
     - sleep: 0.2
     - move: 0.315/2.725/1.365
     - move: 0.315/2.725/1.365
