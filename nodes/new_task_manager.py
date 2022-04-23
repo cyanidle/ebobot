@@ -375,7 +375,13 @@ class Sleep(Template):
         super().__init__(parent, name, args)
         self.time = float(args)
     async def midExec(self) -> None:
-        await asyncio.sleep(self.time)
+        _passed = 0
+        while _passed < self.time:
+            _passed += 1/Status.update_rate
+            await asyncio.sleep(1/Status.update_rate)
+            if await Task.checkForInterrupt():
+                self.status.set("fail")
+                return
         self.status.set("done")
 ########################################################
 class Group(Template):
