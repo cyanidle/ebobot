@@ -95,6 +95,7 @@ tasks:
   parkovka:
    - move: 0.45/1.07/2.09
    - call: PumpOff
+   - score: 20
    - route_stop: epic
 interrupts:
   flip!:
