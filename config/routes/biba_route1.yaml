@@ -23,9 +23,11 @@ tasks:
     - score: 1
     - move: 1.68/2.01/-1.047
     - move: 1.8/2.01/-1.047
-    - call: ValveOn
     - sleep: 0.3
     - call: PumpOff
+    - sleep: 0.1
+    - call: ValveOn
+    - sleep: 0.3
     - score: 3
     - call: ValveOff
     - move: 1.64/2.01/-1.047
@@ -45,9 +47,10 @@ tasks:
     - score: 1
     - move: 1.68/2.25/-1.047
     - move: 1.8/2.25/-1.047
-    - call: ValveOn
-    - sleep: 0.3
+    - sleep: 0.2
     - call: PumpOff
+    - sleep: 0.3
+    - call: ValveOn
     - score: 3
     - call: ValveOff
     - move: 1.64/2.25/-1.047
@@ -65,9 +68,9 @@ tasks:
     - score: 1
     - move: 1.68/2.43/-1.047
     - move: 1.8/2.43/-1.047
-    - call: ValveOn
-    - sleep: 0.3
     - call: PumpOff
+    - sleep: 0.3
+    - call: ValveOn
     - call: ValveOff
     - score: 3
     - move: 1.64/2.43/-1.047

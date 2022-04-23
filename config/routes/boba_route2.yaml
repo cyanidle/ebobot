@@ -29,9 +29,9 @@ tasks:
   sgruz:
     - move: 1.35/0.2/-2.10
     - move: 1.6/0.2/-2.10  
-    - move: 1.77/0.2/-2.10   
+    - move: 1.75/0.2/-2.10   
     - call : MicroArmHalf
-    - sleep: 0.5
+    - sleep: 0.2
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
@@ -98,7 +98,7 @@ tasks:
   #  - sleep: 1
 
   parkovka:
-   - move: 0.45/1.07/2.09
+   - move: 0.45/1.15/2.09
    - call: PumpOff
    - score: 20
    - route_stop: epic
@@ -133,7 +133,7 @@ interrupts:
   park_inter:
     - interrupt_condition: timers/main/96
     - change_cost: 70
-    - move: 0.45/1.07/2.09
+    - move: 0.45/1.15/2.09
     - score: 20  
   end_inter:
     - interrupt_condition: timers/main/99
