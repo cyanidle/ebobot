@@ -12,7 +12,7 @@ local_planer/cost_speed_coeff: 1.25 # More = slower
 local_planer/max_cost_speed_coeff: 3.5 #more = more slowing 
 ##################
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  absolute_max_cost: 65
+  absolute_max_cost: 85
   maximum_jumps: 1300
   fail_count_threshhold: 600 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
