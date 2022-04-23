@@ -73,16 +73,18 @@ tasks:
   bokovaia1:
     - move: 0.77/2.6/0.586
     - move: 0.77/2.6/0.586
-    - call: ArmHalfDown
+    - call: ArmBokovaya
     - sleep: 0.4
     - call: PumpOn
     - move: 0.77/2.77/0.586
+    - call: ArmHalfUp
     - sleep: 0.3
-    - call: ArmMegaUp
+    - call: ArmUp
     - sleep: 0.3
     - score: 1
     - move: 0.77/2.6/0.586
     - move: 0.7/2.51/1.365
+    - call: ArmMegaUp
     - sleep: 0.3
     - move: 0.5/2.51/1.365
     - sleep: 0.2

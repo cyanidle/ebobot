@@ -29,6 +29,10 @@
     - "servos_service":
       - "num": 0
       - "state": 35
+  - "ArmBokovaya":
+    - "servos_service":
+      - "num": 0
+      - "state": 33
    ##
   - "MicroArmUp":
     - "servos_service":
