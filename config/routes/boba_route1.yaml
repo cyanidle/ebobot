@@ -28,7 +28,7 @@ tasks:
 
   sgruz:
     - move: 1.6/2.84/-2.10  
-    - move: 1.805/2.84/-2.10   
+    - move: 1.79/2.84/-2.10   
     - call : MicroArmHalf
     - sleep: 0.5
     - call: PumpOff
@@ -42,7 +42,10 @@ tasks:
     - call: MicroArmDown
 
   damn:
+    - sleep: 0.5
     - move: 0.4/2.39/0
+    - sleep: 0.5
+    - move: 0.4/2.39/2.09
     - call: PumpOff
 
   # izmerenie0:
