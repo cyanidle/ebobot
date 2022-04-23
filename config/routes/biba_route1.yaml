@@ -1,7 +1,7 @@
 ############################################ МАРШРУТ 1
 tasks:
   boba_prediction:
-    - score: 30
+    - score: 35
   obezd_govna:
     - call: AdjustOn
     - score: 4                  # ставим статуэтку и витрину
