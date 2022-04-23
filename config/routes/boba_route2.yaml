@@ -46,8 +46,14 @@ tasks:
     - sleep: 0.5
     - move: 0.4/0.84/0
     - sleep: 0.5
-    - move: 0.4/0.84/2.09
     - call: PumpOff
+  recover:
+    - call: AdjustOff
+    - move: 0.16/0.84/0
+    - call: AdjustOn
+    - move: 0.4/0.84/1.3
+    - sleep: 1
+    - move: 0.3/0.84/2.09
   # izmerenie0:
   #   - move: 0.4/0.68/2.09
   #   - call: PumpOff
