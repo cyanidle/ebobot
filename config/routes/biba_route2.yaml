@@ -1,6 +1,12 @@
 ############################################ МАРШРУТ 1
 tasks:
 
+
+
+  boba_prediction:
+    - score: 30
+
+
   obezd_govna:
     - call: AdjustOn
     - change_cost: 50
@@ -23,9 +29,11 @@ tasks:
     - score: 1
     - move: 1.68/1.03/-1.047
     - move: 1.8/1.03/-1.047
+    - call: PumpOff
+    - sleep: 0.2
     - call: ValveOn
     - sleep: 0.3
-    - call: PumpOff
+    
     - score: 3
     - call: ValveOff
     - move: 1.64/1.03/-1.047
@@ -47,9 +55,11 @@ tasks:
     - score: 1
     - move: 1.68/0.79/-1.047
     - move: 1.8/0.79/-1.047
+    - call: PumpOff
+    - sleep: 0.2
     - call: ValveOn
     - sleep: 0.3
-    - call: PumpOff
+    
     - score: 3
     - call: ValveOff
     - move: 1.64/0.79/-1.047
@@ -69,9 +79,10 @@ tasks:
     - move: 1.68/0.61/-1.047
     - move: 1.8/0.61/-1.047
     #- call: ArmHalfUp
-    - call: ValveOn
-    - sleep: 0.3
     - call: PumpOff
+    - sleep: 0.3
+    - call: ValveOn
+    - sleep: 0.2
     - call: ValveOff
     - score: 3
     - move: 1.64/0.61/-1.047
@@ -100,6 +111,7 @@ tasks:
     - call: PumpOff
     - sleep: 0.2
     - call: ValveOn
+    - sleep: 0.2
     - score: 5
     - call: ValveOff
 

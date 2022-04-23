@@ -1,5 +1,7 @@
 ############################################ МАРШРУТ 1
 tasks:
+  boba_prediction:
+    - score: 30
   obezd_govna:
     - call: AdjustOn
     - score: 4                  # ставим статуэтку и витрину
@@ -94,6 +96,7 @@ tasks:
     - sleep: 0.2
     - call: ValveOn
     - score: 5
+    - sleep: 0.2
     - call: ValveOff
   parkovka:
     - change_cost: 70
