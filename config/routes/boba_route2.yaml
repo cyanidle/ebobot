@@ -14,7 +14,7 @@ tasks:
     - call : MicroArmHalf
     - call: PumpOn
     - sleep: 0.2
-    - move: 0.37/0.34/1.8
+    - move: 0.365/0.345/1.8
     - call: MicroArmUp
 
   zamena:
