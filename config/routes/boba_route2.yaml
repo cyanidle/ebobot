@@ -27,8 +27,9 @@ tasks:
     - sleep: 0.2
 
   sgruz:
+    - move: 1.35/0.2/-2.10
     - move: 1.6/0.2/-2.10  
-    - move: 1.79/0.2/-2.10   
+    - move: 1.77/0.2/-2.10   
     - call : MicroArmHalf
     - sleep: 0.5
     - call: PumpOff
