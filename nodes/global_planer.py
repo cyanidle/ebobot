@@ -364,12 +364,12 @@ class Global(): ##Полная жопа
             ####
             #Global.error = 1 
             Global.checkFail()
-            if not Global._fail_count%200:
-                rospy.logwarn("GLOBAL: failing cost checks (stuck at beginning)!")
+            #if not Global._fail_count%200:
+            #   rospy.logwarn("GLOBAL: failing cost checks (stuck at beginning)!")
         else:
             Global.checkFail()
-            if not Global._fail_count%200:
-                rospy.logwarn("GLOBAL: failing cost checks!")
+            #if not Global._fail_count%200:
+            #   rospy.logwarn("GLOBAL: failing cost checks!")
     @classmethod
     def costRecover(cls):
         cls.change_cost_publisher.publish(Float32(cls.maximum_cost))
@@ -536,6 +536,7 @@ def main():
             if Global.maximum_cost > Global.abs_max_cost:
                 rospy.logerr("GLOBAL: Maximum cost is bigger than threshhold!")
                 Global._fail_count = Global.fail_count_threshhold
+                Global.checkFail()
                 Global.costDefault()
             if Global.cleanup_feature:
                 for _ in range(Global.cleanup_power):
@@ -573,8 +574,9 @@ def SetMoveCB(goal):
     new_target.pose.orientation.y = quat[1]
     new_target.pose.orientation.z = quat[2]
     new_target.pose.orientation.w = quat[3]
-    targetCallback(new_target)
+    #targetCallback(new_target)
     move_server.reset()
+    targetCallback(new_target)
     move_server.execute()
     resp = SetMoveTargetResponse()
     resp.preempted= bool(move_server._preempted)

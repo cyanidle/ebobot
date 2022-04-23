@@ -1,6 +1,6 @@
 
 global_planer/maximum_cost: 8 #Most important
-local_planer/cost_threshhold: 28 #100 are walls, then there is inflation (Represents median of cost of points)
+local_planer/cost_threshhold: 35 #100 are walls, then there is inflation (Represents median of cost of points)
 local_planer/max_cost_increase: 2.5 # x times
 #speed coeffs
 local_planer/full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd (the lower the faster)
@@ -12,7 +12,7 @@ local_planer/cost_speed_coeff: 1.25 # More = slower
 local_planer/max_cost_speed_coeff: 3.5 #more = more slowing 
 ##################
 global_planer: #almost everything is in cells, which depends on costmap resolution
-  absolute_max_cost: 65
+  absolute_max_cost: 75
   maximum_jumps: 1300
   fail_count_threshhold: 600 # Should be a big number (max fails mid-way) | These two share same fail counter
   num_of_tries_for_last: 4  # Times planer can fail by max jumps         | ^
