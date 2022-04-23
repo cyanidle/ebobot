@@ -41,6 +41,7 @@ tasks:
     - call: MicroArmDown
     
   damn:
+    - move: 0.8/0.54/0
     - sleep: 0.5
     - move: 0.4/0.84/0
     - sleep: 0.5
@@ -55,7 +56,7 @@ tasks:
   #   - sleep: 0.2
 
   izmerenie1:
-    - move : 0.193/0.84/2.09
+    - move : 0.18/0.84/2.09
     # - call: Izmerenie
     # - call: Ohms
     - sleep: 0.2

@@ -107,6 +107,7 @@ tasks:
     - change_cost: 70
     - move: 0.74/0.78/-3.43 
     - score: 20 
+    - call: PumpOff
     - route_stop: epics
 interrupts:              
   park_inter:
