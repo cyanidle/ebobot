@@ -574,9 +574,10 @@ def SetMoveCB(goal):
     new_target.pose.orientation.y = quat[1]
     new_target.pose.orientation.z = quat[2]
     new_target.pose.orientation.w = quat[3]
-    targetCallback(new_target)
+    #targetCallback(new_target)
     move_server.reset()
     move_server.execute()
+    targetCallback(new_target)
     resp = SetMoveTargetResponse()
     resp.preempted= bool(move_server._preempted)
     resp.status = move_server.feedback
