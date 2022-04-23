@@ -96,8 +96,9 @@ tasks:
     - sleep: 0.2
     - move: 0.315/2.725/1.365
     - move: 0.315/2.725/1.365
+    - call: ArmUp
     - call: PumpOff
-    - sleep: 0.2
+    - sleep: 0.1
     - call: ValveOn
     - score: 5
     - sleep: 0.2
