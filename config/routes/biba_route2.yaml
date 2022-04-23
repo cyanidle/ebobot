@@ -81,6 +81,7 @@ tasks:
     - move: 1.68/0.61/-1.047
     - move: 1.8/0.61/-1.047
     #- call: ArmHalfUp
+    - sleep: 0.4
     - call: PumpOff
     - sleep: 0.3
     - call: ValveOn
