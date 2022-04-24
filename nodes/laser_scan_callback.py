@@ -489,9 +489,10 @@ class Beacons(Laser):
                              _sum_x/_max+ (Laser.robot_twist[1]/(Laser.update_rate/cls.cycles_per_update)))
             if (not -cls.max_th_adj < cls.delta_th < cls.max_th_adj
              or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
+                rospy.logerr(f"Adjustment error! Pos: {cls.delta_pos}|{cls.delta_th}")
                 cls.delta_th = 0
                 cls.delta_pos = (0,0)
-                rospy.logerr("Adjustment error!")
+                
             if cls.debug:
                 rospy.logerr(f"d_pos{cls.delta_pos}|d_th{cls.delta_th} ")
             if cls.switching_adjust:
