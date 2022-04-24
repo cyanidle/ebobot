@@ -137,7 +137,7 @@ interrupts:
   #       - log: E:Already in base!
   #     - else:
   #       - score: 20  
-  # end_inter:
+  end_inter:
     - interrupt_condition: timers/main/99
     - change_cost: 0
     - call: PumpOff
