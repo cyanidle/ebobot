@@ -301,7 +301,7 @@ class Global(): ##Полная жопа
                     rospy.logerr(f"Jumps > maximum({Global.maximum_jumps}), fail score {Global._fail_count}")
                     Global.costRecover()
                     Global.goal_reached = 1
-                    Global.error = 0
+                    Global.error = 1
                     Global.num_jumps = 0
                     Global._fail_count += Global.fail_count_threshhold/Global.num_of_tries_for_last
                     rospy.sleep(Global.sleep_on_fail_time)
