@@ -7,7 +7,7 @@ local_planer/timeout_on_fail: 1 #secs
 local_planer/full_path_coeff_dist: 50 #dist from target in cells at which robot goes full spd (the lower the faster)
 local_planer/static_coeff:  1
 local_planer/min_coeff: 0.3 #Final!!
-local_planer/min_path_coeff: 0.45
+local_planer/min_path_coeff: 0.6
 local_planer/path_speed_coeff: 1.3 #More = faster. В тугриках. Robot slows down at start and finish of the route
 local_planer/cost_speed_coeff: 1.15 # More = slower
 local_planer/max_cost_speed_coeff: 3.5 #more = more slowing 
