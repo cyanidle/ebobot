@@ -4,7 +4,7 @@ local_planer/cost_threshhold: 37 #100 are walls, then there is inflation (Repres
 local_planer/max_cost_increase: 2.5 # x times
 local_planer/timeout_on_fail: 1 #secs
 #speed coeffs
-local_planer/full_path_coeff_dist: 80 #dist from target in cells at which robot goes full spd (the lower the faster)
+local_planer/full_path_coeff_dist: 50 #dist from target in cells at which robot goes full spd (the lower the faster)
 local_planer/static_coeff:  1
 local_planer/min_coeff: 0.3 #Final!!
 local_planer/min_path_coeff: 0.45
