@@ -71,7 +71,7 @@ tasks:
     - call: NadoPlitka
     - sleep: 0.4
     - call: NeNadoPlitka
-    - sleep: 0.5
+    - sleep: 0.1
     
 
   # izmerenie2:

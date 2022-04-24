@@ -120,7 +120,7 @@ tasks:
     - call: ValveOff
 
   parkovka:
-    - change_cost: 70
+    - change_cost: 30
     - move: 0.74/0.78/-3.43 
     - score: 20 
     - call: PumpOff
@@ -128,8 +128,9 @@ tasks:
 interrupts:              
   park_inter:
     - interrupt_condition: timers/main/96
-    - change_cost: 70
-    - move: 0.74/0.78/-3.43   
+    - change_cost: 30
+    - move: 0.74/0.78/-3.43
+    - call: PumpOff   
     - score: 20  
   #   - condition:
   #     - if: parkovka/move/0/done
