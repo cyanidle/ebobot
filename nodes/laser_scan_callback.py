@@ -340,11 +340,6 @@ class Beacons(Laser):
     def __init__(self,pos:tuple,num:int = 10,expected:int = 0):
         self.num = num
         self.pose = (pos[0], pos[1])
-        try:
-            self.ddist = np.linalg.norm(self - type(self).expected_list[self.num])
-        except:
-            self.ddist = 0
-            rospy.logerr(f"Couldnt find ddist for rel {self.num}")
         if expected:
             Beacons.expected_list.append(self)
         else:
@@ -403,42 +398,22 @@ class Beacons(Laser):
             min_dists = [100] * cls.num_beacons
             new_rels = sorted(cls.rel_list, key= lambda _rel: _rel.num)
             for rel in new_rels:
-                if not rel.num in nums:
+                if not rel.num in nums and len(nums) < 2:
                     nums.append(rel.num)    
                 if rel.num in nums:
                     try:
-                        _curr_rel_dist = rel.ddist
+                        _curr_rel_dist = np.linalg.norm(rel - cls.expected_list[rel.num])
                         if _curr_rel_dist < min_dists[rel.num]:
                             rel._pub = True
                             min_dists[rel.num] = _curr_rel_dist
-                            if not rel.num in _rel_list_meta: # deleted before if (len(rel_list) < 2 and) 
+                            if len(rel_list) < 2 and not rel.num in _rel_list_meta:
                                 rel_list.append(rel)
                                 _rel_list_meta.append(rel.num) #remaps number to the list
                             else: 
                                 rel_list[_rel_list_meta.index(rel.num)] = rel
                     except:
-                        rospy.logerr("Expected beacons not init!")    
-            if len(nums) < 2:
-                return
-            rospy.logwarn_once(f"rel_list = {rel_list}")
-            while len(rel_list) > 2:
-                try:
-                    max_ddist = 0
-                    _to_remove = None
-                    for _num,rel in enumerate(rel_list):
-                        if rel.ddist >= max_ddist:
-                            _to_remove = _num
-                            max_ddist = rel.ddist
-                    rospy.logwarn_once(f"To remove - {_to_remove}")
-                    if _to_remove is not None:
-                        rel_list.pop(_to_remove)
-                except:
-                    rospy.logerr(f"Beacons optimisation error")
-                # index_of_max = rel_list.index(max(rel_list, key= lambda _rel: _rel.ddist))
-                # rel_list.pop(index_of_max)
-                # except:
-                #     rospy.logwarn("Doronin nakosyachil")
-            if len(cls.expected_list)<len(nums):
+                        rospy.logerr("Expected beacons not init!")
+            if len(nums) <2:
                 return
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
@@ -489,10 +464,9 @@ class Beacons(Laser):
                              _sum_x/_max+ (Laser.robot_twist[1]/(Laser.update_rate/cls.cycles_per_update)))
             if (not -cls.max_th_adj < cls.delta_th < cls.max_th_adj
              or np.linalg.norm(cls.delta_pos) > cls.max_pos_adj):
-                rospy.logerr(f"Adjustment error! Pos: {cls.delta_pos}|{cls.delta_th}")
                 cls.delta_th = 0
                 cls.delta_pos = (0,0)
-                
+                rospy.logerr("Adjustment error!")
             if cls.debug:
                 rospy.logerr(f"d_pos{cls.delta_pos}|d_th{cls.delta_th} ")
             if cls.switching_adjust:
