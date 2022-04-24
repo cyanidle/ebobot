@@ -438,6 +438,8 @@ class Beacons(Laser):
                 # rel_list.pop(index_of_max)
                 # except:
                 #     rospy.logwarn("Doronin nakosyachil")
+            if len(cls.expected_list)<len(nums):
+                return
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
             rel_line = np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))
