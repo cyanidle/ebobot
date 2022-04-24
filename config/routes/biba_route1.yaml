@@ -47,9 +47,9 @@ tasks:
     - score: 1
     - move: 1.68/2.25/-1.047
     - move: 1.8/2.25/-1.047
-    - sleep: 0.4
-    - call: PumpOff
     - sleep: 0.3
+    - call: PumpOff
+    - sleep: 0.1
     - call: ValveOn
     - score: 3
     - call: ValveOff
@@ -68,7 +68,7 @@ tasks:
     - score: 1
     - move: 1.68/2.43/-1.047
     - move: 1.8/2.43/-1.047
-    - sleep: 0.4
+    - sleep: 0.3
     - call: PumpOff
     - sleep: 0.3
     - call: ValveOn
@@ -84,7 +84,7 @@ tasks:
     - call: PumpOn
     - move: 0.77/2.77/0.586
     - call: ArmHalfUp
-    - sleep: 0.3
+    - sleep: 0.1
     - score: 1
     - move: 0.77/2.6/0.586
     - move: 0.7/2.51/1.365
