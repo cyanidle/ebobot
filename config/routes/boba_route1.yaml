@@ -14,7 +14,9 @@ tasks:
     - call : MicroArmHalf
     - call: PumpOn
     - sleep: 0.2
+    - change_cost: 5
     - move: 0.365/2.695/0.2
+    - change_cost: 8
     - call: MicroArmUp
 
   zamena:
