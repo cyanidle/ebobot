@@ -422,15 +422,18 @@ class Beacons(Laser):
                 return
             rospy.logwarn_once(f"rel_list = {rel_list}")
             while len(rel_list) > 2:
-                max_ddist = 0
-                _to_remove = None
-                for _num,rel in enumerate(rel_list):
-                    if rel.ddist >= max_ddist:
-                        _to_remove = _num
-                        max_ddist = rel.ddist
-                rospy.logwarn_once(f"To remove - {_to_remove}")
-                if _to_remove is not None:
-                    rel_list.pop(_to_remove)
+                try:
+                    max_ddist = 0
+                    _to_remove = None
+                    for _num,rel in enumerate(rel_list):
+                        if rel.ddist >= max_ddist:
+                            _to_remove = _num
+                            max_ddist = rel.ddist
+                    rospy.logwarn_once(f"To remove - {_to_remove}")
+                    if _to_remove is not None:
+                        rel_list.pop(_to_remove)
+                except:
+                    rospy.logerr(f"Beacons optimisation error")
                 # index_of_max = rel_list.index(max(rel_list, key= lambda _rel: _rel.ddist))
                 # rel_list.pop(index_of_max)
                 # except:
