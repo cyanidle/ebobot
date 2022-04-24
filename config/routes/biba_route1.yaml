@@ -11,7 +11,7 @@ tasks:
     - call: AdjustOn
   get_flipped: 
     #- move: 1.68/2.04/-1.047
-    - move: 1.68/1.69/-1.047
+    - move: 1.68/1.73/-1.047
     - call: ArmHalfDown
     - sleep: 0.2
     - call: PumpOn
@@ -77,6 +77,8 @@ tasks:
     - move: 1.64/2.43/-1.047
     - call: ArmDown
   bokovaia1:
+    - move: 1.3/2.6/0.586
+    - sleep: 0.3
     - move: 0.77/2.6/0.586
     - move: 0.77/2.6/0.586
     - call: ArmBokovaya
