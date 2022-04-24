@@ -106,8 +106,8 @@ tasks:
   parkovka:
     - change_cost: 70
     - move: 0.74/2.26/1.375
-    - score: 20 
     - call: PumpOff
+    - score: 20 
     - route_stop: epics
 interrupts:    
   park_inter:

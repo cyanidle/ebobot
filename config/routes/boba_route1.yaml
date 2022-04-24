@@ -64,8 +64,7 @@ tasks:
 
   izmerenie1:
     - move : 0.18/2.23/2.09
-    - call: Izmerenie
-    - call: Ohms
+    - call: NeNadoPlitka
     - sleep: 0.2
     - call: NadoPlitka
     - sleep: 0.1
