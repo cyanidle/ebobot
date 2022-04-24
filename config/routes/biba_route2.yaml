@@ -126,7 +126,7 @@ tasks:
     - route_stop: epics
 interrupts:              
   park_inter:
-    - interrupt_condition: timers/main/95
+    - interrupt_condition: timers/main/93
     - change_cost: 30
     - move: 0.74/0.78/-3.43
     - call: PumpOff   
