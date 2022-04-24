@@ -420,12 +420,21 @@ class Beacons(Laser):
                         rospy.logerr("Expected beacons not init!")    
             if len(nums) < 2:
                 return
-            while len(nums) > 2:
-                try:
-                    index_of_max = rel_list.index(max(rel_list, key= lambda _rel: _rel.ddist))
-                    rel_list.pop(index_of_max)
-                except:
-                    rospy.logwarn("Doronin nakosyachil")
+            rospy.logwarn_once(f"rel_list = {rel_list}")
+            while len(rel_list) > 2:
+                max_ddist = 0
+                _to_remove = None
+                for _num,rel in enumerate(rel_list):
+                    if rel.ddist >= max_ddist:
+                        _to_remove = _num
+                        max_ddist = rel.ddist
+                rospy.logwarn_once(f"To remove - {_to_remove}")
+                if _to_remove is not None:
+                    rel_list.pop(_to_remove)
+                # index_of_max = rel_list.index(max(rel_list, key= lambda _rel: _rel.ddist))
+                # rel_list.pop(index_of_max)
+                # except:
+                #     rospy.logwarn("Doronin nakosyachil")
             for num in nums:
                 exp_list.append(cls.expected_list[num]) #this parts sets up two beacons
             rel_line = np.array((rel_list[1].pose[0] - rel_list[0].pose[0],    rel_list[1].pose[1] - rel_list[0].pose[1] ))

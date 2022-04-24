@@ -56,8 +56,8 @@ laser_scan_callback:
     ## Features
     max_th_for_linear_adj: 0.008
     #
-    max_th_adj: 0.2 #radians
-    max_pos_adj: 0.3 #meters
+    max_th_adj: 0.3 #radians
+    max_pos_adj: 0.4 #meters
     #
     enable_adjust: 1
     pub_all: 1
