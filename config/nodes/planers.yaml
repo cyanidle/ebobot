@@ -1,6 +1,6 @@
 
 global_planer/maximum_cost: 8 #Most important
-local_planer/cost_threshhold: 37 #100 are walls, then there is inflation (Represents median of cost of points)
+local_planer/cost_threshhold: 33 #100 are walls, then there is inflation (Represents median of cost of points)
 local_planer/max_cost_increase: 2.3 # x times
 local_planer/timeout_on_fail: 1 #secs
 #speed coeffs
