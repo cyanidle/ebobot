@@ -91,7 +91,6 @@ tasks:
     - sleep: 0.3
     - move: 0.5/2.51/1.365
     - call: ArmUp
-    - sleep: 0.6
     - call: ArmMegaUp
     - sleep: 0.2
     - move: 0.315/2.725/1.365
@@ -101,7 +100,7 @@ tasks:
     - sleep: 0.1
     - call: ValveOn
     - score: 5
-    - sleep: 0.2
+    - sleep: 0.1
     - call: ValveOff
   parkovka:
     - change_cost: 30
