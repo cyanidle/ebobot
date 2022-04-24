@@ -11,7 +11,7 @@ tasks:
     - call: AdjustOn
   get_flipped: 
     #- move: 1.68/2.04/-1.047
-    - move: 1.68/1.7/-1.047
+    - move: 1.68/1.69/-1.047
     - call: ArmHalfDown
     - sleep: 0.2
     - call: PumpOn

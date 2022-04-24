@@ -105,7 +105,7 @@ tasks:
   #  - sleep: 1
 
   parkovka:
-   - move: 0.45/1.15/2.09
+   - move: 0.45/1.13/2.09
    - call: PumpOff
    - score: 20
    - route_stop: epic
@@ -140,7 +140,7 @@ interrupts:
   park_inter:
     - interrupt_condition: timers/main/96
     - change_cost: 70
-    - move: 0.45/1.15/2.09
+    - move: 0.45/1.13/2.09
     - score: 20  
   end_inter:
     - interrupt_condition: timers/main/99
