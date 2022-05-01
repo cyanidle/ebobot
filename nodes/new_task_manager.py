@@ -12,8 +12,7 @@ from std_msgs.msg import Int8
 from std_srvs.srv import Empty, EmptyResponse
 #
 from markers import pubMarker
-from calls_executer import executer_dict, showPrediction
-from calls_executer import Move as move_client_constructor
+from calls_executer import executer_dict, showPrediction, Move as move_client_constructor
 #
 from ebobot.msg import MoveAction, MoveResult, MoveFeedback#, MoveGoal
 from ebobot.srv import ChangeCost, ChangeCostRequest
