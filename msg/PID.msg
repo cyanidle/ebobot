@@ -1,3 +1,3 @@
-int16 prop
-int16 inter
-int16 diff
+float32 prop
+float32 inter
+float32 diff
